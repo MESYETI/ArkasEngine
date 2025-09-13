@@ -20,6 +20,8 @@ void App_Init(void) {
 	camera.roll  = 0.0;
 
 	Map_Init();
+
+	SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
 void App_Update(void) {
@@ -42,6 +44,14 @@ void App_Update(void) {
 					video.height = e.window.data2;
 					Backend_OnWindowResize();
 				}
+				break;
+			}
+			case SDL_MOUSEMOTION: {
+				camera.yaw   += (float) e.motion.xrel * 7.5 * app.delta;
+				camera.pitch -= (float) e.motion.yrel * 7.5 * app.delta;
+
+				if (camera.pitch >  90.0) camera.pitch =  90.0;
+				if (camera.pitch < -90.0) camera.pitch = -90.0;
 				break;
 			}
 		}
@@ -73,6 +83,12 @@ void App_Update(void) {
 	}
 	if (keys[SDL_SCANCODE_LEFT]) {
 		camera.yaw -= app.delta * sensitivity;
+	}
+	if (keys[SDL_SCANCODE_P]) {
+		SDL_SetRelativeMouseMode(SDL_TRUE);
+	}
+	if (keys[SDL_SCANCODE_O]) {
+		SDL_SetRelativeMouseMode(SDL_FALSE);
 	}
 
 	Backend_RenderScene();

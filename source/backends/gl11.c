@@ -266,18 +266,11 @@ void Backend_RenderScene(void) {
 		GL(glEnd());
 	}
 
-	glColor3ub(64, 64, 64);
+	//glColor3ub(64, 64, 64);
 	glBegin(GL_TRIANGLE_FAN);
-	float minX;
-	float minY;
-	float maxX;
-	float maxY;
 
 	for (size_t i = 0; i < map.pointsLen; ++ i) {
-		
-	}
-
-	for (size_t i = 0; i < map.pointsLen; ++ i) {
+		glTexCoord2f(map.points[i].pos.x, map.points[i].pos.y);
 		glVertex3f(map.points[i].pos.x, -0.5, map.points[i].pos.y);
 	}
 	GL(glEnd());
@@ -285,6 +278,7 @@ void Backend_RenderScene(void) {
 	// render ceiling
 	glBegin(GL_TRIANGLE_FAN);
 	for (size_t i = 0; i < map.pointsLen; ++ i) {
+		glTexCoord2f(map.points[i].pos.x, map.points[i].pos.y);
 		glVertex3f(map.points[i].pos.x, 0.5, map.points[i].pos.y);
 	}
 	GL(glEnd());
