@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"yeti0904"
+	],
+	"copyright": "Copyright © 2024, yeti0904",
+	"description": "Converter from OBJ to ZKModel",
+	"license": "Unlicense",
+	"name": "obj2zkm"
+}

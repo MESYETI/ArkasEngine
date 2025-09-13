@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/obj2zkm
+obj2zkm.so
+obj2zkm.dylib
+obj2zkm.dll
+obj2zkm.a
+obj2zkm.lib
+obj2zkm-test-*
+*.exe
+*.pdb
+*.o
+*.obj
+*.lst
