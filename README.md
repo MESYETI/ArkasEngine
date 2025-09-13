@@ -10,6 +10,9 @@ Controls:
 - O to free the cursor
 - P to lock the cursor back into the window
 
+## Screenshot
+![Screenshot](/screenshot.png)
+
 ## Build
 ```
 make
