@@ -133,7 +133,7 @@ void Backend_Init(void) {
 	printf("\r");*/
 
 	// set values
-	state.nearPlane        = 0.001;
+	state.nearPlane        = 0.1;
 	state.farPlane         = 1000;
 	state.fov              = 70;
 	state.aspect           = 640.0 / 480.0; // TODO: replace this
