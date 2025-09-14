@@ -10,6 +10,11 @@ typedef struct {
 } MapPoint;
 
 typedef struct {
+	bool   isPortal;
+	size_t portalSector;
+} Wall;
+
+typedef struct {
 	size_t   start;
 	size_t   length;
 	float    ceiling;
@@ -20,6 +25,8 @@ typedef struct {
 typedef struct {
 	MapPoint* points;
 	size_t    pointsLen;
+	Wall*     walls;
+	size_t    wallsLen;
 	Sector*   sectors;
 	size_t    sectorsLen;
 } Map;

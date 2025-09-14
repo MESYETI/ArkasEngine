@@ -1,5 +1,6 @@
 #include "../stb.h"
 #include "../map.h"
+#include "../safe.h"
 #include "../util.h"
 #include "../video.h"
 #include "../camera.h"
@@ -41,6 +42,9 @@ typedef struct {
 
 	SDL_GLContext ctx;
 	Texture       textures[64];
+
+	// per frame state
+	bool* sectorsRendered;
 } State;
 
 static State state;
@@ -135,6 +139,7 @@ void Backend_Init(void) {
 	state.aspect           = 640.0 / 480.0; // TODO: replace this
 	state.viewMatrix[3][3] = 1.0f;
 	state.projMatrix[2][3] = -1.0f;
+	state.sectorsRendered  = NULL; // set this later
 
 	CalcProjMatrix();
 
@@ -202,51 +207,83 @@ Vec2 Backend_GetTextureSize(Texture* texture) {
 static void RenderSector(Sector* sector) {
 	float height = sector->ceiling - sector->floor;
 
+	if (state.sectorsRendered[sector - map.sectors]) {
+		return;
+	}
+
+	state.sectorsRendered[sector - map.sectors] = true;
+
 	glBindTexture(GL_TEXTURE_2D, sector->texture->name);
 	for (size_t i = 0; i < sector->length; ++ i) {
-		glBegin(GL_TRIANGLE_FAN);
-		glColor3ub(255, 255, 255);
-
 		const MapPoint* point1 = &map.points[i + sector->start];
 		const MapPoint* point2 = (i == sector->length - 1)?
 			&map.points[sector->start] : &map.points[i + sector->start + 1];
 
-		float maxTexCoord;
-		maxTexCoord = Distance(point1->pos, point2->pos);
+		const Wall* wall = &map.walls[i + sector->start];
 
-		glTexCoord2f(maxTexCoord, height); // lower left
-		glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
+		if (!wall->isPortal) {
+			glBegin(GL_TRIANGLE_FAN);
+			glColor3ub(255, 255, 255);
 
-		glTexCoord2f(0.0, height); // lower right
-		glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
+			FVec2 camPos = (FVec2) {camera.pos.x, camera.pos.z};
 
-		glTexCoord2f(0.0, 0.0); // upper right
-		glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
+			float shadeLeft  = 1.0 - (Distance(camPos, point1->pos) / 20.0);
+			float shadeRight = 1.0 - (Distance(camPos, point2->pos) / 20.0);
 
-		glTexCoord2f(maxTexCoord, 0.0); // upper left
-		glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
+			if (shadeLeft  < 0.0) shadeLeft  = 0.0;
+			if (shadeRight < 0.0) shadeRight = 0.0;
 
-		GL(glEnd());
+			float maxTexCoord;
+			maxTexCoord = Distance(point1->pos, point2->pos) / height;
+
+			glTexCoord2f(maxTexCoord, height); // lower left
+			glColor3f(shadeLeft, shadeLeft, shadeLeft);
+			glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
+
+			glTexCoord2f(0.0, height); // lower right
+			glColor3f(shadeRight, shadeRight, shadeRight);
+			glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
+
+			glTexCoord2f(0.0, 0.0); // upper right
+			glColor3f(shadeLeft, shadeLeft, shadeLeft);
+			glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
+
+			glTexCoord2f(maxTexCoord, 0.0); // upper left
+			glColor3f(shadeRight, shadeRight, shadeRight);
+			glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
+
+			GL(glEnd());
+		}
 	}
 
 	glBegin(GL_TRIANGLE_FAN);
+	glColor3f(1.0, 1.0, 1.0);
 
 	// render floor
-	for (size_t i = sector->length - 1; i < sector->length; -- i) {
+	for (size_t i = sector->length - 1; true; -- i) {
 		size_t idx = i + sector->start;
 		glTexCoord2f(map.points[idx].pos.x, map.points[idx].pos.y);
 		glVertex3f(map.points[idx].pos.x, sector->floor, map.points[idx].pos.y);
+
+		if (i == 0) break;
 	}
 	GL(glEnd());
 
 	// render ceiling
 	glBegin(GL_TRIANGLE_FAN);
-	for (size_t i = 0; i < map.pointsLen; ++ i) {
+	for (size_t i = 0; i < sector->length; ++ i) {
 		size_t idx = i + sector->start;
 		glTexCoord2f(map.points[idx].pos.x, map.points[idx].pos.y);
 		glVertex3f(map.points[idx].pos.x, sector->ceiling, map.points[idx].pos.y);
 	}
 	GL(glEnd());
+
+	for (size_t i = 0; i < sector->length; ++ i) {
+		const Wall* wall = &map.walls[i];
+		if (wall->isPortal) {
+			RenderSector(&map.sectors[wall->portalSector]);
+		}
+	}
 }
 
 void Backend_RenderScene(void) {
@@ -265,6 +302,11 @@ void Backend_RenderScene(void) {
 	CalcViewMatrix();
 	GL(glLoadMatrixf((float*) state.viewMatrix));
 
+	if (state.sectorsRendered == NULL) {
+		state.sectorsRendered = SafeMalloc(map.sectorsLen * sizeof(bool));
+	}
+	memset(state.sectorsRendered, 0, map.sectorsLen * sizeof(bool));
+
 	RenderSector(camera.sector);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -276,6 +318,7 @@ void Backend_RenderScene(void) {
 
 	// now do 2D stuff
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	GL(glMatrixMode(GL_MODELVIEW));
 	GL(glLoadIdentity());

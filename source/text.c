@@ -24,13 +24,13 @@ void Text_Render(Font* font, const char* string, int x, int y) {
 	Rect src;
 	src.w = font->charWidth;
 	src.h = font->charHeight;
-	Backend_DrawTexture(font->texture, NULL, NULL, NULL);
+	// Backend_DrawTexture(font->texture, NULL, NULL, NULL);
 
-// 	for (size_t i = 0; i < strlen(string); ++ i) {
-// 		src.x = ((int) (string[i] % 16)) * font->charWidth;
-// 		src.y = ((int) (string[i] / 16)) * font->charHeight;
-// 
-// 		Backend_DrawTexture(font->texture, NULL, &src, &dest);
-// 		dest.x += font->charWidth;
-// 	}
+	for (size_t i = 0; i < strlen(string); ++ i) {
+		src.x = ((int) (string[i] % 16)) * font->charWidth;
+		src.y = ((int) (string[i] / 16)) * font->charHeight;
+
+		Backend_DrawTexture(font->texture, NULL, &src, &dest);
+		dest.x += font->charWidth;
+	}
 }

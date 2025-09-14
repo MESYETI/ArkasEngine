@@ -105,6 +105,15 @@ void App_Update(void) {
 	snprintf(text, 80, "FPS: %d", (int) (1 / app.delta));
 	Text_Render(&app.font, text, 8, 8);
 
+	snprintf(text, 80, "X: %g", camera.pos.x);
+	Text_Render(&app.font, text, 8, 24);
+	snprintf(text, 80, "Y: %g", camera.pos.y);
+	Text_Render(&app.font, text, 8, 40);
+	snprintf(text, 80, "Z: %g", camera.pos.z);
+	Text_Render(&app.font, text, 8, 56);
+	snprintf(text, 80, "Sector: %d", (int) (camera.sector - map.sectors));
+	Text_Render(&app.font, text, 8, 72);
+
 	Backend_FinishRender();
 	oldFrameTime = newFrameTime;
 }
