@@ -5,10 +5,6 @@
 #include "common.h"
 
 typedef struct {
-	int x, y, w, h;
-} Rect;
-
-typedef struct {
 	uint8_t r, g, b;
 } Colour;
 

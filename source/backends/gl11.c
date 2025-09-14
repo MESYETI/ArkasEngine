@@ -3,24 +3,8 @@
 #include "../util.h"
 #include "../video.h"
 #include "../camera.h"
-#include "../common.h"
 #include "../backend.h"
-
-#define GL_GLEXT_PROTOTYPES
-#ifdef PLATFORM_OSX
-	#include <OpenGL/gl.h>
-	#include <OpenGL/glext.h>
-#else
-	#include <GL/gl.h>
-	#include <GL/glext.h>
-#endif
-#ifndef USE_KHR_DEBUG
-    #if !defined(NDEBUG) && defined(GL_KHR_debug) && GL_KHR_debug
-        #define USE_KHR_DEBUG 1
-    #else
-        #define USE_KHR_DEBUG 0
-    #endif
-#endif
+#include "gl11.h"
 
 static void GL_Error(GLenum error) {
 	const char* errorStr;
@@ -56,7 +40,7 @@ typedef struct {
 	Model model;
 
 	SDL_GLContext ctx;
-	GLuint tex;
+	Texture       textures[64];
 } State;
 
 static State state;
@@ -123,6 +107,7 @@ void Backend_Init(void) {
 	if (SDL_GL_SetSwapInterval(-1) == -1) {
 		SDL_GL_SetSwapInterval(1);
 	}
+	// SDL_GL_SetSwapInterval(0);
 
 	Log("Vendor:   %s", (const char*) glGetString(GL_VENDOR));
 	Log("Renderer: %s", (const char*) glGetString(GL_RENDERER));
@@ -157,32 +142,10 @@ void Backend_Init(void) {
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
 	Log("Max texture size: %d", maxTextureSize);
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	// glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Model_Load(&state.model, "heavy.zkm");
-
-	// load texture
-	int width, height, ch;
-
-	uint8_t* data = stbi_load("texture.png", &width, &height, &ch, 0);
-	if (data == NULL) {
-		Error("Failed to load %s: %s", "texture.png", stbi_failure_reason());
-	}
-
-    glGenTextures(1, &state.tex);
-    glBindTexture(GL_TEXTURE_2D, state.tex);
-	glTexImage2D(
-		GL_TEXTURE_2D, 0, ch, width, height, 0, (ch == 3) ? GL_RGB : GL_RGBA,
-		GL_UNSIGNED_BYTE, data
-	);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_REPEAT);
-
-    free(data);
 }
 
 void Backend_Free(void) {
@@ -190,7 +153,108 @@ void Backend_Free(void) {
 	Model_Free(&state.model);
 }
 
+Texture* Backend_LoadTexture(const char* path) {
+	int width, height, ch;
+
+	uint8_t* data = stbi_load(path, &width, &height, &ch, 0);
+	if (data == NULL) {
+		Error("Failed to load %s: %s", path, stbi_failure_reason());
+	}
+
+	GLuint tex;
+    GL(glGenTextures(1, &tex));
+    GL(glBindTexture(GL_TEXTURE_2D, tex));
+	GL(glTexImage2D(
+		GL_TEXTURE_2D, 0, ch, width, height, 0, (ch == 3) ? GL_RGB : GL_RGBA,
+		GL_UNSIGNED_BYTE, data
+	));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_REPEAT));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_REPEAT));
+
+    free(data);
+
+    // now put this texture in the texture array
+    for (size_t i = 0; i < sizeof(state.textures) / sizeof(Texture); ++ i) {
+    	if (!state.textures[i].used) {
+    		state.textures[i].used   = true;
+    		state.textures[i].name   = tex;
+    		state.textures[i].width  = width;
+    		state.textures[i].height = height;
+    		return &state.textures[i];
+    	}
+    }
+
+    Error("No more room for textures");
+    return NULL;
+}
+
+void Backend_FreeTexture(Texture* texture) {
+	GL(glDeleteTextures(1, &texture->name));
+	texture->used = false;
+}
+
+Vec2 Backend_GetTextureSize(Texture* texture) {
+	return (Vec2) {texture->width, texture->height};
+}
+
+static void RenderSector(Sector* sector) {
+	float height = sector->ceiling - sector->floor;
+
+	glBindTexture(GL_TEXTURE_2D, sector->texture->name);
+	for (size_t i = 0; i < sector->length; ++ i) {
+		glBegin(GL_TRIANGLE_FAN);
+		glColor3ub(255, 255, 255);
+
+		const MapPoint* point1 = &map.points[i + sector->start];
+		const MapPoint* point2 = (i == sector->length - 1)?
+			&map.points[sector->start] : &map.points[i + sector->start + 1];
+
+		float maxTexCoord;
+		maxTexCoord = Distance(point1->pos, point2->pos);
+
+		glTexCoord2f(maxTexCoord, height); // lower left
+		glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
+
+		glTexCoord2f(0.0, height); // lower right
+		glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
+
+		glTexCoord2f(0.0, 0.0); // upper right
+		glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
+
+		glTexCoord2f(maxTexCoord, 0.0); // upper left
+		glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
+
+		GL(glEnd());
+	}
+
+	glBegin(GL_TRIANGLE_FAN);
+
+	// render floor
+	for (size_t i = sector->length - 1; i < sector->length; -- i) {
+		size_t idx = i + sector->start;
+		glTexCoord2f(map.points[idx].pos.x, map.points[idx].pos.y);
+		glVertex3f(map.points[idx].pos.x, sector->floor, map.points[idx].pos.y);
+	}
+	GL(glEnd());
+
+	// render ceiling
+	glBegin(GL_TRIANGLE_FAN);
+	for (size_t i = 0; i < map.pointsLen; ++ i) {
+		size_t idx = i + sector->start;
+		glTexCoord2f(map.points[idx].pos.x, map.points[idx].pos.y);
+		glVertex3f(map.points[idx].pos.x, sector->ceiling, map.points[idx].pos.y);
+	}
+	GL(glEnd());
+}
+
 void Backend_RenderScene(void) {
+	glDisable(GL_BLEND);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_CULL_FACE);
+
 	glViewport(0, 0, video.width, video.height);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -201,87 +265,7 @@ void Backend_RenderScene(void) {
 	CalcViewMatrix();
 	GL(glLoadMatrixf((float*) state.viewMatrix));
 
-	// glBegin(GL_TRIANGLE_FAN);
-	// glVertex3f(-0.5f, -0.5f, 1.0f);
-	// glVertex3f(0.5f, -0.5f, 1.0f);
-	// glVertex3f(0.5f, 0.5f, 1.0f);
-	// glVertex3f(-0.5f, 0.5f, 1.0f);
-	// GL(glEnd());
-
-// 	static const FVec2 walls[] = {
-// 		{-2.0, -2.0}, {-2.0, 2.0}, {2.0, 2.0}, {2.0, -2.0}, {-2.0, -2.0}
-// 	};
-// 	static const int wallCount = 4;
-// 
-// 	for (int i = 0; i < wallCount; ++ i) {
-// 		glBegin(GL_TRIANGLE_FAN);
-// 
-// 		switch (i) {
-// 			case 0: glColor3ub(255, 0,   0);   break;
-// 			case 1: glColor3ub(0,   255, 0);   break;
-// 			case 2: glColor3ub(0,   0,   255); break;
-// 			case 3: glColor3ub(255, 255, 0);   break;
-// 		}
-// 
-// 		const FVec2* point1 = &walls[i];
-// 		const FVec2* point2 = &walls[i + 1];
-// 
-// 		glVertex3f(point1->x, -0.5, point1->y);
-// 		glVertex3f(point2->x, -0.5, point2->y);
-// 		glVertex3f(point2->x,  0.5, point2->y);
-// 		glVertex3f(point1->x,  0.5, point1->y);
-// 		GL(glEnd());
-// 	}
-
-	glBindTexture(GL_TEXTURE_2D, state.tex);
-	for (size_t i = 0; i < map.pointsLen; ++ i) {
-		glBegin(GL_TRIANGLE_FAN);
-
-		switch (i % 4) {
-			case 0: glColor3ub(255, 255, 255);   break;
-			case 1: glColor3ub(239, 239, 239);   break;
-			case 2: glColor3ub(223, 223, 223); break;
-			case 3: glColor3ub(191, 191, 191);   break;
-		}
-
-		const MapPoint* point1 = &map.points[i];
-		const MapPoint* point2 = (i == map.pointsLen - 1)?
-			&map.points[0] : &map.points[i + 1];
-
-		float maxTexCoord;
-		maxTexCoord = Distance(point1->pos, point2->pos) / 0.5;
-
-		glTexCoord2f(maxTexCoord, 1.0); // lower left
-		glVertex3f(point1->pos.x, -0.5, point1->pos.y);
-
-		glTexCoord2f(0.0, 1.0); // lower right
-		glVertex3f(point2->pos.x, -0.5, point2->pos.y);
-
-		glTexCoord2f(0.0, 0.0); // upper right
-		glVertex3f(point2->pos.x,  0.5, point2->pos.y);
-
-		glTexCoord2f(maxTexCoord, 0.0); // upper left
-		glVertex3f(point1->pos.x,  0.5, point1->pos.y);
-
-		GL(glEnd());
-	}
-
-	//glColor3ub(64, 64, 64);
-	glBegin(GL_TRIANGLE_FAN);
-
-	for (size_t i = 0; i < map.pointsLen; ++ i) {
-		glTexCoord2f(map.points[i].pos.x, map.points[i].pos.y);
-		glVertex3f(map.points[i].pos.x, -0.5, map.points[i].pos.y);
-	}
-	GL(glEnd());
-
-	// render ceiling
-	glBegin(GL_TRIANGLE_FAN);
-	for (size_t i = 0; i < map.pointsLen; ++ i) {
-		glTexCoord2f(map.points[i].pos.x, map.points[i].pos.y);
-		glVertex3f(map.points[i].pos.x, 0.5, map.points[i].pos.y);
-	}
-	GL(glEnd());
+	RenderSector(camera.sector);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -290,8 +274,17 @@ void Backend_RenderScene(void) {
 	opt.pos   = (FVec3) {0.0, -0.5, 0.0};
 	Backend_RenderModel(&state.model, &opt);
 
-	GL(glFinish());
-	SDL_GL_SwapWindow(video.window);
+	// now do 2D stuff
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	GL(glMatrixMode(GL_MODELVIEW));
+	GL(glLoadIdentity());
+	GL(glMatrixMode(GL_PROJECTION));
+	GL(glLoadIdentity());
+	GL(glOrtho(
+		0.0, (float) video.width, (float) video.height,
+		0.0, -1.0, 1.0
+	));
 }
 
 void Backend_OnWindowResize(void) {
@@ -333,5 +326,71 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 		);
 	}
 	
-	glEnd();
+	GL(glEnd());
+}
+
+void Backend_DrawTexture(
+	Texture* texture, TextureRenderOpt* p_opt, Rect* p_src, Rect* p_dest
+) {
+	TextureRenderOpt opt;
+	if (p_opt == NULL) {
+		opt.doTint = false;
+	}
+	else {
+		opt = *p_opt;
+	}
+
+	Rect src;
+	if (p_src == NULL) {
+		src = (Rect) {0, 0, texture->width, texture->height};
+	}
+	else {
+		src = *p_src;
+	}
+
+	Rect dest;
+	if (p_dest == NULL) {
+		dest = (Rect) {0, 0, video.width, video.height};
+	}
+	else {
+		dest = *p_dest;
+	}
+
+	GL(glBindTexture(GL_TEXTURE_2D, texture->name));
+
+	glBegin(GL_TRIANGLE_FAN);
+
+	if (opt.doTint) {
+		glColor3ub(opt.tint.r, opt.tint.g, opt.tint.b);
+	}
+	else {
+		glColor3ub(255, 255, 255);
+	}
+
+	glTexCoord2f(
+		((float) src.x) / ((float) texture->width),
+		((float) src.y) / ((float) texture->height)
+	);
+	glVertex2i(dest.x, dest.y);
+	glTexCoord2f(
+		((float) (src.x + src.w)) / ((float) texture->width),
+		((float) src.y) / ((float) texture->height)
+	);
+	glVertex2i(dest.x + dest.w, dest.y);
+	glTexCoord2f(
+		((float) (src.x + src.w)) / ((float) texture->width),
+		((float) (src.y + src.h)) / ((float) texture->height)
+	);
+	glVertex2i(dest.x + dest.w, dest.y + dest.h);
+	glTexCoord2f(
+		((float) src.x) / ((float) texture->width),
+		((float) (src.y + src.h)) / ((float) texture->height)
+	);
+	glVertex2i(dest.x, dest.y + dest.h);
+	GL(glEnd());
+}
+
+void Backend_FinishRender(void) {
+	GL(glFinish());
+	SDL_GL_SwapWindow(video.window);
 }

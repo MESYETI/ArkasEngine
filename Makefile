@@ -14,6 +14,8 @@ LD := $(CC)
 override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib
 override LDLIBS += -lm
 
+override CFLAGS += -DAE_BACKEND_GL11
+
 ifeq ($(BUILD),release)
 	override CFLAGS += -O3
 else

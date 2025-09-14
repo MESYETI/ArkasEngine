@@ -19,9 +19,17 @@ void App_Init(void) {
 	camera.yaw   = 0.0;
 	camera.roll  = 0.0;
 
+	app.font = Text_LoadFont("font.png");
+
 	Map_Init();
 
 	SDL_SetRelativeMouseMode(SDL_TRUE);
+}
+
+void App_Free(void) {
+	Map_Free();
+	Text_FreeFont(&app.font);
+	Video_Free();
 }
 
 void App_Update(void) {
@@ -92,9 +100,11 @@ void App_Update(void) {
 	}
 
 	Backend_RenderScene();
-	oldFrameTime = newFrameTime;
-}
 
-void App_Free(void) {
-	Video_Free();
+	static char text[80];
+	snprintf(text, 80, "FPS: %d", (int) (1 / app.delta));
+	Text_Render(&app.font, text, 8, 8);
+
+	Backend_FinishRender();
+	oldFrameTime = newFrameTime;
 }

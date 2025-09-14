@@ -12,6 +12,10 @@ typedef struct {
 } FVec2;
 
 typedef struct {
+	int x, y, w, h;
+} Rect;
+
+typedef struct {
 	float x, y, w, h;
 } FRect;
 
