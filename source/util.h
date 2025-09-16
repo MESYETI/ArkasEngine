@@ -9,14 +9,17 @@
 #define MIN(A, B) (((A) < (B))? (A) : (B))
 #define MAX(A, B) (((A) > (B))? (A) : (B))
 
-float RadToDeg(float rad);
-float DegToRad(float deg);
-float Lerp(float a, float b, float t);
-float CosDeg(float deg);
-float SinDeg(float deg);
-float Distance(FVec2 a, FVec2 b);
-char* NewString(const char* src);
-void  Log(const char* format, ...);
-void  Error(const char* format, ...);
+float  RadToDeg(float rad);
+float  DegToRad(float deg);
+float  Lerp(float a, float b, float t);
+float  CosDeg(float deg);
+float  SinDeg(float deg);
+float  Distance(FVec2 a, FVec2 b);
+char*  NewString(const char* src);
+size_t StrArrayLength(char** array);
+char** AppendStrArray(char** array, char* string);
+void   FreeStrArray(char** array);
+void   Log(const char* format, ...);
+void   Error(const char* format, ...);
 
 #endif

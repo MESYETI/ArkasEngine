@@ -5,25 +5,12 @@
 Video video;
 
 void Video_Init(void) {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
 		exit(1);
 	}
 
-	assert(SDL_GL_SetAttribute(
-		SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
-	) == 0);
-	assert(SDL_GL_SetAttribute(
-		SDL_GL_CONTEXT_MAJOR_VERSION, 2
-	) == 0);
-	assert(SDL_GL_SetAttribute(
-		SDL_GL_CONTEXT_MINOR_VERSION, 0
-	) == 0);
-	//#if USE_KHR_DEBUG
-	//    assert(SDL_GL_SetAttribute(
-	//	    SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG
-	//    ) == 0);
-	//#endif
+	Backend_Init(true);
 
 	video.window = SDL_CreateWindow(
 		"Arkas Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
@@ -39,7 +26,7 @@ void Video_Init(void) {
 
 	Log("Created window");
 
-	Backend_Init();
+	Backend_Init(false);
 }
 
 void Video_Free(void) {

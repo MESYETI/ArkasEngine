@@ -104,18 +104,51 @@ static void CalcViewMatrix(void) {
 		front[0] * camera.pos.x + front[1] * camera.pos.y + front[2] * camera.pos.z;
 }
 
-void Backend_Init(void) {
-	video.ctx = SDL_GL_CreateContext(video.window);
-	assert(SDL_GL_MakeCurrent(video.window, video.ctx) == 0);
+void Backend_Init(bool beforeWindow) {
+	if (beforeWindow) {
+		assert(SDL_GL_SetAttribute(
+			SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
+		) == 0);
+		assert(SDL_GL_SetAttribute(
+			SDL_GL_CONTEXT_MAJOR_VERSION, 2
+		) == 0);
+		assert(SDL_GL_SetAttribute(
+			SDL_GL_CONTEXT_MINOR_VERSION, 0
+		) == 0);
+		//#if USE_KHR_DEBUG
+		//    assert(SDL_GL_SetAttribute(
+		//	    SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG
+		//    ) == 0);
+		//#endif
+
+		return;
+	}
+
+	state.ctx = SDL_GL_CreateContext(video.window);
+	assert(SDL_GL_MakeCurrent(video.window, state.ctx) == 0);
 
 	if (SDL_GL_SetSwapInterval(-1) == -1) {
 		SDL_GL_SetSwapInterval(1);
 	}
 	// SDL_GL_SetSwapInterval(0);
 
-	Log("Vendor:   %s", (const char*) glGetString(GL_VENDOR));
-	Log("Renderer: %s", (const char*) glGetString(GL_RENDERER));
-	Log("Version:  %s", (const char*) glGetString(GL_VERSION));
+	Log("Vendor:           %s", (const char*) glGetString(GL_VENDOR));
+	Log("Renderer:         %s", (const char*) glGetString(GL_RENDERER));
+	Log("Version:          %s", (const char*) glGetString(GL_VERSION));
+
+	int intVal;
+	glGetIntegerv(GL_MAX_LIGHTS, &intVal);
+	Log("Max lights:       %d", intVal);
+
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &intVal);
+	Log("Max texture size: %d", intVal);
+
+	if (
+		strstr((const char*) glGetString(GL_EXTENSIONS), "GL_ARB_multitexture")
+		!= NULL
+	) {
+		Log("Multitexture available");
+	}
 
 	/*Log("Extensions:");
 	printf("    ");
@@ -142,10 +175,6 @@ void Backend_Init(void) {
 	state.sectorsRendered  = NULL; // set this later
 
 	CalcProjMatrix();
-
-	int maxTextureSize;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-	Log("Max texture size: %d", maxTextureSize);
 
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -292,10 +321,6 @@ void Backend_RenderScene(void) {
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_CULL_FACE);
 
-	glViewport(0, 0, video.width, video.height);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	GL(glMatrixMode(GL_PROJECTION));
 	GL(glLoadMatrixf((float*) state.projMatrix));
 	GL(glMatrixMode(GL_MODELVIEW));
@@ -317,17 +342,7 @@ void Backend_RenderScene(void) {
 	Backend_RenderModel(&state.model, &opt);
 
 	// now do 2D stuff
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	GL(glMatrixMode(GL_MODELVIEW));
-	GL(glLoadIdentity());
-	GL(glMatrixMode(GL_PROJECTION));
-	GL(glLoadIdentity());
-	GL(glOrtho(
-		0.0, (float) video.width, (float) video.height,
-		0.0, -1.0, 1.0
-	));
+	Backend_Begin2D();
 }
 
 void Backend_OnWindowResize(void) {
@@ -431,6 +446,31 @@ void Backend_DrawTexture(
 	);
 	glVertex2i(dest.x, dest.y + dest.h);
 	GL(glEnd());
+}
+
+void Backend_Begin(void) {
+	glViewport(0, 0, video.width, video.height);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Backend_Begin2D(void) {
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	GL(glMatrixMode(GL_MODELVIEW));
+	GL(glLoadIdentity());
+	GL(glMatrixMode(GL_PROJECTION));
+	GL(glLoadIdentity());
+	GL(glOrtho(
+		0.0, (float) video.width, (float) video.height,
+		0.0, -1.0, 1.0
+	));
+}
+
+void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
+	glClearColor(((float) r) / 256.0, ((float) g) / 256.0, ((float) b) / 256.0, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Backend_FinishRender(void) {

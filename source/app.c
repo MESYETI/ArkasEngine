@@ -1,33 +1,27 @@
 #include "app.h"
 #include "map.h"
 #include "util.h"
+#include "scene.h"
 #include "video.h"
 #include "camera.h"
 #include "backend.h"
+#include "console.h"
 
 App app;
 
 void App_Init(void) {
+	Log("Arkas Engine WIP");
+	Log("Made by MESYETI in 2025");
+
 	Video_Init();
+	SceneManager_Init();
 
 	app.running = true;
-
-	camera.pos.x = 0.0;
-	camera.pos.y = 0.0;
-	camera.pos.z = 0.0;
-	camera.pitch = 0.0;
-	camera.yaw   = 0.0;
-	camera.roll  = 0.0;
-
 	app.font = Text_LoadFont("font.png");
-
-	Map_Init();
-
-	SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
 void App_Free(void) {
-	Map_Free();
+	SceneManager_Free();
 	Text_FreeFont(&app.font);
 	Video_Free();
 }
@@ -42,6 +36,26 @@ void App_Update(void) {
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) {
 		switch (e.type) {
+			case SDL_KEYDOWN: {
+				switch (e.key.keysym.scancode) {
+					case SDL_SCANCODE_GRAVE: {
+						if (!app.console) {
+							Console_Begin();
+							app.console = true;
+						}
+						break;
+					}
+					case SDL_SCANCODE_ESCAPE: {
+						if (app.console) {
+							Console_End();
+							app.console = false;
+						}
+						break;
+					}
+					default: break;
+				}
+				break;
+			}
 			case SDL_QUIT: app.running = false; break;
 			case SDL_WINDOWEVENT: {
 				if (
@@ -63,56 +77,22 @@ void App_Update(void) {
 				break;
 			}
 		}
+
+		SceneManager_HandleEvent(&e);
+
+		if (app.console) {
+			Console_HandleEvent(&e);
+		}
 	}
 
-	const uint8_t* keys = SDL_GetKeyboardState(NULL);
+	SceneManager_Update();
 
-	static const float sensitivity = 180.0;
-	static const float speed       = 2.0;
+	Backend_Begin();
+	SceneManager_Render();
 
-	if (keys[SDL_SCANCODE_W]) {
-		camera.pos.z += CosDeg(camera.yaw) * app.delta * speed;
-		camera.pos.x += SinDeg(camera.yaw) * app.delta * speed;
+	if (app.console) {
+		Console_Render();
 	}
-	if (keys[SDL_SCANCODE_A]) {
-		camera.pos.z += CosDeg(camera.yaw - 90) * app.delta * speed;
-		camera.pos.x += SinDeg(camera.yaw - 90) * app.delta * speed;
-	}
-	if (keys[SDL_SCANCODE_S]) {
-		camera.pos.z += CosDeg(camera.yaw + 180) * app.delta * speed;
-		camera.pos.x += SinDeg(camera.yaw + 180) * app.delta * speed;
-	}
-	if (keys[SDL_SCANCODE_D]) {
-		camera.pos.z += CosDeg(camera.yaw + 90) * app.delta * speed;
-		camera.pos.x += SinDeg(camera.yaw + 90) * app.delta * speed;
-	}
-	if (keys[SDL_SCANCODE_RIGHT]) {
-		camera.yaw += app.delta * sensitivity;
-	}
-	if (keys[SDL_SCANCODE_LEFT]) {
-		camera.yaw -= app.delta * sensitivity;
-	}
-	if (keys[SDL_SCANCODE_P]) {
-		SDL_SetRelativeMouseMode(SDL_TRUE);
-	}
-	if (keys[SDL_SCANCODE_O]) {
-		SDL_SetRelativeMouseMode(SDL_FALSE);
-	}
-
-	Backend_RenderScene();
-
-	static char text[80];
-	snprintf(text, 80, "FPS: %d", (int) (1 / app.delta));
-	Text_Render(&app.font, text, 8, 8);
-
-	snprintf(text, 80, "X: %g", camera.pos.x);
-	Text_Render(&app.font, text, 8, 24);
-	snprintf(text, 80, "Y: %g", camera.pos.y);
-	Text_Render(&app.font, text, 8, 40);
-	snprintf(text, 80, "Z: %g", camera.pos.z);
-	Text_Render(&app.font, text, 8, 56);
-	snprintf(text, 80, "Sector: %d", (int) (camera.sector - map.sectors));
-	Text_Render(&app.font, text, 8, 72);
 
 	Backend_FinishRender();
 	oldFrameTime = newFrameTime;

@@ -8,6 +8,7 @@ typedef struct {
 	bool  running;
 	float delta;
 	Font  font;
+	bool  console;
 } App;
 
 extern App app;

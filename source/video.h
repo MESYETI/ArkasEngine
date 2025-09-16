@@ -9,9 +9,8 @@ typedef struct {
 } Colour;
 
 typedef struct {
-	SDL_Window*   window;
-	SDL_GLContext ctx;
-	int           width, height;
+	SDL_Window* window;
+	int         width, height;
 } Video;
 
 extern Video video;

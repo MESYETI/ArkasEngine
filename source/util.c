@@ -6,6 +6,7 @@
 #include "safe.h"
 #include "video.h"
 #include "common.h"
+#include "console.h"
 
 float RadToDeg(float rad) {
 	return rad * 180 / PI;
@@ -37,6 +38,33 @@ char* NewString(const char* src) {
 	char* ret = SafeMalloc(strlen(src) + 1);
 	strcpy(ret, src);
 	return ret;
+}
+
+size_t StrArrayLength(char** array) {
+	size_t ret = 0;
+
+	while (*array != NULL) {
+		++ ret;
+		++ array;
+	}
+
+	return ret;
+}
+
+char** AppendStrArray(char** array, char* string) {
+	size_t len = StrArrayLength(array);
+
+	array          = SafeRealloc(array, (len + 2) * sizeof(char*));
+	array[len]     = string;
+	array[len + 1] = NULL;
+}
+
+void FreeStrArray(char** array) {
+	for (size_t i = 0; array[i] != NULL; ++ i) {
+		free(array[i]);
+	}
+
+	free(array);
 }
 
 // most of this is taken from vsprintf(3)
@@ -76,6 +104,8 @@ void Log(const char* format, ...) {
 	tm = localtime(&rawTime);
 	
 	printf("[%.2d:%.2d:%.2d] %s\n", tm->tm_hour, tm->tm_min, tm->tm_sec, ret);
+
+	Console_WriteLine(ret);
 	free(ret);
 }
 
