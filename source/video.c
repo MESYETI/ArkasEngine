@@ -5,11 +5,6 @@
 Video video;
 
 void Video_Init(void) {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
-		exit(1);
-	}
-
 	assert(SDL_GL_SetAttribute(
 		SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
 	) == 0);
@@ -45,5 +40,4 @@ void Video_Init(void) {
 void Video_Free(void) {
 	Backend_Free();
 	SDL_DestroyWindow(video.window);
-	SDL_Quit();
 }
