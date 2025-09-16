@@ -8,6 +8,11 @@
 App app;
 
 void App_Init(void) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
+		exit(1);
+	}
+
 	Video_Init();
 
 	app.running = true;
@@ -30,6 +35,7 @@ void App_Free(void) {
 	Map_Free();
 	Text_FreeFont(&app.font);
 	Video_Free();
+	SDL_Quit();
 }
 
 void App_Update(void) {
