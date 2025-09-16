@@ -5,13 +5,6 @@
 Video video;
 
 void Video_Init(void) {
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
-		exit(1);
-	}
-
-	Backend_Init(true);
-
 	video.window = SDL_CreateWindow(
 		"Arkas Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
@@ -32,5 +25,4 @@ void Video_Init(void) {
 void Video_Free(void) {
 	Backend_Free();
 	SDL_DestroyWindow(video.window);
-	SDL_Quit();
 }

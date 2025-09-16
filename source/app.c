@@ -13,6 +13,11 @@ void App_Init(void) {
 	Log("Arkas Engine WIP");
 	Log("Made by MESYETI in 2025");
 
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
+		exit(1);
+	}
+
 	Video_Init();
 	SceneManager_Init();
 
@@ -24,6 +29,7 @@ void App_Free(void) {
 	SceneManager_Free();
 	Text_FreeFont(&app.font);
 	Video_Free();
+	SDL_Quit();
 }
 
 void App_Update(void) {

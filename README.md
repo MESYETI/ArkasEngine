@@ -1,8 +1,7 @@
 # Arkas Engine
-WIP (literally started today) 3D engine with build-like maps
+WIP 3D engine with build-like maps
 
-This current version is a rushed tech demo with no portals and just 1 sector. So,
-not a game engine yet. Also that's why the code is terrible so don't judge
+Currently has a demo map with two sectors and a team fortress 2 model
 
 Controls:
 - WASD for movement
