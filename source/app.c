@@ -8,7 +8,7 @@
 App app;
 
 void App_Init(void) {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
 		exit(1);
 	}
