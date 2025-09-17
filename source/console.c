@@ -38,90 +38,139 @@ void Console_End(void) {
 	SDL_StopTextInput();
 }
 
-static char** ParseCommand(void) {
-	char** res = SafeMalloc(1 * sizeof(char*));
-	res[0]     = NULL;
+// written by PQCraft after he was ragebaited by my C code
+static char** ParseCommand(int* argcOut) {
+	// USAGE:
+	//   argv = ParseCommand(&argc);
+	//   ...
+	//   free(*argv);
+	//   free(argv);
 
-	bool inString = false;
-	static char reading[100];
-	reading[0] = 0;
+	char* in = console.editor;
 
-	for (size_t i = 0; i <= strlen(console.editor); ++ i) {
+	char** resArray     = SafeMalloc(1 * sizeof(char*));
+	int    resArrayLen  = 0; // number of strings
+	int    resArraySize = 1; // buffer size
+
+	char* resString     = SafeMalloc(16);
+	int   resStringLen  = 0;  // data length
+	int   resStringSize = 16; // buffer size
+
+	char c            = *in;
+	bool inString     = false;
+	int  curStringPos = 0;
+
+	while (c == ' ' || c == '\t') { // trim leading whitespace
+		++ in;
+		c = *in;
+		if (!c) goto longBreak;
+	}
+	++ in;
+	goto skipRead; // avoids an extra deref without making the while loop funky
+
+	while (1) {
+		c = *in;
+		++ in;
+
+		skipRead:
 		if (inString) {
-			switch (console.editor[i]) {
-				case '"': {
-					AppendStrArray(res, NewString(reading));
-					reading[0] = 0;
-					inString   = false;
-					break;
-				}
-				case '\\': {
-					++ i;
-					if (i >= strlen(console.editor)) {
-						free(res);
-						return NULL;
-					}
+			if (c == '"') {
+				inString = false;
+				continue;
+			}
+			else if (c == '\\') {
+				c = *in;
+				++ in;
 
-					char add;
-					switch (console.editor[i]) {
-						case '\\': add = '\\'; break;
-						case '\"': add = '\"'; break;
-						default: {
-							free(res);
-							return NULL;
-						}
-					}
+				switch (c) {
+					case '"': break;
+					case '\\': break;
+					//case 'n': c = '\n'; break; // example escape sequence detection for '\n'
 
-					if (strlen(reading) >= 98) {
-						free(res);
-						return NULL;
+					// for invalid escapes, put down a backslash and then the char
+					// (instead of erroring out)
+					default: {
+						c = '\\';
+						-- in;
+						break;
 					}
-					strncat(reading, &add, 1);
-					break;
 				}
-				default: {
-					if (strlen(reading) >= 98) {
-						free(res);
-						return NULL;
-					}
-
-					strncat(reading, &console.editor[i], 1);
-				}
+			}
+			else if (!c) { // string wasn't terminated
+				free(resArray);
+				free(resString);
+				return NULL;
 			}
 		}
 		else {
-			switch (console.editor[i]) {
-				case '\0':
-				case '\t':
-				case ' ': {
-					if (reading[0] != 0) {
-						AppendStrArray(res, NewString(reading));
-						reading[0] = 0;
-					}
-					break;
+			if (!c || (c == ' ') || (c == '\t')) {
+				if (resArrayLen == resArraySize) {
+					resArraySize *= 2;
+					resArray = SafeRealloc(resArray, resArraySize * sizeof(char*));
 				}
-				case '"': {
-					inString = true;
-					break;
-				}
-				default: {
-					if (strlen(reading) >= 98) {
-						free(res);
-						return NULL;
-					}
 
-					strncat(reading, &console.editor[i], 1);
+				// mark down the location of the string in the buffer
+				resArray[resArrayLen] = (char*) ((uintptr_t) curStringPos);
+				++ resArrayLen;
+
+				// add null terminator
+				if (resStringLen == resStringSize) {
+					resStringSize *= 2;
+					resString      = SafeRealloc(resString, resStringSize);
 				}
+
+				resString[resStringLen] = 0;
+				++ resStringLen;
+
+				if (!c) break;
+				curStringPos = resStringLen;
+
+				// gobble up extra whitespace
+				c = *in;
+				while ((c == ' ') || (c == '\t')) {
+					++ in;
+					c = *in;
+					if (!c) goto longBreak;
+				}
+				continue;
+			}
+			else if (c == '"') {
+				inString = true;
+				continue;
 			}
 		}
+
+		if (resStringLen == resStringSize) {
+			resStringSize *= 2;
+			resString      = SafeRealloc(resString, resStringSize);
+		}
+
+		resString[resStringLen] = c;
+		++ resStringLen;
+	}
+	longBreak:
+
+	// downsize arrays
+	if (resArrayLen != resArraySize) {
+		resArray = SafeRealloc(resArray, resArrayLen * sizeof(char*));
+	}
+	if (resStringLen != resStringSize) {
+		resString = SafeRealloc(resString, resStringLen);
 	}
 
-	return res;
+	for (int i = 0; i < resArrayLen; ++i) {
+		// add the base pointer to all the strings
+		resArray[i] += (uintptr_t) resString;
+	}
+
+	*argcOut = resArrayLen;
+	return resArray;
 }
 
 static void RunCommand(void) {
 	Log("> %s", console.editor);
-	char** parts = ParseCommand();
+	int    argc;
+	char** parts = ParseCommand(&argc);
 	console.editor[0] = 0;
 
 	if (parts == NULL) {
@@ -131,13 +180,14 @@ static void RunCommand(void) {
 
 	for (size_t i = 0; i < console.cmdsLen; ++ i) {
 		if (strcmp(console.cmds[i].name, parts[0]) == 0) {
-			console.cmds[i].func(StrArrayLength(parts) - 1, &parts[1]);
+			console.cmds[i].func(argc - 1, &parts[1]);
 			return;
 		}
 	}
 
 	Log("Command '%s' not found", parts[0]);
-	FreeStrArray(parts);
+	free(*parts);
+	free(parts);
 }
 
 void Console_AddCommand(ConsoleCommand cmd) {
