@@ -10,6 +10,7 @@
 App app;
 
 void App_Init(void) {
+	Console_Init();
 	Log("Arkas Engine WIP");
 	Log("Made by MESYETI in 2025");
 
@@ -22,7 +23,8 @@ void App_Init(void) {
 	SceneManager_Init();
 
 	app.running = true;
-	app.font = Text_LoadFont("font.png");
+	app.font    = Text_LoadFont("font.png");
+	app.console = true;
 }
 
 void App_Free(void) {

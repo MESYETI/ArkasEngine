@@ -6,13 +6,22 @@
 #include "common.h"
 #include "backend.h"
 #include "console.h"
+#include "commands.h"
 
 Console console;
 
 void Console_Init(void) {
-	for (size_t i = 0; i < sizeof(console.lines) / sizeof(char*); ++ i) {
+	for (size_t i = 0; i < 100; ++ i) {
 		console.lines[i][0] = 0;
 	}
+
+	console.cmds    = NULL;
+	console.cmdsLen = 0;
+	Commands_Init();
+}
+
+void Console_Free(void) {
+	free(console.cmds);
 }
 
 void Console_WriteLine(char* text) {
@@ -85,8 +94,10 @@ static char** ParseCommand(void) {
 				case '\0':
 				case '\t':
 				case ' ': {
-					AppendStrArray(res, NewString(reading));
-					reading[0] = 0;
+					if (reading[0] != 0) {
+						AppendStrArray(res, NewString(reading));
+						reading[0] = 0;
+					}
 					break;
 				}
 				case '"': {
@@ -113,11 +124,29 @@ static void RunCommand(void) {
 	char** parts = ParseCommand();
 	console.editor[0] = 0;
 
-	for (size_t i = 0; parts[i] != 0; ++ i) {
-		Log("%s", parts[i]);
+	if (parts == NULL) {
+		Log("Invalid command");
+		return;
 	}
 
+	for (size_t i = 0; i < console.cmdsLen; ++ i) {
+		if (strcmp(console.cmds[i].name, parts[0]) == 0) {
+			console.cmds[i].func(StrArrayLength(parts) - 1, &parts[1]);
+			return;
+		}
+	}
+
+	Log("Command '%s' not found", parts[0]);
 	FreeStrArray(parts);
+}
+
+void Console_AddCommand(ConsoleCommand cmd) {
+	console.cmds = SafeRealloc(
+		console.cmds, (console.cmdsLen + 1) * sizeof(ConsoleCommand)
+	);
+
+	console.cmds[console.cmdsLen] = cmd;
+	++ console.cmdsLen;
 }
 
 void Console_HandleEvent(SDL_Event* e) {

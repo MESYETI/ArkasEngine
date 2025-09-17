@@ -57,6 +57,7 @@ char** AppendStrArray(char** array, char* string) {
 	array          = SafeRealloc(array, (len + 2) * sizeof(char*));
 	array[len]     = string;
 	array[len + 1] = NULL;
+	return array;
 }
 
 void FreeStrArray(char** array) {
