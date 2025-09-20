@@ -22,9 +22,12 @@ Requires SDL2 and stb (clone recursively!)
 Arkas (in it's WIP state) can only be built standalone. It starts with a console with
 these commands:
 
-- `ae.hello_world` - Print hello world to the console
-- `ae.test` - Load the test map
-- `ae.clear_scenes` - Clear scenes
+- `test-map`       - Load the test map
+- `clear-scenes`   - Clear scenes
+- `map <MAP NAME>` - Load `MAP NAME`. Maps are stored in the `maps` folder.
+  (Note: textures do not work when maps are loaded with this command, will be fixed when
+  the resource manager is added)
+- `dl-map <MAP NAME>` - Saves the current loaded map as `MAP NAME` in the `maps` folder
 
 ## Graphics backends
 ### Implemented

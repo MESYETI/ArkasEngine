@@ -1,6 +1,8 @@
 # ARM (ARkas Map)
 All integers are little endian
 
+Note: this WILL change in the future. do not use
+
 ## Header
 | Offset | Size | Description                                                       |
 | ------ | ---- | ----------------------------------------------------------------- |

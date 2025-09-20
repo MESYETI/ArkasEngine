@@ -265,19 +265,19 @@ static void RenderSector(Sector* sector) {
 			float maxTexCoord;
 			maxTexCoord = Distance(point1->pos, point2->pos) / height;
 
-			glTexCoord2f(maxTexCoord, height); // lower left
+			glTexCoord2f(-maxTexCoord, height); // lower left
 			glColor3f(shadeLeft, shadeLeft, shadeLeft);
 			glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
 
-			glTexCoord2f(0.0, height); // lower right
+			glTexCoord2f(-0.0, height); // lower right
 			glColor3f(shadeRight, shadeRight, shadeRight);
 			glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
 
-			glTexCoord2f(0.0, 0.0); // upper right
+			glTexCoord2f(-0.0, 0.0); // upper right
 			glColor3f(shadeLeft, shadeLeft, shadeLeft);
 			glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
 
-			glTexCoord2f(maxTexCoord, 0.0); // upper left
+			glTexCoord2f(-maxTexCoord, 0.0); // upper left
 			glColor3f(shadeRight, shadeRight, shadeRight);
 			glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
 
@@ -291,7 +291,7 @@ static void RenderSector(Sector* sector) {
 	// render floor
 	for (size_t i = sector->length - 1; true; -- i) {
 		size_t idx = i + sector->start;
-		glTexCoord2f(map.points[idx].pos.x, map.points[idx].pos.y);
+		glTexCoord2f(-map.points[idx].pos.x, map.points[idx].pos.y);
 		glVertex3f(map.points[idx].pos.x, sector->floor, map.points[idx].pos.y);
 
 		if (i == 0) break;
