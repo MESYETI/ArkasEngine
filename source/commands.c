@@ -1,37 +1,70 @@
 #include "app.h"
+#include "map.h"
 #include "util.h"
 #include "scene.h"
 #include "console.h"
 #include "commands.h"
 
-static void Command_HelloWorld(size_t argc, char** argv) {
-	(void) argc;
-	(void) argv;
-
-	Log("Hello world");
-}
+#define ASSERT_ARGC(N) \
+	if (argc != (N)) { \
+		Log("Command requires %d arguments", (N)); \
+		return; \
+	}
 
 static void Command_Test(size_t argc, char** argv) {
-	(void) argc;
+	ASSERT_ARGC(0);
 	(void) argv;
 
 	Log("Starting map viewer");
+
 	SceneManager_AddScene((Scene) {
 		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL, NULL
 	});
+	Map_LoadTest();
 	app.console = false;
 }
 
 static void Command_ClearScenes(size_t argc, char** argv) {
-	(void) argc;
+	ASSERT_ARGC(0);
 	(void) argv;
 
 	SceneManager_Free();
 	Log("Scenes cleared");
 }
 
+static void Command_Map(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	char* path1 = ConcatString("maps/", argv[0]);
+	char* path2 = ConcatString(path1,   ".arm");
+	free(path1);
+
+	SceneManager_AddScene((Scene) {
+		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL, NULL
+	});
+
+	if (!Map_LoadFile(path2)) {
+		Log("Failed to load map");
+		SceneManager_PopScene();
+	}
+
+	free(path2);
+	app.console = false;
+}
+
+static void Command_DlMap(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	char* path1 = ConcatString("maps/", argv[0]);
+	char* path2 = ConcatString(path1,   ".arm");
+	free(path1);
+	Map_SaveFile(path2);
+	free(path2);
+}
+
 void Commands_Init(void) {
-	Console_AddCommand((ConsoleCommand) {"ae.hello_world",  &Command_HelloWorld});
-	Console_AddCommand((ConsoleCommand) {"ae.test",         &Command_Test});
-	Console_AddCommand((ConsoleCommand) {"ae.clear_scenes", &Command_ClearScenes});
+	Console_AddCommand((ConsoleCommand) {"test-map",     &Command_Test});
+	Console_AddCommand((ConsoleCommand) {"clear-scenes", &Command_ClearScenes});
+	Console_AddCommand((ConsoleCommand) {"map",          &Command_Map});
+	Console_AddCommand((ConsoleCommand) {"dl-map",       *Command_DlMap});
 }

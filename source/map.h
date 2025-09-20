@@ -23,6 +23,7 @@ typedef struct {
 } Sector;
 
 typedef struct {
+	char*     name;
 	MapPoint* points;
 	size_t    pointsLen;
 	Wall*     walls;
@@ -35,5 +36,8 @@ extern Map map;
 
 void Map_Init(void);
 void Map_Free(void);
+void Map_LoadTest(void);
+bool Map_LoadFile(const char* path);
+bool Map_SaveFile(const char* path);
 
 #endif

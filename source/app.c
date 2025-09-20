@@ -1,3 +1,4 @@
+#include "fs.h"
 #include "app.h"
 #include "map.h"
 #include "util.h"
@@ -10,6 +11,11 @@
 App app;
 
 void App_Init(void) {
+	// make game engine folders
+	MakeDir("maps", true);
+	MakeDir("assets", true);
+	MakeDir("screenshots", true);
+
 	Console_Init();
 	Log("Arkas Engine WIP");
 	Log("Made by MESYETI in 2025");

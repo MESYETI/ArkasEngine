@@ -5,7 +5,7 @@
 void* SafeMalloc(size_t size) {
 	void* ret = malloc(size);
 
-	if (ret == NULL) {
+	if ((ret == NULL) && (size != 0)) {
 		fprintf(stderr, "Malloc returned NULL\n");
 		exit(1);
 	}
@@ -16,7 +16,7 @@ void* SafeMalloc(size_t size) {
 void* SafeRealloc(void* ptr, size_t size) {
 	void* ret = realloc(ptr, size);
 
-	if (ret == NULL) {
+	if ((ret == NULL) && (size > 0)) {
 		fprintf(stderr, "Malloc returned NULL\n");
 		exit(1);
 	}

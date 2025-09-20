@@ -1,6 +1,6 @@
-#include <time.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <time.h>
 #include <string.h>
 #include "util.h"
 #include "safe.h"
@@ -37,6 +37,13 @@ float Distance(FVec2 a, FVec2 b) {
 char* NewString(const char* src) {
 	char* ret = SafeMalloc(strlen(src) + 1);
 	strcpy(ret, src);
+	return ret;
+}
+
+char* ConcatString(const char* first, const char* second) {
+	char* ret = SafeMalloc(strlen(first) + strlen(second) + 1);
+	strcpy(ret, first);
+	strcat(ret, second);
 	return ret;
 }
 
