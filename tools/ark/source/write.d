@@ -53,8 +53,6 @@ class ArchiveWriter {
 	}
 
 	void WriteEntry(FileEntry entry) {
-		if (entry.fullPath.baseName() == file.name.baseName()) return;
-
 		Write8(entry.folder? 1 : 0);
 
 		string path = StringTableValue(entry.pathOffset);
@@ -67,6 +65,7 @@ class ArchiveWriter {
 		}
 
 		Write32(cast(uint) entry.pathOffset);
+		writefln("Entry '%s' has path offset %d", entry.fullPath, entry.pathOffset);
 
 		if (entry.folder) {
 			Write32(cast(uint) entry.contents.length);
@@ -99,6 +98,7 @@ class ArchiveWriter {
 		auto pos = file.tell();
 		file.seek(3, SEEK_SET);
 		Write32(cast(uint) size);
+		writefln("String table is %d bytes", size);
 		file.seek(pos, SEEK_SET);
 
 		// write entry
@@ -141,6 +141,8 @@ class ArchiveWriter {
 		entry.pathOffset = StringTableIndex(path.baseName());
 
 		foreach (DirEntry e ; dirEntries(path, SpanMode.shallow)) {
+			if (e.name.baseName() == file.name.baseName()) continue;
+
 			if (e.isDir) {
 				entry.contents ~= GetFolder(e.name);
 			}
