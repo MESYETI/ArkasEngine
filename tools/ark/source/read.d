@@ -1,19 +1,24 @@
 module ark.read;
 
 import std.stdio;
+import std.string;
 
 struct FileEntry {
 	bool   folder;
 	size_t size;
-	size_t contents;
 	string name;
+	size_t contentsOffset;
+
+	FileEntry[] folderContents;
 }
 
 class ArchiveReader {
-	File   file;
-	ushort ver;
-	uint   entryNum;
-	size_t contentsStart;
+	File      file;
+	ushort    ver;
+	uint      entryNum;
+	size_t    contentsStart;
+	ubyte[]   strings;
+	FileEntry root;
 
 	this(string path) {
 		file = File(path, "rb");
@@ -30,15 +35,16 @@ class ArchiveReader {
 	}
 
 	ushort Read16() {
-		ushort ret  = ReadByte();
-		ret        |= (cast(ushort) ReadByte()) << 8;
+		ushort ret  = Read8();
+		ret        |= (cast(ushort) Read8()) << 8;
+		return ret;
 	}
 
 	uint Read32() {
-		uint ret  = ReadByte();
-		ret      |= (cast(uint) ReadByte()) << 8;
-		ret      |= (cast(uint) ReadByte()) << 16;
-		ret      |= (cast(uint) ReadByte()) << 24;
+		uint ret  = Read8();
+		ret      |= (cast(uint) Read8()) << 8;
+		ret      |= (cast(uint) Read8()) << 16;
+		ret      |= (cast(uint) Read8()) << 24;
 		return ret;
 	}
 
@@ -53,13 +59,61 @@ class ArchiveReader {
 		return cast(string) ret;
 	}
 
+	ubyte[] ReadFile(FileEntry entry) {
+		file.seek(entry.contentsOffset, SEEK_SET);
+
+		auto ret = file.rawRead(new ubyte[entry.size]);
+
+		if (ret.length != entry.size) {
+			stderr.writefln("Error reading '%s'", entry.name);
+			stderr.writefln("File is meant to be %d bytes", entry.size);
+			stderr.writefln("Could only read %d bytes", ret.length);
+			stderr.writefln("File is located at offset %.8x", entry.contentsOffset);
+			assert(0);
+		}
+		return ret;
+	}
+
+	FileEntry ReadEntry() {
+		FileEntry entry;
+
+		entry.folder = Read8() != 0;
+		entry.size   = Read32();
+
+		// DO NOT forget to check this in the C version
+		entry.name = cast(string) (cast(char*) &strings[Read32()]).fromStringz();
+
+		entry.contentsOffset = file.tell;
+
+		if (entry.folder) {
+			size_t length = Read32();
+
+			foreach (i ; 0 .. length) {
+				entry.folderContents ~= ReadEntry();
+			}
+		}
+		else {
+			file.seek(entry.size, SEEK_CUR);
+		}
+
+		return entry;
+	}
+
 	void Read() {
 		// read header
 		ver = Read16();
-		Read8();
-		entryNum      = Read32();
-		contentsStart = Read32();
+		Read8(); // unused
 
-		
+		auto stringLen = Read32();
+		Read32(); // random number
+
+		// read strings
+		strings = file.rawRead(new ubyte[stringLen + 1]);
+		if (strings.length - 1 != stringLen) {
+			throw new Exception("Unexpected EOF");
+		}
+
+		// read file entries
+		root = ReadEntry();
 	}
 }
