@@ -132,6 +132,8 @@ void Backend_Init(bool beforeWindow) {
 	}
 	// SDL_GL_SetSwapInterval(0);
 
+	Log("Backend info: GL11");
+	Log("==================");
 	Log("Vendor:           %s", (const char*) glGetString(GL_VENDOR));
 	Log("Renderer:         %s", (const char*) glGetString(GL_RENDERER));
 	Log("Version:          %s", (const char*) glGetString(GL_VERSION));
@@ -149,6 +151,10 @@ void Backend_Init(bool beforeWindow) {
 	) {
 		Log("Multitexture available");
 	}
+	else {
+		Log("Multitexture not available");
+	}
+	Log("==================");
 
 	/*Log("Extensions:");
 	printf("    ");

@@ -4,6 +4,7 @@
 #include "text.h"
 #include "common.h"
 
+// TODO: rename to Engine
 typedef struct {
 	bool  running;
 	float delta;

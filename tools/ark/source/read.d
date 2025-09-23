@@ -82,8 +82,7 @@ class ArchiveReader {
 
 		// DO NOT forget to check this in the C version
 		uint offset = Read32();
-		writefln("Entry '%s' has path offset %d", entry.name, offset);
-		entry.name = cast(string) (cast(char*) &strings[offset]).fromStringz();
+		entry.name  = cast(string) (cast(char*) &strings[offset]).fromStringz();
 
 		entry.contentsOffset = file.tell;
 
@@ -104,11 +103,9 @@ class ArchiveReader {
 	void Read() {
 		// read header
 		ver = Read16();
-		writefln("Arkas version is %d", ver);
 		Read8(); // unused
 
 		auto stringLen = Read32();
-		writefln("String table is %d bytes", stringLen);
 		Read32(); // random number
 
 		// read strings

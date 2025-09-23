@@ -1,13 +1,26 @@
+#include <assert.h>
 #include "file.h"
 #include "safe.h"
 
-uint8_t File_ReadByte(FILE* file) {
+uint8_t File_Read8(FILE* file) {
 	int ret = fgetc(file);
 	assert(ret != EOF);
 	return ret;
 }
 
-uint32_t File_Read32Bit(FILE* file) {
+uint16_t File_Read16(FILE* file) {
+	uint16_t ret;
+	uint8_t  bytes[4];
+
+	assert(fread(&bytes, 2, 1, file) == 1);
+
+	ret  = bytes[0];
+	ret |= ((uint16_t) bytes[1]) << 8;
+
+	return ret;
+}
+
+uint32_t File_Read32(FILE* file) {
 	uint32_t ret;
 	uint8_t  bytes[4];
 
@@ -36,18 +49,47 @@ float File_ReadFloat(FILE* file) {
 }
 
 char* File_ReadString(FILE* file) {
-	uint32_t length = File_Read32Bit(file);
+	uint32_t length = File_Read32(file);
 	char*    ret    = SafeMalloc(length);
 
 	assert(fread(ret, 1, length, file) == length);
 	return ret;
 }
 
-void File_WriteByte(FILE* file, uint8_t byte) {
+char* File_ReadNTString(FILE* file) {
+	long here = ftell(file);
+	assert(here >= 0);
+
+	size_t length = 0;
+	while (true) {
+		char ch;
+		assert(fread(&ch, 1, 1, file) == 1);
+
+		if (ch == 0) break;
+		++ length;
+	}
+
+	fseek(file, here, SEEK_SET);
+	char* ret = SafeMalloc(length + 1);
+	assert(fread(ret, 1, length, file) == length);
+	ret[length] = 0;
+
+	return ret;
+}
+
+void File_Write8(FILE* file, uint8_t byte) {
 	fwrite(&byte, 1, 1, file);
 }
 
-void File_Write32Bit(FILE* file, uint32_t value) {
+void File_Write16(FILE* file, uint16_t value) {
+	uint8_t bytes[4];
+	bytes[0] = (uint8_t) (value & 0xFF);
+	bytes[1] = (uint8_t) ((value & 0xFF00) >> 8);
+
+	fwrite(&bytes, 1, 2, file);
+}
+
+void File_Write32(FILE* file, uint32_t value) {
 	uint8_t bytes[4];
 	bytes[0] = (uint8_t) (value & 0xFF);
 	bytes[1] = (uint8_t) ((value & 0xFF00)     >> 8);
@@ -58,5 +100,5 @@ void File_Write32Bit(FILE* file, uint32_t value) {
 }
 
 void File_WriteFloat(FILE* file, float value) {
-	File_Write32Bit(file, *((uint32_t*) &value));
+	File_Write32(file, *((uint32_t*) &value));
 }

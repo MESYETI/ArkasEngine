@@ -4,6 +4,7 @@
 #include "scene.h"
 #include "console.h"
 #include "commands.h"
+#include "resources.h"
 
 #define ASSERT_ARGC(N) \
 	if (argc != (N)) { \
@@ -62,9 +63,17 @@ static void Command_DlMap(size_t argc, char** argv) {
 	free(path2);
 }
 
+static void Command_Ls(size_t argc, char** argv) {
+	(void) argc;
+	(void) argv;
+
+	ResourceManager_List(NULL);
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {"clear-scenes", &Command_ClearScenes});
 	Console_AddCommand((ConsoleCommand) {"map",          &Command_Map});
-	Console_AddCommand((ConsoleCommand) {"dl-map",       *Command_DlMap});
+	Console_AddCommand((ConsoleCommand) {"dl-map",       &Command_DlMap});
+	Console_AddCommand((ConsoleCommand) {"ls",           &Command_Ls});
 }

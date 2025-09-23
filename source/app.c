@@ -7,18 +7,20 @@
 #include "camera.h"
 #include "backend.h"
 #include "console.h"
+#include "resources.h"
 
 App app;
 
 void App_Init(void) {
 	// make game engine folders
+	MakeDir("game", true);
 	MakeDir("maps", true);
-	MakeDir("assets", true);
 	MakeDir("screenshots", true);
 
 	Console_Init();
 	Log("Arkas Engine WIP");
 	Log("Made by MESYETI in 2025");
+	ResourceManager_Init();
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
@@ -34,6 +36,7 @@ void App_Init(void) {
 }
 
 void App_Free(void) {
+	ResourceManager_Free();
 	SceneManager_Free();
 	Text_FreeFont(&app.font);
 	Video_Free();

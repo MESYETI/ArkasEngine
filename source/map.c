@@ -108,15 +108,15 @@ bool Map_LoadFile(const char* path) {
 	Log("Loading '%s'", map.name);
 
 	if (file == NULL) return false;
-	map.pointsLen  = File_Read32Bit(file);
-	map.wallsLen   = File_Read32Bit(file);
-	map.sectorsLen = File_Read32Bit(file);
+	map.pointsLen  = File_Read32(file);
+	map.wallsLen   = File_Read32(file);
+	map.sectorsLen = File_Read32(file);
 
 	map.points  = SafeMalloc(map.pointsLen  * sizeof(MapPoint));
 	map.walls   = SafeMalloc(map.wallsLen   * sizeof(Wall));
 	map.sectors = SafeMalloc(map.sectorsLen * sizeof(Sector));
 
-	size_t stringsLen  = File_Read32Bit(file);
+	size_t stringsLen  = File_Read32(file);
 	char** stringTable = SafeMalloc((stringsLen + 1) * sizeof(char*));
 
 	stringTable[stringsLen] = NULL;
@@ -134,23 +134,23 @@ bool Map_LoadFile(const char* path) {
 
 	// read walls
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		map.walls[i].isPortal     = File_ReadByte(file) != 0;
-		map.walls[i].portalSector = File_Read32Bit(file);
+		map.walls[i].isPortal     = File_Read8(file) != 0;
+		map.walls[i].portalSector = File_Read32(file);
 
-		size_t texture = File_Read32Bit(file);
+		size_t texture = File_Read32(file);
 		(void) texture;
 	}
 
 	// read sectors
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
-		map.sectors[i].start   = File_Read32Bit(file);
-		map.sectors[i].length  = File_Read32Bit(file);
+		map.sectors[i].start   = File_Read32(file);
+		map.sectors[i].length  = File_Read32(file);
 		map.sectors[i].ceiling = File_ReadFloat(file);
 		map.sectors[i].floor   = File_ReadFloat(file);
 		map.sectors[i].texture = texture;
 
-		uint32_t ceilTexture  = File_Read32Bit(file);
-		uint32_t floorTexture = File_Read32Bit(file);
+		uint32_t ceilTexture  = File_Read32(file);
+		uint32_t floorTexture = File_Read32(file);
 		(void) ceilTexture;
 		(void) floorTexture;
 	}
@@ -167,10 +167,10 @@ bool Map_SaveFile(const char* path) {
 
 	if (file == NULL) return false;
 
-	File_Write32Bit(file, (uint32_t) map.pointsLen);
-	File_Write32Bit(file, (uint32_t) map.wallsLen);
-	File_Write32Bit(file, (uint32_t) map.sectorsLen);
-	File_Write32Bit(file, 0);
+	File_Write32(file, (uint32_t) map.pointsLen);
+	File_Write32(file, (uint32_t) map.wallsLen);
+	File_Write32(file, (uint32_t) map.sectorsLen);
+	File_Write32(file, 0);
 
 	// write points
 	for (size_t i = 0; i < map.pointsLen; ++ i) {
@@ -180,19 +180,19 @@ bool Map_SaveFile(const char* path) {
 
 	// write walls
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		File_WriteByte(file, map.walls[i].isPortal? 1 : 0);
-		File_Write32Bit(file, map.walls[i].portalSector);
-		File_Write32Bit(file, 0);
+		File_Write8(file, map.walls[i].isPortal? 1 : 0);
+		File_Write32(file, map.walls[i].portalSector);
+		File_Write32(file, 0);
 	}
 
 	// write sectors
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
-		File_Write32Bit(file, map.sectors[i].start);
-		File_Write32Bit(file, map.sectors[i].length);
+		File_Write32(file, map.sectors[i].start);
+		File_Write32(file, map.sectors[i].length);
 		File_WriteFloat(file, map.sectors[i].ceiling);
 		File_WriteFloat(file, map.sectors[i].floor);
-		File_Write32Bit(file, 0);
-		File_Write32Bit(file, 0);
+		File_Write32(file, 0);
+		File_Write32(file, 0);
 	}
 
 	Log("Saved map '%s'", map.name);

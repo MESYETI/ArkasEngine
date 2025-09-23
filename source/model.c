@@ -47,12 +47,12 @@ void Model_Load(Model* model, const char* path) {
 	}
 
 	for (uint32_t i = 0; i < model->facesNum; ++i) {
-		assert((model->faces[i].indices[0] = File_Read32Bit(file)) < model->verticesNum);
-		assert((model->faces[i].indices[1] = File_Read32Bit(file)) < model->verticesNum);
-		assert((model->faces[i].indices[2] = File_Read32Bit(file)) < model->verticesNum);
-		model->faces[i].colour.r           = File_ReadByte(file);
-		model->faces[i].colour.g           = File_ReadByte(file);
-		model->faces[i].colour.b           = File_ReadByte(file);
+		assert((model->faces[i].indices[0] = File_Read32(file)) < model->verticesNum);
+		assert((model->faces[i].indices[1] = File_Read32(file)) < model->verticesNum);
+		assert((model->faces[i].indices[2] = File_Read32(file)) < model->verticesNum);
+		model->faces[i].colour.r           = File_Read8(file);
+		model->faces[i].colour.g           = File_Read8(file);
+		model->faces[i].colour.b           = File_Read8(file);
 	}
 }
 
