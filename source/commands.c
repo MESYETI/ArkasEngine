@@ -64,10 +64,15 @@ static void Command_DlMap(size_t argc, char** argv) {
 }
 
 static void Command_Ls(size_t argc, char** argv) {
-	(void) argc;
-	(void) argv;
-
-	ResourceManager_List(NULL);
+	if (argc == 0) {
+		ResourceManager_List(NULL);
+	}
+	else if (argc == 1) {
+		ResourceManager_List(argv[0]);
+	}
+	else {
+		Log("ls must have either 0 or 1 parameters");
+	}
 }
 
 void Commands_Init(void) {

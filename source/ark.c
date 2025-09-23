@@ -91,7 +91,8 @@ ErrorRet Ark_Read(ArchiveReader* reader) {
 
 	// read file entries
 	ErrorRet error;
-	reader->root = ReadEntry(reader, &error);
+	reader->root      = ReadEntry(reader, &error);
+	reader->root.name = "";
 
 	return error;
 }
@@ -128,6 +129,10 @@ static ArkEntry* GetEntryInDir(ArkEntry* folder, const char* name, size_t len) {
 }
 
 static ArkEntry* GetEntry(ArchiveReader* reader, const char* path) {
+	if (path[0] == 0) {
+		return &reader->root;
+	}
+
 	ArkEntry* dir = &reader->root;
 
 	const char* pathIt = path;
@@ -163,11 +168,11 @@ static void DriveList(ResourceDrive* p_drive, const char* folder) {
 	ArkEntry* entry = GetEntry(&drive->reader, folder);
 
 	if (!entry) {
-		Log("Directory does not exist");
+		Log("Directory '%s' does not exist", folder);
 		return;
 	}
 	else if (!entry->folder) {
-		Log("Path leads to a file, not a directory");
+		Log("Path '%s' leads to a file, not a directory", folder);
 		return;
 	}
 

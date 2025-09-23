@@ -112,4 +112,23 @@ void ResourceManager_List(const char* path) {
 			Log("  :%s", resources.drives[i]->name);
 		}
 	}
+	else {
+		ResourceDrive* drive = GetDrive(path);
+
+		if (!drive) {
+			Log("Invalid drive");
+			return;
+		}
+
+		const char* drivePath = strchr(path, '/');
+
+		if (drivePath == NULL) {
+			drivePath = "";
+		}
+		else {
+			++ drivePath;
+		}
+
+		drive->list(drive, drivePath);
+	}
 }
