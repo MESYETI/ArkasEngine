@@ -139,7 +139,7 @@ static ArkEntry* GetEntry(ArchiveReader* reader, const char* path) {
 	while (true) {
 		char* next = strchr(pathIt, '/');
 
-		if (path) {
+		if (next) {
 			ArkEntry* entry = GetEntryInDir(dir, pathIt, next - pathIt);
 
 			if (entry && entry->folder) {
@@ -186,6 +186,24 @@ static void DriveList(ResourceDrive* p_drive, const char* folder) {
 	}
 }
 
+static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* size) {
+	ArkDrive* drive = (ArkDrive*) p_drive;
+	ArkEntry* entry = GetEntry(&drive->reader, path);
+
+	if (!entry) {
+		Log("File '%s' does not exist", path);
+		return NULL;
+	}
+	else if (entry->folder) {
+		Log("Path '%s' leads to a directory, not a file", path);
+		return NULL;
+	}
+
+	void* ret = Ark_ReadFile(&drive->reader, entry);
+	*size     = entry->size;
+	return ret;
+}
+
 ResourceDrive* Ark_CreateResourceDrive(const char* path) {
 	ArkDrive* ret = SafeMalloc(sizeof(ArkDrive));
 	// expect caller to write to name
@@ -198,6 +216,7 @@ ResourceDrive* Ark_CreateResourceDrive(const char* path) {
 	ret->parent.free       = &FreeDrive;
 	ret->parent.fileExists = &DriveFileExists;
 	ret->parent.list       = &DriveList;
+	ret->parent.readFile   = &DriveReadFile;
 
 	if (Ark_Read(&ret->reader).success) {
 		return (ResourceDrive*) ret;

@@ -24,9 +24,24 @@ void Console_Free(void) {
 	free(console.cmds);
 }
 
-void Console_WriteLine(char* text) {
+static void ScrollUp(void) {
 	memcpy(&console.lines[1], &console.lines[0], 99 * sizeof(console.lines[0]));
-	strncpy(console.lines[0], text, 100);
+}
+
+void Console_WriteLine(char* text) {
+	ScrollUp();
+	int col = 0;
+
+	for (size_t i = 0; i <= strlen(text); ++ i, ++ col) {
+		if (text[i] == '\n') {
+			console.lines[0][col] = 0;
+			col = -1;
+			ScrollUp();
+		}
+		else if (col < 100) {
+			console.lines[0][col] = text[i];
+		}
+	}
 }
 
 void Console_Begin(void) {

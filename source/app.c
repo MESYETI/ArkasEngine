@@ -20,7 +20,7 @@ void App_Init(void) {
 	Console_Init();
 	Log("Arkas Engine WIP");
 	Log("Made by MESYETI in 2025");
-	ResourceManager_Init();
+	Resources_Init();
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
@@ -36,7 +36,7 @@ void App_Init(void) {
 }
 
 void App_Free(void) {
-	ResourceManager_Free();
+	Resources_Free();
 	SceneManager_Free();
 	Text_FreeFont(&app.font);
 	Video_Free();

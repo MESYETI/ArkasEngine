@@ -1,5 +1,6 @@
 #include "app.h"
 #include "map.h"
+#include "safe.h"
 #include "util.h"
 #include "scene.h"
 #include "console.h"
@@ -65,14 +66,31 @@ static void Command_DlMap(size_t argc, char** argv) {
 
 static void Command_Ls(size_t argc, char** argv) {
 	if (argc == 0) {
-		ResourceManager_List(NULL);
+		Resources_List(NULL);
 	}
 	else if (argc == 1) {
-		ResourceManager_List(argv[0]);
+		Resources_List(argv[0]);
 	}
 	else {
 		Log("ls must have either 0 or 1 parameters");
 	}
+}
+
+static void Command_Cat(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	size_t size;
+	void*  contents = Resources_ReadFile(argv[0], &size);
+
+	if (contents == NULL) {
+		Log("Error reading file");
+		return;
+	}
+
+	contents = SafeRealloc(contents, size + 1);
+	((char*) contents)[size] = 0;
+
+	Log("%s", (char*) contents);
 }
 
 void Commands_Init(void) {
@@ -81,4 +99,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"map",          &Command_Map});
 	Console_AddCommand((ConsoleCommand) {"dl-map",       &Command_DlMap});
 	Console_AddCommand((ConsoleCommand) {"ls",           &Command_Ls});
+	Console_AddCommand((ConsoleCommand) {"cat",          &Command_Cat});
 }

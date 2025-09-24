@@ -13,13 +13,26 @@ Map map = {
 	NULL, 0  // sectors
 };
 
-static Texture* texture; // temp
+static Resource* texture; // temp
 
 void Map_Init(void) {
-	texture = Backend_LoadTexture("texture.png");
+	map.points     = NULL;
+	map.pointsLen  = 0;
+	map.walls      = NULL;
+	map.wallsLen   = 0;
+	map.sectors    = NULL;
+	map.sectorsLen = 0;
 }
 
 void Map_Free(void) {
+	for (size_t i = 0; i < map.sectorsLen; ++ i) {
+		Resources_FreeRes(map.sectors[i].floorTexture);
+		Resources_FreeRes(map.sectors[i].ceilingTexture);
+	}
+	for (size_t i = 0; i < map.wallsLen; ++ i) {
+		Resources_FreeRes(map.walls[i].texture);
+	}
+
 	if (map.points != NULL) {
 		free(map.points);
 	}
@@ -33,8 +46,6 @@ void Map_Free(void) {
 	map.pointsLen  = 0;
 	map.wallsLen   = 0;
 	map.sectorsLen = 0;
-
-	Backend_FreeTexture(texture);
 
 	if (map.name != NULL) {
 		free(map.name);
@@ -64,24 +75,33 @@ void Map_LoadTest(void) {
 
 	map.walls     = SafeMalloc(12 * sizeof(Wall));
 	map.wallsLen  = 12;
-	map.walls[0]  = (Wall) {false};
-	map.walls[1]  = (Wall) {true, 1};
-	map.walls[2]  = (Wall) {false};
-	map.walls[3]  = (Wall) {false};
-	map.walls[4]  = (Wall) {false};
-	map.walls[5]  = (Wall) {false};
-	map.walls[6]  = (Wall) {false};
-	map.walls[7]  = (Wall) {false};
-	map.walls[8]  = (Wall) {false};
-	map.walls[9]  = (Wall) {true, 0};
-	map.walls[10] = (Wall) {false};
-	map.walls[11] = (Wall) {false};
+	map.walls[0]  = (Wall) {false, 0, NULL};
+	map.walls[1]  = (Wall) {true,  1, NULL};
+	map.walls[2]  = (Wall) {false, 0, NULL};
+	map.walls[3]  = (Wall) {false, 0, NULL};
+	map.walls[4]  = (Wall) {false, 0, NULL};
+	map.walls[5]  = (Wall) {false, 0, NULL};
+	map.walls[6]  = (Wall) {false, 0, NULL};
+	map.walls[7]  = (Wall) {false, 0, NULL};
+	map.walls[8]  = (Wall) {false, 0, NULL};
+	map.walls[9]  = (Wall) {true,  0, NULL};
+	map.walls[10] = (Wall) {false, 0, NULL};
+	map.walls[11] = (Wall) {false, 0, NULL};
+
+	for (size_t i = 0; i < map.wallsLen; ++ i) {
+		map.walls[i].texture = Resources_GetRes(":base/p_textures/paving6.png");
+	}
 
 	map.sectors    = SafeMalloc(2 * sizeof(Sector));
 	map.sectorsLen = 2;
 
-	map.sectors[0] = (Sector) {0, 6, 0.5, -0.5, texture};
-	map.sectors[1] = (Sector) {6, 6, 0.5, -0.5, texture};
+	map.sectors[0] = (Sector) {0, 6, 0.5, -0.5, NULL, NULL};
+	map.sectors[1] = (Sector) {6, 6, 0.5, -0.5, NULL, NULL};
+
+	for (size_t i = 0; i < map.sectorsLen; ++ i) {
+		map.sectors[i].floorTexture   = Resources_GetRes(":base/p_textures/tiles4.png");
+		map.sectors[i].ceilingTexture = Resources_GetRes(":base/p_textures/wood1.png");
+	}
 
 	camera.sector = &map.sectors[0];
 }
@@ -147,7 +167,7 @@ bool Map_LoadFile(const char* path) {
 		map.sectors[i].length  = File_Read32(file);
 		map.sectors[i].ceiling = File_ReadFloat(file);
 		map.sectors[i].floor   = File_ReadFloat(file);
-		map.sectors[i].texture = texture;
+		// map.sectors[i].texture = texture;
 
 		uint32_t ceilTexture  = File_Read32(file);
 		uint32_t floorTexture = File_Read32(file);

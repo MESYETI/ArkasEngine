@@ -10,7 +10,7 @@ Controls:
 - P to lock the cursor back into the window
 
 ## Screenshot
-![Screenshot](/screenshot.png)
+![Screenshot](/img/screenshot.png)
 
 ## Build
 ```

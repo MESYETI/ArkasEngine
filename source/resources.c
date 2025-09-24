@@ -7,7 +7,7 @@
 
 ResourceManager resources;
 
-void ResourceManager_Init(void) {
+void Resources_Init(void) {
 	DIR* dir = opendir("game");
 
 	if (dir == NULL) {
@@ -45,9 +45,19 @@ void ResourceManager_Init(void) {
 	}
 
 	Log("%d resource drives mounted", resources.drivesNum);
+
+	// init resource pool
+	resources.resources = SafeMalloc(64 * sizeof(resources));
+	resources.capacity  = 64;
+
+	for (size_t i = 0; i < resources.capacity; ++ i) {
+		resources.resources[i].active = false;
+	}
+
+	Log("Resource pool initialised at %d bytes", (int) (64 * sizeof(resources)));
 }
 
-void ResourceManager_Free(void) {
+void Resources_Free(void) {
 	for (size_t i = 0; i < resources.drivesNum; ++ i) {
 		resources.drives[i]->free(resources.drives[i]);
 		free(resources.drives[i]);
@@ -56,6 +66,9 @@ void ResourceManager_Free(void) {
 
 	resources.drives    = NULL;
 	resources.drivesNum = 0;
+
+	free(resources.resources);
+	resources.capacity = false;
 }
 
 static ResourceDrive* GetDrive(const char* path) {
@@ -86,11 +99,11 @@ static ResourceDrive* GetDrive(const char* path) {
 	return NULL;
 }
 
-bool ResourceManager_FileExists(const char* path) {
+bool Resources_FileExists(const char* path) {
 	ResourceDrive* drive = GetDrive(path);
 
 	if (!drive) {
-		Log("ResourceManager_FileExists: Automatic drive selection not implemented");
+		Log("Resources_FileExists: Automatic drive selection not implemented");
 		return false;
 	}
 
@@ -104,7 +117,7 @@ bool ResourceManager_FileExists(const char* path) {
 	return drive->fileExists(drive, drivePath + 1);
 }
 
-void ResourceManager_List(const char* path) {
+void Resources_List(const char* path) {
 	if (!path) {
 		Log("Mounted resource drives:");
 
@@ -130,5 +143,122 @@ void ResourceManager_List(const char* path) {
 		}
 
 		drive->list(drive, drivePath);
+	}
+}
+
+void* Resources_ReadFile(const char* path, size_t* size) {
+	ResourceDrive* drive = GetDrive(path);
+
+	if (!drive) {
+		Log("Invalid drive");
+		return NULL;
+	}
+
+	const char* drivePath = strchr(path, '/');
+
+	if (drivePath == NULL) {
+		drivePath = "";
+	}
+	else {
+		++ drivePath;
+	}
+
+	return drive->readFile(drive, drivePath, size);
+}
+
+static Resource* AllocResource(void) {
+	for (size_t i = 0; i < resources.capacity; ++ i) {
+		if (!resources.resources[i].active) {
+			resources.resources[i].active = true;
+			return &resources.resources[i];
+		}
+	}
+
+	return NULL;
+}
+
+Resource* Resources_GetRes(const char* path) {
+	for (size_t i = 0; i < resources.capacity; ++ i) {
+		if (
+			resources.resources[i].active &&
+			(strcmp(path, resources.resources[i].name) == 0)
+		) {
+			++ resources.resources[i].usedBy;
+			return &resources.resources[i];
+		}
+	}
+
+	Resource* ret = AllocResource();
+
+	if (ret == NULL) {
+		resources.resources = SafeRealloc(resources.resources, resources.capacity * 2);
+
+		for (size_t i = resources.capacity; i < resources.capacity * 2; ++ i) {
+			resources.resources[i].active = false;
+		}
+
+		resources.capacity *= 2;
+
+		ret = AllocResource();
+		assert(ret);
+	}
+
+	ret->name = NewString(path);
+
+	char* ext = strrchr(path, '.');
+
+	if (!ext) {
+		Log("No extension on resource '%s'", path);
+		ret->active = false;
+		free(ret->name);
+		return NULL;
+	}
+
+	if (strcmp(ext, ".png") == 0) {
+		ret->type = RESOURCE_TYPE_TEXTURE;
+
+		size_t   size;
+		uint8_t* data = (uint8_t*) Resources_ReadFile(path, &size);
+
+		if (!data) {
+			Log("Failed to read path '%s'", path);
+			ret->active = false;
+			free(ret->name);
+			return NULL;
+		}
+
+		ret->v.texture = Backend_LoadMemTexture(data, size);
+		free(data);
+
+		if (!ret->v.texture) {
+			Log("Failed to load resource");
+			ret->active = false;
+			free(ret->name);
+			return NULL;
+		}
+	}
+	else {
+		Log("Unknown resource type '%s'", ext);
+		ret->active = false;
+		free(ret->name);
+		return NULL;
+	}
+
+	return ret;
+}
+
+void Resources_FreeRes(Resource* resource) {
+	-- resource->usedBy;
+
+	if (resource->usedBy == 0) {
+		switch (resource->type) {
+			case RESOURCE_TYPE_TEXTURE: {
+				Backend_FreeTexture(resource->v.texture);
+				break;
+			}
+			default: assert(0);
+		}
+
+		resource->active = false;
 	}
 }

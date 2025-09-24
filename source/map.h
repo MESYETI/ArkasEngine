@@ -3,23 +3,26 @@
 
 #include "types.h"
 #include "common.h"
-#include "backend.h"
+#include "resources.h"
 
 typedef struct {
 	FVec2 pos;
 } MapPoint;
 
 typedef struct {
-	bool   isPortal;
-	size_t portalSector;
+	bool      isPortal;
+	size_t    portalSector;
+	Resource* texture;
 } Wall;
 
 typedef struct {
-	size_t   start;
-	size_t   length;
-	float    ceiling;
-	float    floor;
-	Texture* texture;
+	size_t    start;
+	size_t    length;
+	float     ceiling;
+	float     floor;
+
+	Resource* floorTexture;
+	Resource* ceilingTexture;
 } Sector;
 
 typedef struct {

@@ -4,6 +4,8 @@
 #include "types.h"
 #include "model.h"
 
+// defined:
+//   (struct) Texture
 #ifdef AE_BACKEND_GL11
 	#include "backends/gl11.h"
 #else
@@ -17,6 +19,7 @@ typedef struct {
 
 void     Backend_Init(bool beforeWindow);
 void     Backend_Free(void);
+Texture* Backend_LoadMemTexture(uint8_t* data, size_t len);
 Texture* Backend_LoadTexture(const char* path);
 void     Backend_FreeTexture(Texture* texture);
 Vec2     Backend_GetTextureSize(Texture* texture);

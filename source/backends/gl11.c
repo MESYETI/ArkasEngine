@@ -193,14 +193,7 @@ void Backend_Free(void) {
 	Model_Free(&state.model);
 }
 
-Texture* Backend_LoadTexture(const char* path) {
-	int width, height, ch;
-
-	uint8_t* data = stbi_load(path, &width, &height, &ch, 0);
-	if (data == NULL) {
-		Error("Failed to load %s: %s", path, stbi_failure_reason());
-	}
-
+static Texture* LoadTexture(uint8_t* data, int width, int height, int ch) {
 	GLuint tex;
     GL(glGenTextures(1, &tex));
     GL(glBindTexture(GL_TEXTURE_2D, tex));
@@ -230,6 +223,28 @@ Texture* Backend_LoadTexture(const char* path) {
     return NULL;
 }
 
+Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
+	int width, height, ch;
+
+	uint8_t* data = stbi_load_from_memory(img, (int) len, &width, &height, &ch, 0);
+	if (data == NULL) {
+		Error("Failed to load texture from memory: %s", stbi_failure_reason());
+	}
+
+	return LoadTexture(data, width, height, ch);
+}
+
+Texture* Backend_LoadTexture(const char* path) {
+	int width, height, ch;
+
+	uint8_t* data = stbi_load(path, &width, &height, &ch, 0);
+	if (data == NULL) {
+		Error("Failed to load %s: %s", path, stbi_failure_reason());
+	}
+
+	return LoadTexture(data, width, height, ch);
+}
+
 void Backend_FreeTexture(Texture* texture) {
 	GL(glDeleteTextures(1, &texture->name));
 	texture->used = false;
@@ -248,13 +263,13 @@ static void RenderSector(Sector* sector) {
 
 	state.sectorsRendered[sector - map.sectors] = true;
 
-	glBindTexture(GL_TEXTURE_2D, sector->texture->name);
 	for (size_t i = 0; i < sector->length; ++ i) {
 		const MapPoint* point1 = &map.points[i + sector->start];
 		const MapPoint* point2 = (i == sector->length - 1)?
 			&map.points[sector->start] : &map.points[i + sector->start + 1];
 
 		const Wall* wall = &map.walls[i + sector->start];
+		glBindTexture(GL_TEXTURE_2D, wall->texture->v.texture->name);
 
 		if (!wall->isPortal) {
 			glBegin(GL_TRIANGLE_FAN);
@@ -291,10 +306,11 @@ static void RenderSector(Sector* sector) {
 		}
 	}
 
+	// render floor
+	glBindTexture(GL_TEXTURE_2D, sector->floorTexture->v.texture->name);
 	glBegin(GL_TRIANGLE_FAN);
 	glColor3f(1.0, 1.0, 1.0);
 
-	// render floor
 	for (size_t i = sector->length - 1; true; -- i) {
 		size_t idx = i + sector->start;
 		glTexCoord2f(-map.points[idx].pos.x, map.points[idx].pos.y);
@@ -305,6 +321,7 @@ static void RenderSector(Sector* sector) {
 	GL(glEnd());
 
 	// render ceiling
+	glBindTexture(GL_TEXTURE_2D, sector->ceilingTexture->v.texture->name);
 	glBegin(GL_TRIANGLE_FAN);
 	for (size_t i = 0; i < sector->length; ++ i) {
 		size_t idx = i + sector->start;
