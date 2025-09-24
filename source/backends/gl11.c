@@ -284,7 +284,7 @@ static void RenderSector(Sector* sector) {
 			if (shadeRight < 0.0) shadeRight = 0.0;
 
 			float maxTexCoord;
-			maxTexCoord = Distance(point1->pos, point2->pos) / height;
+			maxTexCoord = Distance(point1->pos, point2->pos);
 
 			glTexCoord2f(-maxTexCoord, height); // lower left
 			glColor3f(shadeLeft, shadeLeft, shadeLeft);
@@ -341,7 +341,7 @@ static void RenderSector(Sector* sector) {
 void Backend_RenderScene(void) {
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
+	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 
 	GL(glMatrixMode(GL_PROJECTION));

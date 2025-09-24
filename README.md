@@ -18,6 +18,12 @@ make
 ```
 Requires SDL2 and stb (clone recursively!)
 
+## Preparation
+Get a D compiler and the `dub` build system and build the `ark` tool in `tools/ark`. Then,
+clone <https://github.com/mesyeti/ArkasAssets> and follow the build instructions in the
+README. Then, make a folder next to the engine executable called `game` and put the
+`base.ark` from the arkas assets in the folder.
+
 ## Usage
 Arkas (in it's WIP state) can only be built standalone. It starts with a console with
 these commands:
