@@ -18,10 +18,12 @@ override CFLAGS += -DAE_BACKEND_GL11
 
 ifeq ($(BUILD),release)
 	override CFLAGS += -O3
+	#override CPPFLAGS += -NDEBUG
 else
-	override CFLAGS += -g
+	override CFLAGS += -Og -g
 	ifeq ($(ASAN),y)
-		override CFLAGS += -fsanitize=address
+		override CFLAGS += -fno-omit-frame-pointer -fsanitize=address
+		override LDFLAGS += -fsanitize=address
 	endif
 endif
 

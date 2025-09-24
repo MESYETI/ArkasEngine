@@ -94,15 +94,16 @@ static void Command_Cat(size_t argc, char** argv) {
 }
 
 static void Command_Echo(size_t argc, char** argv) {
-	char* argvIt = argv[0];
-	for (size_t i = 0; i < argc; ++ argvIt) {
-		if (*argvIt == 0) {
-			*argvIt = ' ';
-			++ i;
-		}
+	for (size_t i = 1; i < argc; ++ i) {
+		argv[i][-1] = ' ';
 	}
 
-	Log("%s", argv[0]);
+	if (argc) {
+		Log("%s", argv[0]);
+	}
+	else {
+		Log("");
+	}
 }
 
 void Commands_Init(void) {

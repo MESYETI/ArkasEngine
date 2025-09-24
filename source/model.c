@@ -54,6 +54,8 @@ void Model_Load(Model* model, const char* path) {
 		model->faces[i].colour.g           = File_Read8(file);
 		model->faces[i].colour.b           = File_Read8(file);
 	}
+
+    fclose(file);
 }
 
 void Model_Free(Model* model) {
