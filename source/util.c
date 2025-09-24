@@ -34,6 +34,38 @@ float Distance(FVec2 a, FVec2 b) {
 	return sqrtf(x + y);
 }
 
+#if 0
+#define CROSS_PRODUCT(X1, Y1, X2, Y2) ((X1) * (Y2) - (X2) * (Y1))
+
+static double PointCrossProduct(FVec2 a, FVec2 b) {
+	return CROSS_PRODUCT(a.x, a.y, b.x, b.y);
+}
+
+FVec2 LineIntersect(FVec2 a1, FVec2 a2, FVec2 b1, FVec2 b2) {
+	double vxp1 = PointCrossProduct(a1, b1);
+	double vxp2 = PointCrossProduct(a2, b2);
+	double vxp3 = CROSS_PRODUCT(a1.x - b1.x, a1.y - b1.y, a2.x - b2.x, a2.y - b2.y);
+	return (FVec2) {
+		CROSS_PRODUCT(vxp1, a1.x - b1.x, vxp2, a2.x - b2.x) / vxp3,
+		CROSS_PRODUCT(vxp1, a1.y - b1.y, vxp2, a2.y - b2.y) / vxp3,
+	};
+}
+
+#define BOUND_MARGIN 0.001
+bool PointInLine(FVec2 p, FVec2 a, FVec2 b) {
+	if (a.x > b.x) SWAP(double, a.x, b.x);
+
+	if ((p.x < a.x - BOUND_MARGIN) || (p.x > b.x + BOUND_MARGIN)) return false;
+
+	if (a.y > b.y) SWAP(double, a.y, b.y);
+
+	if ((p.y < a.y - BOUND_MARGIN) || (p.y > b.y + BOUND_MARGIN)) return false;
+
+	return true;
+}
+#undef BOUND_MARGIN
+#endif
+
 char* NewString(const char* src) {
 	char* ret = SafeMalloc(strlen(src) + 1);
 	strcpy(ret, src);

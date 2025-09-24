@@ -47,6 +47,12 @@ void Game_Update(bool top) {
 		camera.pos.z += CosDeg(camera.yaw + 90) * app.delta * speed;
 		camera.pos.x += SinDeg(camera.yaw + 90) * app.delta * speed;
 	}
+	if (keys[SDL_SCANCODE_SPACE]) {
+		camera.pos.y += app.delta * 5.0;
+	}
+	if (keys[SDL_SCANCODE_LSHIFT]) {
+		camera.pos.y -= app.delta * 5.0;
+	}
 	if (keys[SDL_SCANCODE_RIGHT]) {
 		camera.yaw += app.delta * sensitivity;
 	}
