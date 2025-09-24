@@ -93,6 +93,18 @@ static void Command_Cat(size_t argc, char** argv) {
 	Log("%s", (char*) contents);
 }
 
+static void Command_Echo(size_t argc, char** argv) {
+	char* argvIt = argv[0];
+	for (size_t i = 0; i < argc; ++ argvIt) {
+		if (*argvIt == 0) {
+			*argvIt = ' ';
+			++ i;
+		}
+	}
+
+	Log("%s", argv[0]);
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {"clear-scenes", &Command_ClearScenes});
@@ -100,4 +112,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"dl-map",       &Command_DlMap});
 	Console_AddCommand((ConsoleCommand) {"ls",           &Command_Ls});
 	Console_AddCommand((ConsoleCommand) {"cat",          &Command_Cat});
+	Console_AddCommand((ConsoleCommand) {"echo",         &Command_Echo});
 }
