@@ -96,7 +96,7 @@ void Map_LoadTest(void) {
 	map.sectorsLen = 2;
 
 	map.sectors[0] = (Sector) {0, 6, 50, -0.5, NULL, NULL};
-	map.sectors[1] = (Sector) {6, 6, 0.5, -0.5, NULL, NULL};
+	map.sectors[1] = (Sector) {6, 6, 10, 4.5, NULL, NULL};
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
 		map.sectors[i].floorTexture   = Resources_GetRes(":base/p_textures/tiles4.png");
@@ -158,7 +158,11 @@ bool Map_LoadFile(const char* path) {
 		map.walls[i].portalSector = File_Read32(file);
 
 		size_t texture = File_Read32(file);
-		(void) texture;
+		if (texture >= stringsLen) {
+			Error("Out of bounds string table offset");
+		}
+
+		map.walls[i].texture = Resources_GetRes(stringTable[texture]);
 	}
 
 	// read sectors
@@ -169,10 +173,14 @@ bool Map_LoadFile(const char* path) {
 		map.sectors[i].floor   = File_ReadFloat(file);
 		// map.sectors[i].texture = texture;
 
-		uint32_t ceilTexture  = File_Read32(file);
 		uint32_t floorTexture = File_Read32(file);
-		(void) ceilTexture;
-		(void) floorTexture;
+		uint32_t ceilTexture  = File_Read32(file);
+
+		if ((floorTexture >= stringsLen) || (ceilTexture >= stringsLen)) {
+			Error("Out of bounds string table offset");
+		}
+		map.sectors[i].floorTexture   = Resources_GetRes(stringTable[floorTexture]);
+		map.sectors[i].ceilingTexture = Resources_GetRes(stringTable[ceilTexture]);
 	}
 
 	Log("Loaded map");
@@ -187,10 +195,35 @@ bool Map_SaveFile(const char* path) {
 
 	if (file == NULL) return false;
 
+	char** stringTable = SafeMalloc(sizeof(char*));
+	*stringTable       = NULL;
+
+	for (size_t i = 0; i < map.wallsLen; ++ i) {
+		if (!StrArrayContains(stringTable, map.walls[i].texture->name)) {
+			stringTable = AppendStrArray(stringTable, map.walls[i].texture->name);
+		}
+	}
+
+	for (size_t i = 0; i < map.sectorsLen; ++ i) {
+		Sector* sector = &map.sectors[i];
+
+		if (!StrArrayContains(stringTable, sector->floorTexture->name)) {
+			stringTable = AppendStrArray(stringTable, sector->floorTexture->name);
+		}
+		if (!StrArrayContains(stringTable, sector->ceilingTexture->name)) {
+			stringTable = AppendStrArray(stringTable, sector->ceilingTexture->name);
+		}
+	}
+
 	File_Write32(file, (uint32_t) map.pointsLen);
 	File_Write32(file, (uint32_t) map.wallsLen);
 	File_Write32(file, (uint32_t) map.sectorsLen);
-	File_Write32(file, 0);
+	File_Write32(file, StrArrayLength(stringTable));
+
+	// write strings
+	for (size_t i = 0; stringTable[i]; ++ i) {
+		File_WriteString(file, stringTable[i]);
+	}
 
 	// write points
 	for (size_t i = 0; i < map.pointsLen; ++ i) {
@@ -202,7 +235,9 @@ bool Map_SaveFile(const char* path) {
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
 		File_Write8(file, map.walls[i].isPortal? 1 : 0);
 		File_Write32(file, map.walls[i].portalSector);
-		File_Write32(file, 0);
+		File_Write32(
+			file, (uint32_t) StrArrayFind(stringTable, map.walls[i].texture->name)
+		);
 	}
 
 	// write sectors
@@ -211,9 +246,17 @@ bool Map_SaveFile(const char* path) {
 		File_Write32(file, map.sectors[i].length);
 		File_WriteFloat(file, map.sectors[i].ceiling);
 		File_WriteFloat(file, map.sectors[i].floor);
-		File_Write32(file, 0);
-		File_Write32(file, 0);
+		File_Write32(
+			file,
+			(uint32_t) StrArrayFind(stringTable, map.sectors[i].floorTexture->name)
+		);
+		File_Write32(
+			file,
+			(uint32_t) StrArrayFind(stringTable, map.sectors[i].ceilingTexture->name)
+		);
 	}
+
+	FreeStrArray(stringTable);
 
 	Log("Saved map '%s'", map.name);
 

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 #include "file.h"
 #include "safe.h"
 
@@ -50,7 +51,8 @@ float File_ReadFloat(FILE* file) {
 
 char* File_ReadString(FILE* file) {
 	uint32_t length = File_Read32(file);
-	char*    ret    = SafeMalloc(length);
+	char*    ret    = SafeMalloc(length + 1);
+	ret[length]     = 0;
 
 	assert(fread(ret, 1, length, file) == length);
 	return ret;
@@ -101,4 +103,11 @@ void File_Write32(FILE* file, uint32_t value) {
 
 void File_WriteFloat(FILE* file, float value) {
 	File_Write32(file, *((uint32_t*) &value));
+}
+
+void File_WriteString(FILE* file, const char* string) {
+	size_t len = strlen(string);
+
+	File_Write32(file, (uint32_t) len);
+	assert(fwrite(string, 1, len, file) == len);
 }

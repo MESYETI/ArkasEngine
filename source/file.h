@@ -14,5 +14,6 @@ void     File_Write8(FILE* file, uint8_t byte);
 void     File_Write16(FILE* file, uint16_t value);
 void     File_Write32(FILE* file, uint32_t value);
 void     File_WriteFloat(FILE* file, float value);
+void     File_WriteString(FILE* file, const char* string);
 
 #endif

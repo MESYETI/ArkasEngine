@@ -20,6 +20,8 @@ char*  NewString(const char* src);
 char*  ConcatString(const char* first, const char* second);
 size_t StrArrayLength(char** array);
 char** AppendStrArray(char** array, char* string);
+bool   StrArrayContains(char** array, char* string);
+size_t StrArrayFind(char** array, char* string);
 void   FreeStrArray(char** array);
 void   Log(const char* format, ...);
 void   Error(const char* format, ...);

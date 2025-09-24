@@ -67,6 +67,29 @@ char** AppendStrArray(char** array, char* string) {
 	return array;
 }
 
+bool StrArrayContains(char** array, char* string) {
+	while (true) {
+		if (*array == NULL) {
+			return false;
+		}
+		else if (strcmp(*array, string) == 0) {
+			return true;
+		}
+
+		++ array;
+	}
+}
+
+size_t StrArrayFind(char** array, char* string) {
+	for (size_t i = 0; array[i]; ++ i) {
+		if (strcmp(array[i], string) == 0) {
+			return i;
+		}
+	}
+
+	assert(0);
+}
+
 void FreeStrArray(char** array) {
 	for (size_t i = 0; array[i] != NULL; ++ i) {
 		free(array[i]);

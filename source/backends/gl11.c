@@ -271,20 +271,69 @@ static void RenderSector(Sector* sector) {
 		const Wall* wall = &map.walls[i + sector->start];
 		glBindTexture(GL_TEXTURE_2D, wall->texture->v.texture->name);
 
-		if (!wall->isPortal) {
+		FVec2 camPos = (FVec2) {camera.pos.x, camera.pos.z};
+
+		float shadeLeft  = 1.0 - (Distance(camPos, point1->pos) / 20.0);
+		float shadeRight = 1.0 - (Distance(camPos, point2->pos) / 20.0);
+
+		if (shadeLeft  < 0.0) shadeLeft  = 0.0;
+		if (shadeRight < 0.0) shadeRight = 0.0;
+
+		float maxTexCoord;
+		maxTexCoord = Distance(point1->pos, point2->pos);
+
+		if (wall->isPortal) {
+			Sector* nextSector = &map.sectors[wall->portalSector];
+
+			// lower wall
+			if (nextSector->floor > sector->floor) {
+				glBegin(GL_TRIANGLE_FAN);
+
+				glTexCoord2f(-maxTexCoord, sector->floor); // lower left
+				glColor3f(shadeLeft, shadeLeft, shadeLeft);
+				glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
+
+				glTexCoord2f(-0.0, sector->floor); // lower right
+				glColor3f(shadeRight, shadeRight, shadeRight);
+				glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
+
+				glTexCoord2f(-0.0, nextSector->floor); // upper right
+				glColor3f(shadeLeft, shadeLeft, shadeLeft);
+				glVertex3f(point2->pos.x, nextSector->floor, point2->pos.y);
+
+				glTexCoord2f(-maxTexCoord, nextSector->floor); // upper left
+				glColor3f(shadeRight, shadeRight, shadeRight);
+				glVertex3f(point1->pos.x, nextSector->floor, point1->pos.y);
+
+				GL(glEnd());
+			}
+
+			// upper wall
+			if (nextSector->ceiling < sector->ceiling) {
+				glBegin(GL_TRIANGLE_FAN);
+
+				glTexCoord2f(-maxTexCoord, nextSector->ceiling); // lower left
+				glColor3f(shadeLeft, shadeLeft, shadeLeft);
+				glVertex3f(point1->pos.x, nextSector->ceiling, point1->pos.y);
+
+				glTexCoord2f(-0.0, nextSector->ceiling); // lower right
+				glColor3f(shadeRight, shadeRight, shadeRight);
+				glVertex3f(point2->pos.x, nextSector->ceiling, point2->pos.y);
+
+				glTexCoord2f(-0.0, sector->ceiling); // upper right
+				glColor3f(shadeLeft, shadeLeft, shadeLeft);
+				glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
+
+				glTexCoord2f(-maxTexCoord, sector->ceiling); // upper left
+				glColor3f(shadeRight, shadeRight, shadeRight);
+				glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
+
+				GL(glEnd());
+			}
+		}
+		else {
 			glBegin(GL_TRIANGLE_FAN);
 			glColor3ub(255, 255, 255);
-
-			FVec2 camPos = (FVec2) {camera.pos.x, camera.pos.z};
-
-			float shadeLeft  = 1.0 - (Distance(camPos, point1->pos) / 20.0);
-			float shadeRight = 1.0 - (Distance(camPos, point2->pos) / 20.0);
-
-			if (shadeLeft  < 0.0) shadeLeft  = 0.0;
-			if (shadeRight < 0.0) shadeRight = 0.0;
-
-			float maxTexCoord;
-			maxTexCoord = Distance(point1->pos, point2->pos);
 
 			glTexCoord2f(-maxTexCoord, height); // lower left
 			glColor3f(shadeLeft, shadeLeft, shadeLeft);
