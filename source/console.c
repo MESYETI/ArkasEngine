@@ -54,7 +54,7 @@ void Console_End(void) {
 }
 
 // written by PQCraft after he was ragebaited by my C code
-static char** ParseCommand(int* argcOut) {
+static char** ParseCommand(size_t* argcOut) {
 	// USAGE:
 	//   argv = ParseCommand(&argc);
 	//   ...
@@ -64,17 +64,18 @@ static char** ParseCommand(int* argcOut) {
 	char* in = console.editor;
 
 	char** resArray     = SafeMalloc(1 * sizeof(char*));
-	int    resArrayLen  = 0; // number of strings
-	int    resArraySize = 1; // buffer size
+	size_t resArrayLen  = 0; // number of strings
+	size_t resArraySize = 1; // buffer size
 
-	char* resString     = SafeMalloc(16);
-	int   resStringLen  = 0;  // data length
-	int   resStringSize = 16; // buffer size
+	char*  resString     = SafeMalloc(16);
+	size_t resStringLen  = 0;  // data length
+	size_t resStringSize = 16; // buffer size
 
-	char c            = *in;
-	bool inString     = false;
-	int  curStringPos = 0;
+	char   c            = *in;
+	bool   inString     = false;
+	size_t curStringPos = 0;
 
+	if (!c) goto longBreak;
 	while (c == ' ' || c == '\t') { // trim leading whitespace
 		++ in;
 		c = *in;
@@ -114,11 +115,21 @@ static char** ParseCommand(int* argcOut) {
 			else if (!c) { // string wasn't terminated
 				free(resArray);
 				free(resString);
+				*argcOut = -1;
 				return NULL;
 			}
 		}
 		else {
-			if (!c || (c == ' ') || (c == '\t')) {
+			if (!c) goto isNullChar;
+			if (c == ' ' || c == '\t') {
+				// gobble up extra whitespace
+				c = *in;
+				while ((c == ' ') || (c == '\t')) {
+					++ in;
+					c = *in;
+				}
+
+				isNullChar:
 				if (resArrayLen == resArraySize) {
 					resArraySize *= 2;
 					resArray = SafeRealloc(resArray, resArraySize * sizeof(char*));
@@ -138,15 +149,8 @@ static char** ParseCommand(int* argcOut) {
 				++ resStringLen;
 
 				if (!c) break;
-				curStringPos = resStringLen;
 
-				// gobble up extra whitespace
-				c = *in;
-				while ((c == ' ') || (c == '\t')) {
-					++ in;
-					c = *in;
-					if (!c) goto longBreak;
-				}
+				curStringPos = resStringLen;
 				continue;
 			}
 			else if (c == '"') {
@@ -165,37 +169,48 @@ static char** ParseCommand(int* argcOut) {
 	}
 	longBreak:
 
-	// downsize arrays
-	if (resArrayLen != resArraySize) {
-		resArray = SafeRealloc(resArray, resArrayLen * sizeof(char*));
-	}
-	if (resStringLen != resStringSize) {
-		resString = SafeRealloc(resString, resStringLen);
+	if (resArrayLen != 0) {
+		// downsize arrays
+		if (resArrayLen != resArraySize) {
+			resArray = SafeRealloc(resArray, resArrayLen * sizeof(char*));
+		}
+		if (resStringLen != resStringSize) {
+			resString = SafeRealloc(resString, resStringLen);
+		}
+
+		for (size_t i = 0; i < resArrayLen; ++i) {
+			// add the base pointer to all the strings
+			resArray[i] += (uintptr_t) resString;
+		}
+
+		*argcOut = resArrayLen;
+		return resArray;
 	}
 
-	for (int i = 0; i < resArrayLen; ++i) {
-		// add the base pointer to all the strings
-		resArray[i] += (uintptr_t) resString;
-	}
-
-	*argcOut = resArrayLen;
-	return resArray;
+	free(resArray);
+	free(resString);
+	*argcOut = 0;
+	return NULL;
 }
 
 static void RunCommand(void) {
 	Log("> %s", console.editor);
-	int    argc;
+	size_t argc;
 	char** parts = ParseCommand(&argc);
 	console.editor[0] = 0;
 
+	if (argc == 0) return;
+
 	if (parts == NULL) {
-		Log("Invalid command");
+		Log("Bad syntax");
 		return;
 	}
 
 	for (size_t i = 0; i < console.cmdsLen; ++ i) {
 		if (strcmp(console.cmds[i].name, parts[0]) == 0) {
 			console.cmds[i].func(argc - 1, &parts[1]);
+			free(*parts);
+			free(parts);
 			return;
 		}
 	}

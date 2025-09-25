@@ -183,6 +183,8 @@ bool Map_LoadFile(const char* path) {
 		map.sectors[i].ceilingTexture = Resources_GetRes(stringTable[ceilTexture]);
 	}
 
+	fclose(file);
+
 	Log("Loaded map");
 	camera.sector = &map.sectors[0];
 
@@ -257,6 +259,8 @@ bool Map_SaveFile(const char* path) {
 	}
 
 	FreeStrArray(stringTable);
+
+	fclose(file);
 
 	Log("Saved map '%s'", map.name);
 
