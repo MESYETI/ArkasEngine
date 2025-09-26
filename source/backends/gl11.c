@@ -298,11 +298,11 @@ static void RenderSector(Sector* sector) {
 				glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
 
 				glTexCoord2f(-0.0, nextSector->floor); // upper right
-				glColor3f(shadeLeft, shadeLeft, shadeLeft);
+				glColor3f(shadeRight, shadeRight, shadeRight);
 				glVertex3f(point2->pos.x, nextSector->floor, point2->pos.y);
 
 				glTexCoord2f(-maxTexCoord, nextSector->floor); // upper left
-				glColor3f(shadeRight, shadeRight, shadeRight);
+				glColor3f(shadeLeft, shadeLeft, shadeLeft);
 				glVertex3f(point1->pos.x, nextSector->floor, point1->pos.y);
 
 				GL(glEnd());
@@ -335,20 +335,20 @@ static void RenderSector(Sector* sector) {
 			glBegin(GL_TRIANGLE_FAN);
 			glColor3ub(255, 255, 255);
 
-			glTexCoord2f(-maxTexCoord, height); // lower left
+			glTexCoord2f(-maxTexCoord, sector->floor); // lower left
 			glColor3f(shadeLeft, shadeLeft, shadeLeft);
 			glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
 
-			glTexCoord2f(-0.0, height); // lower right
+			glTexCoord2f(-0.0, sector->floor); // lower right
 			glColor3f(shadeRight, shadeRight, shadeRight);
 			glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
 
-			glTexCoord2f(-0.0, 0.0); // upper right
-			glColor3f(shadeLeft, shadeLeft, shadeLeft);
+			glTexCoord2f(-0.0, sector->ceiling); // upper right
+			glColor3f(shadeRight, shadeRight, shadeRight);
 			glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
 
-			glTexCoord2f(-maxTexCoord, 0.0); // upper left
-			glColor3f(shadeRight, shadeRight, shadeRight);
+			glTexCoord2f(-maxTexCoord, sector->ceiling); // upper left
+			glColor3f(shadeLeft, shadeLeft, shadeLeft);
 			glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
 
 			GL(glEnd());
