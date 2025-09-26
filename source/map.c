@@ -89,7 +89,7 @@ void Map_LoadTest(void) {
 	map.walls[11] = (Wall) {false, 0, NULL};
 
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		map.walls[i].texture = Resources_GetRes(":base/p_textures/paving6.png");
+		map.walls[i].texture = Resources_GetRes(":base/3p_textures/rock1.png");
 	}
 
 	map.sectors    = SafeMalloc(2 * sizeof(Sector));
@@ -99,8 +99,8 @@ void Map_LoadTest(void) {
 	map.sectors[1] = (Sector) {6, 6, 10, 4.5, NULL, NULL};
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
-		map.sectors[i].floorTexture   = Resources_GetRes(":base/p_textures/tiles4.png");
-		map.sectors[i].ceilingTexture = Resources_GetRes(":base/p_textures/wood1.png");
+		map.sectors[i].floorTexture   = Resources_GetRes(":base/3p_textures/grass3.png");
+		map.sectors[i].ceilingTexture = Resources_GetRes(":base/3p_textures/rock2.png");
 	}
 
 	camera.sector = &map.sectors[0];
