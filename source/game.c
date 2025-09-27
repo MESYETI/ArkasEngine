@@ -4,6 +4,7 @@
 #include "util.h"
 #include "video.h"
 #include "camera.h"
+#include "player.h"
 #include "backend.h"
 
 void Game_Init(void) {
@@ -16,6 +17,8 @@ void Game_Init(void) {
 	camera.pitch = 0.0;
 	camera.yaw   = 0.0;
 	camera.roll  = 0.0;
+
+	Player_Init();
 }
 
 void Game_Free(void) {
@@ -29,42 +32,39 @@ void Game_Update(bool top) {
 	const uint8_t* keys = SDL_GetKeyboardState(NULL);
 
 	static const float sensitivity = 180.0;
-	static const float speed       = 2.0;
+	float speed = 2.0;
+
+	if (!FloatEqual(player.pos.y, player.sector->floor, 0.01)) {
+		speed = 0.3;
+	}
 
 	bool  moved  = false;
 	FVec3 oldPos = camera.pos;
 
+	player.yaw   = camera.yaw;
+	player.pitch = camera.pitch;
+
+	player.acc.x = 0.0;
+	player.acc.z = 0.0;
 	if (keys[SDL_SCANCODE_W]) {
-		camera.pos.z += CosDeg(camera.yaw) * app.delta * speed;
-		camera.pos.x += SinDeg(camera.yaw) * app.delta * speed;
+		player.acc.z += CosDeg(player.yaw) * speed;
+		player.acc.x += SinDeg(player.yaw) * speed;
 		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_A]) {
-		camera.pos.z += CosDeg(camera.yaw - 90) * app.delta * speed;
-		camera.pos.x += SinDeg(camera.yaw - 90) * app.delta * speed;
+		player.acc.z += CosDeg(player.yaw - 90) * speed;
+		player.acc.x += SinDeg(player.yaw - 90) * speed;
 		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_S]) {
-		camera.pos.z += CosDeg(camera.yaw + 180) * app.delta * speed;
-		camera.pos.x += SinDeg(camera.yaw + 180) * app.delta * speed;
+		player.acc.z += CosDeg(player.yaw + 180) * speed;
+		player.acc.x += SinDeg(player.yaw + 180) * speed;
 		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_D]) {
-		camera.pos.z += CosDeg(camera.yaw + 90) * app.delta * speed;
-		camera.pos.x += SinDeg(camera.yaw + 90) * app.delta * speed;
+		player.acc.z += CosDeg(player.yaw + 90) * speed;
+		player.acc.x += SinDeg(player.yaw + 90) * speed;
 		moved         = true;
-	}
-	if (keys[SDL_SCANCODE_SPACE]) {
-		camera.pos.y += app.delta * 5.0;
-	}
-	if (keys[SDL_SCANCODE_LSHIFT]) {
-		camera.pos.y -= app.delta * 5.0;
-	}
-	if (keys[SDL_SCANCODE_RIGHT]) {
-		camera.yaw += app.delta * sensitivity;
-	}
-	if (keys[SDL_SCANCODE_LEFT]) {
-		camera.yaw -= app.delta * sensitivity;
 	}
 	if (keys[SDL_SCANCODE_P]) {
 		SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -72,6 +72,9 @@ void Game_Update(bool top) {
 	if (keys[SDL_SCANCODE_O]) {
 		SDL_SetRelativeMouseMode(SDL_FALSE);
 	}
+
+	Player_Physics();
+	Player_FPCamera();
 
 	if (moved) {
 		// camera
@@ -107,18 +110,25 @@ void Game_Update(bool top) {
 }
 
 void Game_Render(void) {
+	Player_FPCamera();
 	Backend_RenderScene();
 
 	static char text[80];
 	snprintf(text, 80, "FPS: %d", (int) (1 / app.delta));
 	Text_Render(&app.font, text, 8, 8);
 
-	snprintf(text, 80, "X: %g", camera.pos.x);
-	Text_Render(&app.font, text, 8, 24);
-	snprintf(text, 80, "Y: %g", camera.pos.y);
-	Text_Render(&app.font, text, 8, 40);
-	snprintf(text, 80, "Z: %g", camera.pos.z);
-	Text_Render(&app.font, text, 8, 56);
+	snprintf(text, 80, "X: %g", player.pos.x);
+	Text_Render(&app.font, text, 8, 8 + 16);
+	snprintf(text, 80, "Y: %g", player.pos.y);
+	Text_Render(&app.font, text, 8, 8 + (16 * 2));
+	snprintf(text, 80, "Z: %g", player.pos.z);
+	Text_Render(&app.font, text, 8, 8 + (16 * 3));
 	snprintf(text, 80, "Sector: %d", (int) (camera.sector - map.sectors));
-	Text_Render(&app.font, text, 8, 72);
+	Text_Render(&app.font, text, 8, 8 + (16 * 4));
+	snprintf(text, 80, "Camera: %g %g %g", camera.pos.x, camera.pos.y, camera.pos.z);
+	Text_Render(&app.font, text, 8, 8 + (16 * 5));
+	snprintf(text, 80, "Sector floor: %g", camera.sector->floor);
+	Text_Render(&app.font, text, 8, 8 + (16 * 6));
+	snprintf(text, 80, "Velocity: %g %g %g", player.vel.x, player.vel.y, player.vel.z);
+	Text_Render(&app.font, text, 8, 8 + (16 * 7));
 }

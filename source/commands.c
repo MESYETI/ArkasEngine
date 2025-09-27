@@ -106,6 +106,20 @@ static void Command_Echo(size_t argc, char** argv) {
 	}
 }
 
+static void Command_Resources(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	(void) argv;
+
+	for (size_t i = 0; i < resources.capacity; ++ i) {
+		if (resources.resources[i].active) {
+			Log(
+				"[%.4X] %s: used by %d resource instances",
+				(int) i, resources.resources[i].name, resources.resources[i].usedBy
+			);
+		}
+	}
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {"clear-scenes", &Command_ClearScenes});
@@ -114,4 +128,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"ls",           &Command_Ls});
 	Console_AddCommand((ConsoleCommand) {"cat",          &Command_Cat});
 	Console_AddCommand((ConsoleCommand) {"echo",         &Command_Echo});
+	Console_AddCommand((ConsoleCommand) {"resources",    &Command_Resources});
 }
