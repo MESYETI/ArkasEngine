@@ -96,7 +96,7 @@ void Map_LoadTest(void) {
 	map.sectorsLen = 2;
 
 	map.sectors[0] = (Sector) {0, 6, 50, -0.5, NULL, NULL};
-	map.sectors[1] = (Sector) {6, 6, 10, 4.5, NULL, NULL};
+	map.sectors[1] = (Sector) {6, 6, 10, -0.3, NULL, NULL};
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
 		map.sectors[i].floorTexture   = Resources_GetRes(":base/3p_textures/grass3.png");
@@ -156,6 +156,10 @@ bool Map_LoadFile(const char* path) {
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
 		map.walls[i].isPortal     = File_Read8(file) != 0;
 		map.walls[i].portalSector = File_Read32(file);
+
+		if (map.walls[i].portalSector >= map.sectorsLen) {
+			Error("Out of bounds wall portal offset");
+		}
 
 		size_t texture = File_Read32(file);
 		if (texture >= stringsLen) {

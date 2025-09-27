@@ -380,7 +380,8 @@ static void RenderSector(Sector* sector) {
 	GL(glEnd());
 
 	for (size_t i = 0; i < sector->length; ++ i) {
-		const Wall* wall = &map.walls[i];
+		const Wall* wall = &map.walls[i + sector->start];
+
 		if (wall->isPortal) {
 			RenderSector(&map.sectors[wall->portalSector]);
 		}

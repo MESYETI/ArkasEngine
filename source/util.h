@@ -9,16 +9,14 @@
 #define MIN(A, B) (((A) < (B))? (A) : (B))
 #define MAX(A, B) (((A) > (B))? (A) : (B))
 
-#if 0
 #define SWAP(TYPE, A, B) \
 	do { \
 		TYPE* macro##a   = &(A); \
 		TYPE* macro##b   = &(B); \
-		TYPE  macro##tmp = = *a; \
+		TYPE  macro##tmp = *macro##a; \
 		*macro##a = *macro##b; \
 		*macro##b = macro##tmp; \
 	} while (0);
-#endif
 
 bool   DirExists(const char* path);
 float  RadToDeg(float rad);
@@ -27,7 +25,8 @@ float  Lerp(float a, float b, float t);
 float  CosDeg(float deg);
 float  SinDeg(float deg);
 float  Distance(FVec2 a, FVec2 b);
-FVec2  LineIntersect(FVec2 a, FVec2 b, FVec2 c, FVec2 d, bool* doesIntersect);
+float  PointLineSide(FVec2 p, FVec2 a, FVec2 b);
+FVec2  LineIntersect(FVec2 a1, FVec2 a2, FVec2 b1, FVec2 b2);
 bool   PointInLine(FVec2 p, FVec2 a, FVec2 b);
 char*  NewString(const char* src);
 char*  ConcatString(const char* first, const char* second);

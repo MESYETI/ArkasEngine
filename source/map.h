@@ -42,5 +42,6 @@ void Map_Free(void);
 void Map_LoadTest(void);
 bool Map_LoadFile(const char* path);
 bool Map_SaveFile(const char* path);
+bool Map_PointInMap(FVec2 pos);
 
 #endif

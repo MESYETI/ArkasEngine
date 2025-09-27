@@ -31,21 +31,28 @@ void Game_Update(bool top) {
 	static const float sensitivity = 180.0;
 	static const float speed       = 2.0;
 
+	bool  moved  = false;
+	FVec3 oldPos = camera.pos;
+
 	if (keys[SDL_SCANCODE_W]) {
 		camera.pos.z += CosDeg(camera.yaw) * app.delta * speed;
 		camera.pos.x += SinDeg(camera.yaw) * app.delta * speed;
+		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_A]) {
 		camera.pos.z += CosDeg(camera.yaw - 90) * app.delta * speed;
 		camera.pos.x += SinDeg(camera.yaw - 90) * app.delta * speed;
+		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_S]) {
 		camera.pos.z += CosDeg(camera.yaw + 180) * app.delta * speed;
 		camera.pos.x += SinDeg(camera.yaw + 180) * app.delta * speed;
+		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_D]) {
 		camera.pos.z += CosDeg(camera.yaw + 90) * app.delta * speed;
 		camera.pos.x += SinDeg(camera.yaw + 90) * app.delta * speed;
+		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_SPACE]) {
 		camera.pos.y += app.delta * 5.0;
@@ -64,6 +71,38 @@ void Game_Update(bool top) {
 	}
 	if (keys[SDL_SCANCODE_O]) {
 		SDL_SetRelativeMouseMode(SDL_FALSE);
+	}
+
+	if (moved) {
+		// camera
+		FVec2 a1 = (FVec2) {oldPos.x,     oldPos.z};
+		FVec2 a2 = (FVec2) {camera.pos.x, camera.pos.z};
+
+		for (size_t i = 0; i < camera.sector->length; ++ i) {
+			size_t idx  = camera.sector->start + i;
+			Wall*  wall = &map.walls[idx];
+
+			if (!wall->isPortal) continue;
+
+			FVec2 b1 = (FVec2) {map.points[idx].pos.x, map.points[idx].pos.y};
+			FVec2 b2;
+			size_t b2Idx;
+
+			b2Idx = i == camera.sector->length - 1? camera.sector->start : idx + 1;
+			b2    = (FVec2) {map.points[b2Idx].pos.x, map.points[b2Idx].pos.y};
+
+			FVec2 intersect = LineIntersect(a1, a2, b1, b2);
+
+			// check if camera is inside the sector
+			// this prevents an issue where you walk into another sector but
+			// the portal in that sector puts you back in the old sector
+			if (PointLineSide(a2, b1, b2) < 0) continue;
+
+			// add a check for the wall line if you want to support concave sectors
+			if (PointInLine(intersect, a1, a2)) {
+				camera.sector = &map.sectors[wall->portalSector];
+			}
+		}
 	}
 }
 
