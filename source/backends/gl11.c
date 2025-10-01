@@ -255,7 +255,7 @@ Vec2 Backend_GetTextureSize(Texture* texture) {
 }
 
 static void RenderSector(Sector* sector) {
-	float height = sector->ceiling - sector->floor;
+	// float height = sector->ceiling - sector->floor;
 
 	if (state.sectorsRendered[sector - map.sectors]) {
 		return;

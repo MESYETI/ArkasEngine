@@ -14,7 +14,7 @@ Map map = {
 	NULL, 0  // sectors
 };
 
-static Resource* texture; // temp
+// static Resource* texture; // temp
 
 void Map_Init(void) {
 	map.points     = NULL;

@@ -31,7 +31,7 @@ void Game_Update(bool top) {
 
 	const uint8_t* keys = SDL_GetKeyboardState(NULL);
 
-	static const float sensitivity = 180.0;
+	// static const float sensitivity = 180.0;
 	float speed = player.speed;
 
 	if (!FloatEqual(player.pos.y, player.sector->floor, 0.01)) {
