@@ -3,6 +3,7 @@
 #include "safe.h"
 #include "util.h"
 #include "scene.h"
+#include "player.h"
 #include "console.h"
 #include "commands.h"
 #include "resources.h"
@@ -106,6 +107,69 @@ static void Command_Echo(size_t argc, char** argv) {
 	}
 }
 
+static void Command_Resources(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	(void) argv;
+
+	for (size_t i = 0; i < resources.capacity; ++ i) {
+		if (resources.resources[i].active) {
+			Log(
+				"[%.4X] %s: used by %d resource instances",
+				(int) i, resources.resources[i].name, resources.resources[i].usedBy
+			);
+		}
+	}
+}
+
+enum {
+	VAR_INT,
+	VAR_FLOAT
+};
+
+typedef struct {
+	int         type;
+	const char* name;
+	void*       ptr;
+} Variable;
+
+static void Command_Set(size_t argc, char** argv) {
+	static const Variable vars[] = {
+		{VAR_FLOAT, "ground-friction", &player.groundFriction},
+		{VAR_FLOAT, "gravity",         &player.gravity},
+		{VAR_FLOAT, "speed",           &player.speed},
+		{VAR_FLOAT, "air-speed",       &player.airSpeed}
+	};
+
+	if (argc == 0) {
+		for (size_t i = 0; i < sizeof(vars) / sizeof(Variable); ++ i) {
+			switch (vars[i].type) {
+				case VAR_INT:   Log("int:   %s", vars[i].name); break;
+				case VAR_FLOAT: Log("float: %s", vars[i].name); break;
+				default:        Log("???:   %s", vars[i].name); break;
+			}
+		}
+	}
+	else {
+		ASSERT_ARGC(2);
+
+		for (size_t i = 0; i < sizeof(vars) / sizeof(Variable); ++ i) {
+			if (strcmp(vars[i].name, argv[0]) == 0) {
+				switch (vars[i].type) {
+					case VAR_INT: {
+						*((int*) vars[i].ptr) = atoi(argv[1]);
+						break;
+					}
+					case VAR_FLOAT: {
+						*((float*) vars[i].ptr) = (float) atof(argv[1]);
+						break;
+					}
+					default: assert(0);
+				}
+			}
+		}
+	}
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {"clear-scenes", &Command_ClearScenes});
@@ -114,4 +178,6 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"ls",           &Command_Ls});
 	Console_AddCommand((ConsoleCommand) {"cat",          &Command_Cat});
 	Console_AddCommand((ConsoleCommand) {"echo",         &Command_Echo});
+	Console_AddCommand((ConsoleCommand) {"resources",    &Command_Resources});
+	Console_AddCommand((ConsoleCommand) {"set",          &Command_Set});
 }

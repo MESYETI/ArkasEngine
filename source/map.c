@@ -4,6 +4,7 @@
 #include "util.h"
 #include "safe.h"
 #include "camera.h"
+#include "player.h"
 #include "backend.h"
 
 Map map = {
@@ -104,6 +105,7 @@ void Map_LoadTest(void) {
 	}
 
 	camera.sector = &map.sectors[0];
+	player.sector = &map.sectors[0];
 }
 
 bool Map_LoadFile(const char* path) {

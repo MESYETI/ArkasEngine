@@ -28,6 +28,10 @@ float SinDeg(float deg) {
 	return sin(DegToRad(deg));
 }
 
+bool FloatEqual(float a, float b, float margin) {
+	return fabsf(a - b) < margin;
+}
+
 float Distance(FVec2 a, FVec2 b) {
 	float x = (b.x - a.x) * (b.x - a.x);
 	float y = (b.y - a.y) * (b.y - a.y);
