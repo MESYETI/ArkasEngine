@@ -165,8 +165,12 @@ static void Command_Set(size_t argc, char** argv) {
 					}
 					default: assert(0);
 				}
+
+				return;
 			}
 		}
+
+		Log("Variable '%s' does not exist", argv[0]);
 	}
 }
 

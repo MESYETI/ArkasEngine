@@ -13,7 +13,7 @@ void Player_Init(void) {
 	player.grounded       = true;
 	player.maxSpeed       = 2.0;
 	player.skipFriction   = false;
-	player.groundFriction = 1900;
+	player.groundFriction = 30;
 	player.gravity        = 4.0;
 	player.speed          = 2.0;
 	player.airSpeed       = 0.1;
@@ -39,11 +39,27 @@ void Player_Physics(void) {
 	if (!player.skipFriction) {
 		player.vel.x += MAX(MIN(player.acc.x, player.maxSpeed), -player.maxSpeed);
 		player.vel.z += MAX(MIN(player.acc.z, player.maxSpeed), -player.maxSpeed);
+
+// 		float maxX = MAX(player.maxSpeed - player.vel.x, 0);
+// 		float maxZ = MAX(player.maxSpeed - player.vel.z, 0);
+// 
+// 		if (player.acc.x < 0) {
+// 			player.vel.x += MAX(-maxX, player.acc.x);
+// 		}
+// 		else {
+// 			player.vel.x += MIN(maxX,  player.acc.x);
+// 		}
+// 
+// 		if (player.acc.z < 0) {
+// 			player.vel.z += MAX(-maxZ, player.acc.z);
+// 		}
+// 		else {
+// 			player.vel.z += MIN(maxZ,  player.acc.z);
+// 		}
 	}
 	player.vel.y += MAX(MIN(player.acc.y, player.maxSpeed), -player.maxSpeed);
 
-	double friction  = player.groundFriction * app.delta;
-	friction         = 1.0 / ((friction * app.delta) + 1);
+	double friction = 1.0 / ((player.groundFriction * app.delta) + 1);
 
 	if (FloatEqual(player.pos.y, player.sector->floor, 0.005) && !player.skipFriction) {
 		player.vel.x *= friction;
