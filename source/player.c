@@ -5,13 +5,18 @@
 Player player;
 
 void Player_Init(void) {
-	player.pos      = (FVec3) {0.0, -0.5, 0.0};
-	player.vel      = (FVec3) {0.0,  0.0, 0.0};
-	player.acc      = (FVec3) {0.0,  0.0, 0.0};
-	player.yaw      = 0.0;
-	player.pitch    = 0.0;
-	player.grounded = true;
-	player.maxSpeed = 2.0;
+	player.pos            = (FVec3) {0.0, -0.5, 0.0};
+	player.vel            = (FVec3) {0.0,  0.0, 0.0};
+	player.acc            = (FVec3) {0.0,  0.0, 0.0};
+	player.yaw            = 0.0;
+	player.pitch          = 0.0;
+	player.grounded       = true;
+	player.maxSpeed       = 2.0;
+	player.skipFriction   = false;
+	player.groundFriction = 1900;
+	player.gravity        = 4.0;
+	player.speed          = 2.0;
+	player.airSpeed       = 0.1;
 }
 
 void Player_FPCamera(void) {
@@ -31,14 +36,20 @@ static void Zero(float* vel) {
 }
 
 void Player_Physics(void) {
-	player.vel.x += MAX(MIN(player.acc.x, player.maxSpeed), -player.maxSpeed);
+	if (!player.skipFriction) {
+		player.vel.x += MAX(MIN(player.acc.x, player.maxSpeed), -player.maxSpeed);
+		player.vel.z += MAX(MIN(player.acc.z, player.maxSpeed), -player.maxSpeed);
+	}
 	player.vel.y += MAX(MIN(player.acc.y, player.maxSpeed), -player.maxSpeed);
-	player.vel.z += MAX(MIN(player.acc.z, player.maxSpeed), -player.maxSpeed);
 
-	double friction  = 15 * app.delta;
+	double friction  = player.groundFriction * app.delta;
 	friction         = 1.0 / ((friction * app.delta) + 1);
-	player.vel.x    *= friction;
-	player.vel.z    *= friction;
+
+	if (FloatEqual(player.pos.y, player.sector->floor, 0.005) && !player.skipFriction) {
+		player.vel.x *= friction;
+		player.vel.z *= friction;
+	}
+	player.vel.y -= app.delta * player.gravity;
 
 	player.pos.x += player.vel.x * app.delta;
 	player.pos.y += player.vel.y * app.delta;
@@ -49,9 +60,13 @@ void Player_Physics(void) {
 
 	if (player.pos.y < player.sector->floor) {
 		player.pos.y = player.sector->floor;
+		player.vel.y = 0.0;
 	}
 
 	if (player.pos.y > player.sector->ceiling - 0.6) {
 		player.pos.y = player.sector->ceiling - 0.6;
+		player.vel.y = 0.0;
 	}
+
+	player.skipFriction = false;
 }

@@ -11,10 +11,15 @@ typedef struct {
 	float   yaw;
 	float   pitch;
 	bool    grounded;
+	bool    skipFriction;
 	Sector* sector;
 
 	// config
 	float maxSpeed;
+	float gravity;
+	float groundFriction;
+	float speed;
+	float airSpeed;
 } Player;
 
 // player is 0.6 units tall

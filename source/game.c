@@ -32,10 +32,10 @@ void Game_Update(bool top) {
 	const uint8_t* keys = SDL_GetKeyboardState(NULL);
 
 	static const float sensitivity = 180.0;
-	float speed = 2.0;
+	float speed = player.speed;
 
 	if (!FloatEqual(player.pos.y, player.sector->floor, 0.01)) {
-		speed = 0.3;
+		speed = player.airSpeed;
 	}
 
 	bool  moved  = false;
@@ -44,8 +44,6 @@ void Game_Update(bool top) {
 	player.yaw   = camera.yaw;
 	player.pitch = camera.pitch;
 
-	player.acc.x = 0.0;
-	player.acc.z = 0.0;
 	if (keys[SDL_SCANCODE_W]) {
 		player.acc.z += CosDeg(player.yaw) * speed;
 		player.acc.x += SinDeg(player.yaw) * speed;
@@ -75,6 +73,9 @@ void Game_Update(bool top) {
 
 	Player_Physics();
 	Player_FPCamera();
+	player.acc.x = 0.0;
+	player.acc.y = 0.0;
+	player.acc.z = 0.0;
 
 	if (moved) {
 		// camera
@@ -103,9 +104,34 @@ void Game_Update(bool top) {
 
 			// add a check for the wall line if you want to support concave sectors
 			if (PointInLine(intersect, a1, a2)) {
+				player.sector = &map.sectors[wall->portalSector];
 				camera.sector = &map.sectors[wall->portalSector];
+
+				if (player.sector->floor > player.pos.y) {
+					player.pos.y  = player.sector->floor;
+				}
 			}
 		}
+	}
+}
+
+void Game_HandleEvent(SDL_Event* e) {
+	switch (e->type) {
+		case SDL_KEYDOWN: {
+			switch (e->key.keysym.scancode) {
+				case SDL_SCANCODE_SPACE: {
+					if (FloatEqual(player.sector->floor, player.pos.y, 0.05)) {
+						player.acc.y        = 3.0;
+						player.skipFriction = true;
+					}
+					break;
+				}
+				default: break;
+			}
+
+			break;
+		}
+		default: break;
 	}
 }
 
@@ -117,18 +143,27 @@ void Game_Render(void) {
 	snprintf(text, 80, "FPS: %d", (int) (1 / app.delta));
 	Text_Render(&app.font, text, 8, 8);
 
-	snprintf(text, 80, "X: %g", player.pos.x);
+	snprintf(text, 80, "X: %.3f", player.pos.x);
 	Text_Render(&app.font, text, 8, 8 + 16);
-	snprintf(text, 80, "Y: %g", player.pos.y);
+	snprintf(text, 80, "Y: %.3f", player.pos.y);
 	Text_Render(&app.font, text, 8, 8 + (16 * 2));
-	snprintf(text, 80, "Z: %g", player.pos.z);
+	snprintf(text, 80, "Z: %.3f", player.pos.z);
 	Text_Render(&app.font, text, 8, 8 + (16 * 3));
 	snprintf(text, 80, "Sector: %d", (int) (camera.sector - map.sectors));
 	Text_Render(&app.font, text, 8, 8 + (16 * 4));
-	snprintf(text, 80, "Camera: %g %g %g", camera.pos.x, camera.pos.y, camera.pos.z);
+	snprintf(text, 80, "Camera: %.3f %.3f %.3f", camera.pos.x, camera.pos.y, camera.pos.z);
 	Text_Render(&app.font, text, 8, 8 + (16 * 5));
-	snprintf(text, 80, "Sector floor: %g", camera.sector->floor);
+	snprintf(text, 80, "Player: %.3f %.3f %.3f", player.pos.x, player.pos.y, player.pos.z);
 	Text_Render(&app.font, text, 8, 8 + (16 * 6));
-	snprintf(text, 80, "Velocity: %g %g %g", player.vel.x, player.vel.y, player.vel.z);
+	snprintf(text, 80, "Sector floor: %.3f", camera.sector->floor);
 	Text_Render(&app.font, text, 8, 8 + (16 * 7));
+	snprintf(text, 80, "Velocity: %.3f %.3f %.3f", player.vel.x, player.vel.y, player.vel.z);
+	Text_Render(&app.font, text, 8, 8 + (16 * 8));
+	snprintf(text, 80, "Delta time: %.3f", app.delta);
+	Text_Render(&app.font, text, 8, 8 + (16 * 9));
+	snprintf(
+		text, 80, "Grounded: %s",
+		FloatEqual(player.sector->floor, player.pos.y, 0.05)? "true" : "false"
+	);
+	Text_Render(&app.font, text, 8, 8 + (16 * 10));
 }
