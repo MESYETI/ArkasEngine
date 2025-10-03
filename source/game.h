@@ -4,6 +4,12 @@
 #include "video.h"
 #include "common.h"
 
+typedef struct {
+	float sensitivity;
+} GameBaseConfig;
+
+extern GameBaseConfig gameBaseConfig;
+
 void Game_Init(void);
 void Game_Free(void);
 void Game_Update(bool top);

@@ -1,6 +1,7 @@
 #include "app.h"
 #include "map.h"
 #include "mem.h"
+#include "game.h"
 #include "util.h"
 #include "scene.h"
 #include "player.h"
@@ -136,7 +137,8 @@ static void Command_Set(size_t argc, char** argv) {
 		{VAR_FLOAT, "gravity",         &player.gravity},
 		{VAR_FLOAT, "speed",           &player.speed},
 		{VAR_FLOAT, "air-speed",       &player.airSpeed},
-		{VAR_FLOAT, "jump-speed",      &player.jumpSpeed}
+		{VAR_FLOAT, "jump-speed",      &player.jumpSpeed},
+		{VAR_FLOAT, "sensitivity",     &gameBaseConfig.sensitivity}
 	};
 
 	if (argc == 0) {
@@ -186,6 +188,24 @@ static void Command_Exit(size_t argc, char** argv) {
 	app.running = false;
 }
 
+static void Command_Peak(size_t argc, char** argv) {
+	(void) argc;
+	(void) argv;
+
+	Log("                                                                 #####");
+	Log("                                                                #######");
+	Log("                   #                                            ##O#O##");
+	Log("  ######          ###                                           #VVVVV#");
+	Log("    ##             #                                          ##  VVV  ##");
+	Log("    ##         ###    ### ####   ###    ###  ##### #####     #          ##");
+	Log("    ##        #  ##    ###    ##  ##     ##    ##   ##      #            ##");
+	Log("    ##       #   ##    ##     ##  ##     ##      ###        #            ###");
+	Log("    ##          ###    ##     ##  ##     ##      ###       QQ#           ##Q");
+	Log("    ##       # ###     ##     ##  ##     ##     ## ##    QQQQQQ#       #QQQQQQ");
+	Log("    ##      ## ### #   ##     ##  ###   ###    ##   ##   QQQQQQQ#     #QQQQQQQ");
+	Log("  ############  ###   ####   ####   #### ### ##### #####   QQQQQ#######QQQQQ");
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {"clear-scenes", &Command_ClearScenes});
@@ -198,4 +218,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"set",          &Command_Set});
 	Console_AddCommand((ConsoleCommand) {"help",         &Command_Help});
 	Console_AddCommand((ConsoleCommand) {"exit",         &Command_Exit});
+	Console_AddCommand((ConsoleCommand) {"peak",         &Command_Peak});
 }

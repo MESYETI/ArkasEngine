@@ -7,6 +7,8 @@
 #include "player.h"
 #include "backend.h"
 
+GameBaseConfig gameBaseConfig;
+
 void Game_Init(void) {
 	Map_Init();
 	SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -17,6 +19,8 @@ void Game_Init(void) {
 	camera.pitch = 0.0;
 	camera.yaw   = 0.0;
 	camera.roll  = 0.0;
+
+	gameBaseConfig.sensitivity = 7.5;
 
 	Player_Init();
 }
@@ -40,9 +44,6 @@ void Game_Update(bool top) {
 
 	bool  moved  = false;
 	FVec3 oldPos = camera.pos;
-
-	player.yaw   = camera.yaw;
-	player.pitch = camera.pitch;
 
 	if (keys[SDL_SCANCODE_W]) {
 		player.acc.z += CosDeg(player.yaw) * speed;
@@ -141,6 +142,16 @@ void Game_HandleEvent(SDL_Event* e) {
 
 			break;
 		}
+		case SDL_MOUSEMOTION: {
+			player.yaw +=
+				(float) e->motion.xrel * gameBaseConfig.sensitivity * app.delta;
+			player.pitch -=
+				(float) e->motion.yrel * gameBaseConfig.sensitivity * app.delta;
+
+			if (player.pitch >  90.0) player.pitch =  90.0;
+			if (player.pitch < -90.0) player.pitch = -90.0;
+			break;
+		}
 		default: break;
 	}
 }
@@ -163,7 +174,7 @@ void Game_Render(void) {
 	Text_Render(&app.font, text, 8, 8 + (16 * 4));
 	snprintf(text, 80, "Camera: %.3f %.3f %.3f", camera.pos.x, camera.pos.y, camera.pos.z);
 	Text_Render(&app.font, text, 8, 8 + (16 * 5));
-	snprintf(text, 80, "Player: %.3f %.3f %.3f", player.pos.x, player.pos.y, player.pos.z);
+	snprintf(text, 80, "Player rot: %.3f %.3f", player.yaw, player.pitch);
 	Text_Render(&app.font, text, 8, 8 + (16 * 6));
 	snprintf(text, 80, "Sector floor: %.3f", camera.sector->floor);
 	Text_Render(&app.font, text, 8, 8 + (16 * 7));

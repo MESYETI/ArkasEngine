@@ -85,14 +85,6 @@ void App_Update(void) {
 				}
 				break;
 			}
-			case SDL_MOUSEMOTION: {
-				camera.yaw   += (float) e.motion.xrel * 7.5 * app.delta;
-				camera.pitch -= (float) e.motion.yrel * 7.5 * app.delta;
-
-				if (camera.pitch >  90.0) camera.pitch =  90.0;
-				if (camera.pitch < -90.0) camera.pitch = -90.0;
-				break;
-			}
 		}
 
 		SceneManager_HandleEvent(&e);

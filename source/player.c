@@ -26,8 +26,8 @@ void Player_FPCamera(void) {
 
 	// TODO: camera direction is handled by App so i commented this out until i change
 	// that
-	// camera.yaw    = player.yaw;
-	// camera.sector = player.sector;
+	camera.yaw    = player.yaw;
+	camera.sector = player.sector;
 }
 
 static void Zero(float* vel) {
