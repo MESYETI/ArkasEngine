@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include "file.h"
-#include "safe.h"
+#include "mem.h"
 
 uint8_t File_Read8(FILE* file) {
 	int ret = fgetc(file);

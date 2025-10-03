@@ -39,6 +39,8 @@ void SceneManager_PopScene(void) {
 }
 
 void SceneManager_InitActive(void) {
+	if (sm.activeScenes == 0) return;
+
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
 		Game_Init();
 	}
@@ -49,6 +51,8 @@ void SceneManager_InitActive(void) {
 }
 
 void SceneManager_FreeActive(void) {
+	if (sm.activeScenes == 0) return;
+
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
 		Game_Free();
 	}
@@ -59,6 +63,8 @@ void SceneManager_FreeActive(void) {
 }
 
 void SceneManager_UpdateActive(void) {
+	if (sm.activeScenes == 0) return;
+
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
 		Game_Update(true);
 	}
@@ -69,6 +75,8 @@ void SceneManager_UpdateActive(void) {
 }
 
 void SceneManager_HandleEvent(SDL_Event* e) {
+	if (sm.activeScenes == 0) return;
+
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
 		Game_HandleEvent(e);
 	}

@@ -1,6 +1,6 @@
 #include "../stb.h"
 #include "../map.h"
-#include "../safe.h"
+#include "../mem.h"
 #include "../util.h"
 #include "../video.h"
 #include "../camera.h"

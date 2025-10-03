@@ -1,7 +1,7 @@
 #include "app.h"
 #include "util.h"
 #include "text.h"
-#include "safe.h"
+#include "mem.h"
 #include "video.h"
 #include "common.h"
 #include "backend.h"
@@ -25,7 +25,7 @@ void Console_Free(void) {
 }
 
 static void ScrollUp(void) {
-	memcpy(&console.lines[1], &console.lines[0], 99 * sizeof(console.lines[0]));
+	memmove(&console.lines[1], &console.lines[0], 99 * sizeof(console.lines[0]));
 }
 
 void Console_WriteLine(char* text) {

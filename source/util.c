@@ -2,8 +2,8 @@
 #include <stdarg.h>
 #include <time.h>
 #include <string.h>
+#include "mem.h"
 #include "util.h"
-#include "safe.h"
 #include "video.h"
 #include "common.h"
 #include "console.h"

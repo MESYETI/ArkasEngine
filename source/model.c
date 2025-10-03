@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "file.h"
 #include "util.h"
-#include "safe.h"
+#include "mem.h"
 #include "model.h"
 #include "video.h"
 

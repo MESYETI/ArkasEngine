@@ -36,9 +36,9 @@ void App_Init(void) {
 }
 
 void App_Free(void) {
-	Resources_Free();
 	SceneManager_Free();
 	Text_FreeFont(&app.font);
+	Resources_Free();
 	Video_Free();
 	SDL_Quit();
 }

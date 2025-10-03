@@ -1,5 +1,5 @@
-#ifndef AE_SAFE_H
-#define AE_SAFE_H
+#ifndef AE_MEM_H
+#define AE_MEM_H
 
 #include "common.h"
 

@@ -2,7 +2,7 @@
 #include "map.h"
 #include "file.h"
 #include "util.h"
-#include "safe.h"
+#include "mem.h"
 #include "camera.h"
 #include "player.h"
 #include "backend.h"

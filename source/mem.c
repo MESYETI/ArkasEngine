@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "safe.h"
+#include "mem.h"
 #include "common.h"
 
 void* SafeMalloc(size_t size) {

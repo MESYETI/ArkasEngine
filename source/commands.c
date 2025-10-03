@@ -1,6 +1,6 @@
 #include "app.h"
 #include "map.h"
-#include "safe.h"
+#include "mem.h"
 #include "util.h"
 #include "scene.h"
 #include "player.h"

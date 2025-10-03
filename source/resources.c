@@ -2,7 +2,7 @@
 #include <string.h>
 #include "ark.h"
 #include "util.h"
-#include "safe.h"
+#include "mem.h"
 #include "resources.h"
 
 ResourceManager resources;
@@ -44,6 +44,8 @@ void Resources_Init(void) {
 		drive->name = SafeRealloc(drive->name, strlen(drive->name) + 1);
 	}
 
+	closedir(dir);
+
 	Log("%d resource drives mounted", resources.drivesNum);
 
 	// init resource pool
@@ -60,6 +62,7 @@ void Resources_Init(void) {
 void Resources_Free(void) {
 	for (size_t i = 0; i < resources.drivesNum; ++ i) {
 		resources.drives[i]->free(resources.drives[i]);
+		free(resources.drives[i]->name);
 		free(resources.drives[i]);
 	}
 	free(resources.drives);
@@ -260,6 +263,7 @@ void Resources_FreeRes(Resource* resource) {
 			default: assert(0);
 		}
 
+		free(resource->name);
 		resource->active = false;
 	}
 }

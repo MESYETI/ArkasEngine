@@ -2,7 +2,7 @@
 #include "ark.h"
 #include "file.h"
 #include "util.h"
-#include "safe.h"
+#include "mem.h"
 #include "resources.h"
 
 ErrorRet Ark_InitReader(ArchiveReader* reader, const char* path) {
@@ -16,10 +16,23 @@ ErrorRet Ark_InitReader(ArchiveReader* reader, const char* path) {
 	return Error_Success();
 }
 
+static void FreeDir(ArkEntry* dir) {
+	if (dir->folder) {
+		for (size_t i = 0; i < dir->folderSize; ++ i) {
+			FreeDir(&dir->folderContents[i]);
+		}
+
+		free(dir->folderContents);
+	}
+}
+
 void Ark_FreeReader(ArchiveReader* reader) {
 	if (reader->file) {
 		fclose(reader->file);
 	}
+
+	FreeDir(&reader->root);
+	free(reader->strings);
 }
 
 ArkEntry ReadEntry(ArchiveReader* reader, ErrorRet* error) {
