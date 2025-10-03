@@ -20,6 +20,7 @@ typedef struct {
 	float groundFriction;
 	float speed;
 	float airSpeed;
+	float jumpSpeed;
 } Player;
 
 // player is 0.6 units tall

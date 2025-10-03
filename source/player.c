@@ -17,6 +17,7 @@ void Player_Init(void) {
 	player.gravity        = 4.0;
 	player.speed          = 2.0;
 	player.airSpeed       = 0.1;
+	player.jumpSpeed      = 3.0;
 }
 
 void Player_FPCamera(void) {
@@ -36,9 +37,11 @@ static void Zero(float* vel) {
 }
 
 void Player_Physics(void) {
+	double physicsMult = app.delta * 60.0;
+
 	if (!player.skipFriction) {
-		player.vel.x += MAX(MIN(player.acc.x, player.maxSpeed), -player.maxSpeed);
-		player.vel.z += MAX(MIN(player.acc.z, player.maxSpeed), -player.maxSpeed);
+		player.vel.x += MAX(MIN(player.acc.x, player.maxSpeed), -player.maxSpeed) * physicsMult;
+		player.vel.z += MAX(MIN(player.acc.z, player.maxSpeed), -player.maxSpeed) * physicsMult;
 
 // 		float maxX = MAX(player.maxSpeed - player.vel.x, 0);
 // 		float maxZ = MAX(player.maxSpeed - player.vel.z, 0);
@@ -57,7 +60,7 @@ void Player_Physics(void) {
 // 			player.vel.z += MIN(maxZ,  player.acc.z);
 // 		}
 	}
-	player.vel.y += MAX(MIN(player.acc.y, player.maxSpeed), -player.maxSpeed);
+	player.vel.y += MAX(MIN(player.acc.y, player.maxSpeed), -player.maxSpeed) * physicsMult;
 
 	double friction = 1.0 / ((player.groundFriction * app.delta) + 1);
 

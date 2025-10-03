@@ -9,6 +9,7 @@
 #include "resources.h"
 
 #define ASSERT_ARGC(N) \
+	(void) argv; \
 	if (argc != (N)) { \
 		Log("Command requires %d arguments", (N)); \
 		return; \
@@ -16,7 +17,6 @@
 
 static void Command_Test(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
-	(void) argv;
 
 	Log("Starting map viewer");
 
@@ -29,7 +29,6 @@ static void Command_Test(size_t argc, char** argv) {
 
 static void Command_ClearScenes(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
-	(void) argv;
 
 	SceneManager_Free();
 	Log("Scenes cleared");
@@ -109,7 +108,6 @@ static void Command_Echo(size_t argc, char** argv) {
 
 static void Command_Resources(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
-	(void) argv;
 
 	for (size_t i = 0; i < resources.capacity; ++ i) {
 		if (resources.resources[i].active) {
@@ -137,7 +135,8 @@ static void Command_Set(size_t argc, char** argv) {
 		{VAR_FLOAT, "ground-friction", &player.groundFriction},
 		{VAR_FLOAT, "gravity",         &player.gravity},
 		{VAR_FLOAT, "speed",           &player.speed},
-		{VAR_FLOAT, "air-speed",       &player.airSpeed}
+		{VAR_FLOAT, "air-speed",       &player.airSpeed},
+		{VAR_FLOAT, "jump-speed",      &player.jumpSpeed}
 	};
 
 	if (argc == 0) {
@@ -174,6 +173,19 @@ static void Command_Set(size_t argc, char** argv) {
 	}
 }
 
+static void Command_Help(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+
+	for (size_t i = 0; i < console.cmdsLen; ++ i) {
+		Log("%p %s", console.cmds[i].name, console.cmds[i].name);
+	}
+}
+
+static void Command_Exit(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	app.running = false;
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {"clear-scenes", &Command_ClearScenes});
@@ -184,4 +196,6 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {"echo",         &Command_Echo});
 	Console_AddCommand((ConsoleCommand) {"resources",    &Command_Resources});
 	Console_AddCommand((ConsoleCommand) {"set",          &Command_Set});
+	Console_AddCommand((ConsoleCommand) {"help",         &Command_Help});
+	Console_AddCommand((ConsoleCommand) {"exit",         &Command_Exit});
 }

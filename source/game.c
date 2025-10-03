@@ -71,6 +71,16 @@ void Game_Update(bool top) {
 		SDL_SetRelativeMouseMode(SDL_FALSE);
 	}
 
+	if (keys[SDL_SCANCODE_A]) {
+		camera.roll = -2.0;
+	}
+	else if (keys[SDL_SCANCODE_D]) {
+		camera.roll = 2.0;
+	}
+	else {
+		camera.roll = 0.0;
+	}
+
 	Player_Physics();
 	Player_FPCamera();
 	player.acc.x = 0.0;
@@ -121,7 +131,7 @@ void Game_HandleEvent(SDL_Event* e) {
 			switch (e->key.keysym.scancode) {
 				case SDL_SCANCODE_SPACE: {
 					if (FloatEqual(player.sector->floor, player.pos.y, 0.05)) {
-						player.acc.y        = 3.0;
+						player.acc.y        = player.jumpSpeed;
 						player.skipFriction = true;
 					}
 					break;

@@ -18,6 +18,11 @@ make
 ```
 Requires SDL2 and stb (clone recursively!)
 
+Make options:
+- `PLAT=windows` - Cross compile to Windows (64-bit)
+- `BUILD=release` - Compile a release build
+- `ASAN=y` - Enable address santiser
+
 ## Preparation
 Get a D compiler and the `dub` build system and build the `ark` tool in `tools/ark`. Then,
 clone <https://github.com/mesyeti/ArkasAssets> and follow the build instructions in the
@@ -34,6 +39,7 @@ these commands:
   (Note: textures do not work when maps are loaded with this command, will be fixed when
   the resource manager is added)
 - `dl-map <MAP NAME>` - Saves the current loaded map as `MAP NAME` in the `maps` folder
+- `help` - Shows a list of commands
 
 ## Graphics backends
 ### Implemented

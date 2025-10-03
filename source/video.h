@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 #include "common.h"
 
+#undef main
+
 typedef struct {
 	uint8_t r, g, b;
 } Colour;

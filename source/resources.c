@@ -170,6 +170,7 @@ static Resource* AllocResource(void) {
 	for (size_t i = 0; i < resources.capacity; ++ i) {
 		if (!resources.resources[i].active) {
 			resources.resources[i].active = true;
+			resources.resources[i].usedBy = 1;
 			return &resources.resources[i];
 		}
 	}
