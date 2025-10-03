@@ -60,7 +60,7 @@ void Player_Physics(void) {
 // 			player.vel.z += MIN(maxZ,  player.acc.z);
 // 		}
 	}
-	player.vel.y += MAX(MIN(player.acc.y, player.maxSpeed), -player.maxSpeed) * physicsMult;
+	player.vel.y += player.acc.y * physicsMult;
 
 	double friction = 1.0 / ((player.groundFriction * app.delta) + 1);
 
