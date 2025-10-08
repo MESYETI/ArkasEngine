@@ -17,6 +17,7 @@ void Console_Init(void) {
 
 	console.cmds    = NULL;
 	console.cmdsLen = 0;
+	console.echo    = true;
 	Commands_Init();
 }
 
@@ -62,6 +63,8 @@ static char** ParseCommand(size_t* argcOut) {
 	//   free(argv);
 
 	char* in = console.editor;
+
+	if (*in == '@') ++ in; // skip disable echo character
 
 	char** resArray     = SafeMalloc(1 * sizeof(char*));
 	size_t resArrayLen  = 0; // number of strings
@@ -124,7 +127,7 @@ static char** ParseCommand(size_t* argcOut) {
 			if (c == ' ' || c == '\t') {
 				// gobble up extra whitespace
 				c = *in;
-				while ((c == ' ') || (c == '\t')) {
+				while ((c == ' ') || (c == '\t') || (c == '\n')) {
 					++ in;
 					c = *in;
 				}
@@ -194,7 +197,10 @@ static char** ParseCommand(size_t* argcOut) {
 }
 
 static void RunCommand(void) {
-	Log("> %s", console.editor);
+	if (console.echo && (console.editor[0] != '@')) {
+		Log("> %s", console.editor);
+	}
+
 	size_t argc;
 	char** parts = ParseCommand(&argc);
 	console.editor[0] = 0;
@@ -227,6 +233,33 @@ void Console_AddCommand(ConsoleCommand cmd) {
 
 	console.cmds[console.cmdsLen] = cmd;
 	++ console.cmdsLen;
+}
+
+bool Console_RunFile(const char* path) {
+	FILE* file = fopen(path, "r");
+
+	if (file == NULL) {
+		Log("Failed to open '%s'", path);
+		return false;
+	}
+
+	char oldEdit[100];
+	memcpy(oldEdit, console.editor, 100);
+
+	char* line;
+
+	while (true) {
+		line = fgets(console.editor, 100, file);
+
+		if (line == NULL) break;
+		line[strlen(line) - 1] = 0;
+
+		RunCommand();
+	}
+
+	memcpy(console.editor, oldEdit, 100);
+
+	return true;
 }
 
 void Console_HandleEvent(SDL_Event* e) {

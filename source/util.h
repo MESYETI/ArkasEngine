@@ -18,7 +18,7 @@
 		*macro##b = macro##tmp; \
 	} while (0);
 
-bool   DirExists(const char* path);
+bool   FileExists(const char* path);
 float  RadToDeg(float rad);
 float  DegToRad(float deg);
 float  Lerp(float a, float b, float t);

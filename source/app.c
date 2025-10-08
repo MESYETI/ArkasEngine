@@ -4,6 +4,7 @@
 #include "util.h"
 #include "scene.h"
 #include "video.h"
+#include "config.h"
 #include "camera.h"
 #include "backend.h"
 #include "console.h"
@@ -33,6 +34,27 @@ void App_Init(void) {
 	app.running = true;
 	app.font    = Text_LoadFont("font.png");
 	app.console = true;
+
+	if (!FileExists("startup.cmd")) {
+		Log("Generating startup.cmd");
+
+		WriteFile("startup.cmd",
+			"@set echo false\n"
+			"run gen_options.cmd\n"
+			"@set echo true\n"
+		);
+	}
+	if (!FileExists("gen_options.cmd")) {
+		Log("Generating gen_options.cmd");
+
+		SaveDefaultConfig();
+	}
+
+	// run script
+	Log("Running startup...");
+	if (!Console_RunFile("startup.cmd")) {
+		Log("Failed to run startup");
+	}
 }
 
 void App_Free(void) {

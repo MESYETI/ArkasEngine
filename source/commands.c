@@ -122,7 +122,8 @@ static void Command_Resources(size_t argc, char** argv) {
 
 enum {
 	VAR_INT,
-	VAR_FLOAT
+	VAR_FLOAT,
+	VAR_BOOL
 };
 
 typedef struct {
@@ -138,7 +139,8 @@ static void Command_Set(size_t argc, char** argv) {
 		{VAR_FLOAT, "speed",           &player.speed},
 		{VAR_FLOAT, "air-speed",       &player.airSpeed},
 		{VAR_FLOAT, "jump-speed",      &player.jumpSpeed},
-		{VAR_FLOAT, "sensitivity",     &gameBaseConfig.sensitivity}
+		{VAR_FLOAT, "sensitivity",     &gameBaseConfig.sensitivity},
+		{VAR_BOOL,  "echo",            &console.echo}
 	};
 
 	if (argc == 0) {
@@ -146,13 +148,40 @@ static void Command_Set(size_t argc, char** argv) {
 			switch (vars[i].type) {
 				case VAR_INT:   Log("int:   %s", vars[i].name); break;
 				case VAR_FLOAT: Log("float: %s", vars[i].name); break;
+				case VAR_BOOL:  Log("bool:  %s", vars[i].name); break;
 				default:        Log("???:   %s", vars[i].name); break;
 			}
 		}
 	}
-	else {
-		ASSERT_ARGC(2);
+	else if (argc == 1) {
+		for (size_t i = 0; i < sizeof(vars) / sizeof(Variable); ++ i) {
+			if (strcmp(vars[i].name, argv[0]) == 0) {
+				switch (vars[i].type) {
+					case VAR_INT: {
+						Log("%s = %d", argv[0], *((int*) vars[i].ptr));
+						break;
+					}
+					case VAR_FLOAT: {
+						Log("%s = %g", argv[0], *((float*) vars[i].ptr));
+						break;
+					}
+					case VAR_BOOL: {
+						Log(
+							"%s = %s", argv[0],
+							(*((bool*) vars[i].ptr))? "true" : "false"
+						);
+						break;
+					}
+					default: assert(0);
+				}
 
+				return;
+			}
+		}
+
+		Log("Variable '%s' does not exist", argv[0]);
+	}
+	else if (argc == 2) {
 		for (size_t i = 0; i < sizeof(vars) / sizeof(Variable); ++ i) {
 			if (strcmp(vars[i].name, argv[0]) == 0) {
 				switch (vars[i].type) {
@@ -164,6 +193,20 @@ static void Command_Set(size_t argc, char** argv) {
 						*((float*) vars[i].ptr) = (float) atof(argv[1]);
 						break;
 					}
+					case VAR_BOOL: {
+						if (strcmp(argv[1], "true") == 0) {
+							*((bool*) vars[i].ptr) = true;
+						}
+						else if (strcmp(argv[1], "false") == 0) {
+							*((bool*) vars[i].ptr) = false;
+						}
+						else {
+							Log("Invalid value");
+							return;
+						}
+
+						break;
+					}
 					default: assert(0);
 				}
 
@@ -172,6 +215,12 @@ static void Command_Set(size_t argc, char** argv) {
 		}
 
 		Log("Variable '%s' does not exist", argv[0]);
+	}
+	else {
+		Log("Invalid command, available variants:");
+		Log("  set            -- Show all variables");
+		Log("  set NAME       -- Show value of variable NAME");
+		Log("  set NAME VALUE -- Set variable NAME to VALUE");
 	}
 }
 
@@ -206,17 +255,39 @@ static void Command_Peak(size_t argc, char** argv) {
 	Log("  ############  ###   ####   ####   #### ### ##### #####   QQQQQ#######QQQQQ");
 }
 
+static void Command_Run(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	if (!Console_RunFile(argv[0])) {
+		Log("Failed to run '%s'", argv[0]);
+	}
+}
+
+static void Command_Comment(size_t argc, char** argv) {
+	(void) argc;
+	(void) argv;
+}
+
+static void Command_ParseTest(size_t argc, char** argv) {
+	for (size_t i = 0; i < argc; ++ i) {
+		Log("%s", argv[i]);
+	}
+}
+
 void Commands_Init(void) {
-	Console_AddCommand((ConsoleCommand) {"test-map",     &Command_Test});
-	Console_AddCommand((ConsoleCommand) {"clear-scenes", &Command_ClearScenes});
-	Console_AddCommand((ConsoleCommand) {"map",          &Command_Map});
-	Console_AddCommand((ConsoleCommand) {"dl-map",       &Command_DlMap});
-	Console_AddCommand((ConsoleCommand) {"ls",           &Command_Ls});
-	Console_AddCommand((ConsoleCommand) {"cat",          &Command_Cat});
-	Console_AddCommand((ConsoleCommand) {"echo",         &Command_Echo});
-	Console_AddCommand((ConsoleCommand) {"resources",    &Command_Resources});
-	Console_AddCommand((ConsoleCommand) {"set",          &Command_Set});
-	Console_AddCommand((ConsoleCommand) {"help",         &Command_Help});
-	Console_AddCommand((ConsoleCommand) {"exit",         &Command_Exit});
-	Console_AddCommand((ConsoleCommand) {"peak",         &Command_Peak});
+	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
+	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
+	Console_AddCommand((ConsoleCommand) {true,  "map",          &Command_Map});
+	Console_AddCommand((ConsoleCommand) {true,  "dl-map",       &Command_DlMap});
+	Console_AddCommand((ConsoleCommand) {true,  "ls",           &Command_Ls});
+	Console_AddCommand((ConsoleCommand) {true,  "cat",          &Command_Cat});
+	Console_AddCommand((ConsoleCommand) {true,  "echo",         &Command_Echo});
+	Console_AddCommand((ConsoleCommand) {true,  "resources",    &Command_Resources});
+	Console_AddCommand((ConsoleCommand) {true,  "set",          &Command_Set});
+	Console_AddCommand((ConsoleCommand) {true,  "help",         &Command_Help});
+	Console_AddCommand((ConsoleCommand) {true,  "exit",         &Command_Exit});
+	Console_AddCommand((ConsoleCommand) {true,  "peak",         &Command_Peak});
+	Console_AddCommand((ConsoleCommand) {true,  "run",          &Command_Run});
+	Console_AddCommand((ConsoleCommand) {true,  "#",            &Command_Comment});
+	Console_AddCommand((ConsoleCommand) {false, "parse-test",   &Command_ParseTest});
 }

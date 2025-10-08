@@ -5,6 +5,7 @@
 #include "video.h"
 
 typedef struct {
+	bool        show; // shown in help menu?
 	const char* name;
 
 	FUNCTION_POINTER(void, func, size_t argc, char** argv);
@@ -16,6 +17,7 @@ typedef struct {
 
 	ConsoleCommand* cmds;
 	size_t          cmdsLen;
+	bool            echo;
 } Console;
 
 extern Console console;
@@ -26,6 +28,7 @@ void Console_WriteLine(char* text);
 void Console_Begin(void);
 void Console_End(void);
 void Console_AddCommand(ConsoleCommand cmd);
+bool Console_RunFile(const char* path);
 void Console_HandleEvent(SDL_Event* e);
 void Console_Render(void);
 

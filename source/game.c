@@ -46,23 +46,23 @@ void Game_Update(bool top) {
 	FVec3 oldPos = camera.pos;
 
 	if (keys[SDL_SCANCODE_W]) {
-		player.acc.z += CosDeg(player.yaw) * speed;
-		player.acc.x += SinDeg(player.yaw) * speed;
+		player.acc.z += CosDeg(player.yaw) * speed * app.delta;
+		player.acc.x += SinDeg(player.yaw) * speed * app.delta;
 		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_A]) {
-		player.acc.z += CosDeg(player.yaw - 90) * speed;
-		player.acc.x += SinDeg(player.yaw - 90) * speed;
+		player.acc.z += CosDeg(player.yaw - 90) * speed * app.delta;
+		player.acc.x += SinDeg(player.yaw - 90) * speed * app.delta;
 		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_S]) {
-		player.acc.z += CosDeg(player.yaw + 180) * speed;
-		player.acc.x += SinDeg(player.yaw + 180) * speed;
+		player.acc.z += CosDeg(player.yaw + 180) * speed * app.delta;
+		player.acc.x += SinDeg(player.yaw + 180) * speed * app.delta;
 		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_D]) {
-		player.acc.z += CosDeg(player.yaw + 90) * speed;
-		player.acc.x += SinDeg(player.yaw + 90) * speed;
+		player.acc.z += CosDeg(player.yaw + 90) * speed * app.delta;
+		player.acc.x += SinDeg(player.yaw + 90) * speed * app.delta;
 		moved         = true;
 	}
 	if (keys[SDL_SCANCODE_P]) {
