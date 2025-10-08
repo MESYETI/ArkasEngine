@@ -14,8 +14,9 @@ App app;
 
 void App_Init(void) {
 	// make game engine folders
-	MakeDir("game", true);
-	MakeDir("maps", true);
+	MakeDir("game",        true);
+	MakeDir("game/extra",  true);
+	MakeDir("maps",        true);
 	MakeDir("screenshots", true);
 
 	Console_Init();

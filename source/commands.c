@@ -274,6 +274,25 @@ static void Command_ParseTest(size_t argc, char** argv) {
 	}
 }
 
+static void Command_HexDump(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	size_t size;
+	void*  contents = Resources_ReadFile(argv[0], &size);
+
+	if (contents == NULL) {
+		Log("Error reading file");
+		return;
+	}
+
+	contents = SafeRealloc(contents, size + 1);
+	((char*) contents)[size] = 0;
+
+	for (size_t i = 0; i < size; ++ i) {
+		Log("%.8X: %.2X", i, ((uint8_t*) contents)[i]);
+	}
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -290,4 +309,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "run",          &Command_Run});
 	Console_AddCommand((ConsoleCommand) {true,  "#",            &Command_Comment});
 	Console_AddCommand((ConsoleCommand) {false, "parse-test",   &Command_ParseTest});
+	Console_AddCommand((ConsoleCommand) {true,  "hex-dump",     &Command_HexDump});
 }

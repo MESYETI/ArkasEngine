@@ -1,9 +1,11 @@
 #include <dirent.h>
 #include <string.h>
 #include "ark.h"
-#include "util.h"
 #include "mem.h"
+#include "util.h"
+#include "builtin.h"
 #include "resources.h"
+#include "folderDrive.h"
 
 ResourceManager resources;
 
@@ -13,6 +15,13 @@ void Resources_Init(void) {
 	if (dir == NULL) {
 		Error("Failed to open directory 'game'");
 	}
+
+	resources.drives          = SafeMalloc(sizeof(ResourceDrive*) * 2);
+	resources.drivesNum       = 2;
+	resources.drives[0]       = BuiltIn_GetDrive();
+	resources.drives[0]->name = NewString("builtin");
+	resources.drives[1]       = NewFolderDrive("game/extra");
+	resources.drives[1]->name = NewString("extra");
 
 	struct dirent* entry;
 	while ((entry = readdir(dir)) != NULL) {
@@ -61,7 +70,10 @@ void Resources_Init(void) {
 
 void Resources_Free(void) {
 	for (size_t i = 0; i < resources.drivesNum; ++ i) {
-		resources.drives[i]->free(resources.drives[i]);
+		if (resources.drives[i]->free) {
+			resources.drives[i]->free(resources.drives[i]);
+		}
+
 		free(resources.drives[i]->name);
 		free(resources.drives[i]);
 	}

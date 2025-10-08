@@ -4,9 +4,11 @@
 #include <dirent.h>
 #include <string.h>
 #include "fs.h"
+#include "mem.h"
 
 #ifdef PLATFORM_WINDOWS
-	bool CreateDirectoryA(const char* path, void* security);
+	bool     CreateDirectoryA(const char* path, void* security);
+	uint32_t GetFileAttributesA(const char* path);
 #else
 	#include <sys/stat.h>
 #endif
@@ -47,6 +49,25 @@ bool FileExists(const char* path) {
 	return false;
 }
 
+void* ReadFile(const char* path, size_t* size) {
+	FILE* file = fopen(path, "rb");
+
+	if (file == NULL) {
+		return NULL;
+	}
+
+	fseek(file, 0, SEEK_END);
+	*size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	void* res = SafeMalloc(*size + 1);
+	fread(res, 1, *size, file);
+	fclose(file);
+
+	((uint8_t*) res)[*size] = 0;
+	return res;
+}
+
 void WriteFile(const char* path, const char* contents) {
 	FILE* file = fopen(path, "w");
 
@@ -56,4 +77,18 @@ void WriteFile(const char* path, const char* contents) {
 
 	size_t len = strlen(contents);
 	assert(fwrite(contents, 1, len, file) == len);
+}
+
+bool IsDir(const char* path) {
+	#ifdef PLATFORM_WINDOWS
+		return (GetFileAttributesA(path) & 0x00000010)? true : false;
+	#else
+		struct stat statVal;
+
+		if (stat(path, &statVal) != 0) {
+			return false;
+		}
+
+		return (statVal.st_mode & 0040000)? true : false;
+	#endif
 }
