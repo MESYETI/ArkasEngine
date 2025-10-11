@@ -18,6 +18,7 @@ typedef struct {
 	float maxSpeed;
 	float gravity;
 	float groundFriction;
+	float airFriction;
 	float speed;
 	float airSpeed;
 	float jumpSpeed;

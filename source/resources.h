@@ -17,11 +17,13 @@ struct ResourceDrive {
 };
 
 enum {
-	RESOURCE_TYPE_TEXTURE = 0
+	RESOURCE_TYPE_TEXTURE = 0,
+	RESOURCE_TYPE_AUDIO
 };
 
 typedef union {
-	Texture* texture;
+	Texture*      texture;
+	AudioResource audio;
 } ResourceContents; // C99 moment
 
 typedef struct {

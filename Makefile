@@ -1,4 +1,4 @@
-SOURCES := $(wildcard source/*.c) $(wildcard source/**/*.c)
+SOURCES := $(wildcard source/*.c) $(wildcard source/**/*.c) lib/PlatinumSrc/audio.c
 OBJECTS := $(patsubst source/%.c,bin/%.o,$(SOURCES))
 OUT     := arkas
 
@@ -14,7 +14,7 @@ LD := $(CC)
 override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib
 override LDLIBS += -lm
 
-override CFLAGS += -DAE_BACKEND_GL11
+override CFLAGS += -DAE_BACKEND_GL11 -DAE_AUDIO_PSRC
 
 ifeq ($(BUILD),release)
 	override CFLAGS += -O3
