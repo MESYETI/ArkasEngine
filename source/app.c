@@ -4,6 +4,7 @@
 #include "util.h"
 #include "scene.h"
 #include "video.h"
+#include "audio.h"
 #include "config.h"
 #include "camera.h"
 #include "backend.h"
@@ -31,6 +32,7 @@ void App_Init(void) {
 
 	Video_Init();
 	SceneManager_Init();
+	Audio_Init();
 
 	app.running = true;
 	app.font    = Text_LoadFont("font.png");
@@ -39,7 +41,7 @@ void App_Init(void) {
 	if (!FileExists("startup.cmd")) {
 		Log("Generating startup.cmd");
 
-		WriteFile("startup.cmd",
+		WriteFile_("startup.cmd",
 			"@set echo false\n"
 			"run gen_options.cmd\n"
 			"@set echo true\n"
@@ -59,6 +61,7 @@ void App_Init(void) {
 }
 
 void App_Free(void) {
+	Audio_Free();
 	SceneManager_Free();
 	Text_FreeFont(&app.font);
 	Resources_Free();
@@ -118,6 +121,8 @@ void App_Update(void) {
 	}
 
 	SceneManager_Update();
+
+	Audio_Update();
 
 	Backend_Begin();
 	SceneManager_Render();

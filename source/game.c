@@ -6,11 +6,16 @@
 #include "camera.h"
 #include "player.h"
 #include "backend.h"
+#include "audio.h"
 
 GameBaseConfig gameBaseConfig;
 
+AudioEmitter emitters2d[1];
+AudioEmitter emitters3d[2];
+
 void Game_Init(void) {
 	Map_Init();
+	startAudio();
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	camera.pos.x = 0.0;
@@ -20,14 +25,63 @@ void Game_Init(void) {
 	camera.yaw   = 0.0;
 	camera.roll  = 0.0;
 
+	setAudioEnv(
+		AUDIOENVMASK_REVERB,
+		&(struct audioenv) {.reverb = {0.07, 0.65, 1.0, 0.1, 0.25, 0.25}},
+		AUDIOENVMASK_ALL
+	);
+
+	emitters2d[0] = new2DAudioEmitter(
+		AUDIOPRIO_DEFAULT, -1, 0,
+		0, NULL
+	);
+	Resource* resource = Resources_GetRes(":base/sfx/air1.ogg");
+	if (resource) {
+		Audio_Play2DSound(
+			emitters2d[0], resource,
+			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
+			AUDIOFXMASK_SPEED | AUDIOFXMASK_VOL,
+			&(struct audiofx) {.speed = 0.3f, .vol = {0.65f, 0.65f}}
+		);
+		Resources_FreeRes(resource);
+	}
+
+	emitters3d[0] = new3DAudioEmitter(
+		AUDIOPRIO_DEFAULT, -1, 0,
+		0, NULL,
+		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {-5.0f, -0.3f, 9.0f}}
+	);
+	emitters3d[1] = new3DAudioEmitter(
+		AUDIOPRIO_DEFAULT, -1, 0,
+		0, NULL,
+		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {6.0f, -0.3f, 4.0f}}
+	);
+
+	resource = Resources_GetRes(":base/sfx/drip1.ogg");
+
+	if (resource) {
+		Audio_Play3DSound(
+			emitters3d[0], resource,
+			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
+			AUDIOFXMASK_SPEED, &(struct audiofx){.speed = 1.56521f}
+		);
+		Audio_Play3DSound(
+			emitters3d[1], resource,
+			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
+			AUDIOFXMASK_SPEED, &(struct audiofx){.speed = 1.10435f}
+		);
+		Resources_FreeRes(resource);
+	}
+
 	gameBaseConfig.sensitivity = 7.5;
 
 	Player_Init();
 }
 
 void Game_Free(void) {
-	Map_Free();
 	SDL_SetRelativeMouseMode(SDL_FALSE);
+	stopAudio();
+	Map_Free();
 }
 
 void Game_Update(bool top) {
@@ -87,6 +141,17 @@ void Game_Update(bool top) {
 	player.acc.x = 0.0;
 	player.acc.y = 0.0;
 	player.acc.z = 0.0;
+
+	struct audioplayerdata* playeraud = &audiostate.playerdata.data[0];
+	playeraud->pos[0] = camera.pos.x;
+	playeraud->pos[1] = camera.pos.y;
+	playeraud->pos[2] = camera.pos.z;
+	playeraud->rotsin[0] = SinDeg(-camera.pitch);
+	playeraud->rotsin[1] = SinDeg(-camera.yaw);
+	playeraud->rotsin[2] = SinDeg(-camera.roll);
+	playeraud->rotcos[0] = CosDeg(-camera.pitch);
+	playeraud->rotcos[1] = CosDeg(-camera.yaw);
+	playeraud->rotcos[2] = CosDeg(-camera.roll);
 
 	if (moved) {
 		// camera

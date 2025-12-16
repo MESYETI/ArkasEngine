@@ -14,10 +14,10 @@
 //   pos    - The position of the play head (should be assumed to be arbitrary)
 //   start  - Where you output the play head position of the first sample in the buffer (should be <= pos)
 //   end    - Where you output the play head position of the last sample in the buffer (should be >= pos)
-//   bufptr - Where you output a pointer to a buffer of interleaved int16_t samples
+// Returns a pointer to a buffer of interleaved int16_t samples on success, or NULL on failure
 // When freeing the sound, the callback will be called with bufptr being NULL
 // See lines 10-64 of audio.c for examples
-typedef void (*audiocb)(void* ctx, long loop, long pos, long* start, long* end, int16_t** bufptr);
+typedef int16_t* (*audiocb)(void* ctx, long loop, long pos, long* start, long* end);
 
 // Audio priorities
 #define AUDIOPRIO_DEFAULT (-128)

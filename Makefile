@@ -4,8 +4,8 @@ OUT     := arkas
 
 ifeq ($(PLAT),windows)
 	CC := x86_64-w64-mingw32-gcc
-	override LDLIBS := $(LDLIBS) $(shell x86_64-w64-mingw32-pkg-config sdl2 --libs) -lopengl32
-	override CFLAGS := $(CFLAGS) $(shell x86_64-w64-mingw32-pkg-config sdl2 --cflags)
+	override LDLIBS += -lkernel32 -l:libSDL2.a -lole32 -loleaut32 -limm32
+	override LDLIBS += -lsetupapi -lversion -lgdi32 -lwinmm -lopengl32
 else
 	override LDLIBS += -lSDL2 -lGL
 endif
@@ -15,15 +15,17 @@ override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ili
 override LDLIBS += -lm
 
 override CFLAGS += -DAE_BACKEND_GL11 -DAE_AUDIO_PSRC
+override CPPFLAGS += -DSDL_MAIN_HANDLED
 
 ifeq ($(BUILD),release)
 	override CFLAGS += -O3
 	#override CPPFLAGS += -NDEBUG
 else
 	override CFLAGS += -Og -g
+	override LDFLAGS += -Og -g
 	ifeq ($(ASAN),y)
 		override CFLAGS += -fno-omit-frame-pointer -fsanitize=address
-		override LDFLAGS += -fsanitize=address
+		override LDFLAGS += -fno-omit-frame-pointer -fsanitize=address
 	endif
 endif
 

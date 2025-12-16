@@ -7,8 +7,7 @@
 #include "mem.h"
 
 #ifdef PLATFORM_WINDOWS
-	bool     CreateDirectoryA(const char* path, void* security);
-	uint32_t GetFileAttributesA(const char* path);
+	#include <windows.h>
 #else
 	#include <sys/stat.h>
 #endif
@@ -49,7 +48,7 @@ bool FileExists(const char* path) {
 	return false;
 }
 
-void* ReadFile(const char* path, size_t* size) {
+void* ReadFile_(const char* path, size_t* size) {
 	FILE* file = fopen(path, "rb");
 
 	if (file == NULL) {
@@ -68,7 +67,7 @@ void* ReadFile(const char* path, size_t* size) {
 	return res;
 }
 
-void WriteFile(const char* path, const char* contents) {
+void WriteFile_(const char* path, const char* contents) {
 	FILE* file = fopen(path, "w");
 
 	if (file == NULL) {
@@ -77,6 +76,7 @@ void WriteFile(const char* path, const char* contents) {
 
 	size_t len = strlen(contents);
 	assert(fwrite(contents, 1, len, file) == len);
+	fclose(file);
 }
 
 bool IsDir(const char* path) {

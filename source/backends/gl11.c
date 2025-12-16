@@ -321,11 +321,11 @@ static void RenderSector(Sector* sector) {
 				glVertex3f(point2->pos.x, nextSector->ceiling, point2->pos.y);
 
 				glTexCoord2f(-0.0, sector->ceiling); // upper right
-				glColor3f(shadeLeft, shadeLeft, shadeLeft);
+				glColor3f(shadeRight, shadeRight, shadeRight);
 				glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
 
 				glTexCoord2f(-maxTexCoord, sector->ceiling); // upper left
-				glColor3f(shadeRight, shadeRight, shadeRight);
+				glColor3f(shadeLeft, shadeLeft, shadeLeft);
 				glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
 
 				GL(glEnd());

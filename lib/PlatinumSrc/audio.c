@@ -5,60 +5,24 @@
 #include <stdlib.h>
 #include <limits.h>
 
-// Scroll down to startAudio on line 1723 for important comments
+// Scroll down to startAudio() for important comments
 
 #if 0
 
 // Callback examples
 
-// Demonstrates handling a pre-decoded buffer (recommended)
-static void my_callback(void* ctx, long loop, long pos, long* start, long* end, int16_t** buf) {
+// Demonstrates handling a pre-decoded buffer
+static int16_t* my_callback(void* ctx, long loop, long pos, long* start, long* end) {
 	(void)loop; // Unused
 
 	if (!buf) { // 'buf' is NULL so deinit
 		// Do deinit stuff
-		return;
+		return NULL;
 	}
 
 	*start = 0;                                  // Set startpoint
 	*end = ((MyAudioData*)ctx)->samplecount - 1; // Set endpoint
-	*buf = ((MyAudioData*)ctx)->sampledata;      // Set buffer pointer
-
-	// This callback will never get called again (until deinit) because the start and end cover the entire sound
-}
-
-// Demonstrates decoding on-the-fly
-static void my_callback(void* voidctx, long loop, long pos, long* start, long* end, int16_t** buf) {
-	(void)loop; // Unused
-
-	MyDecoderAudioData* ctx = voidctx;
-
-	if (!buf) { // Deinit
-		stb_vorbis_close(ctx->vorbis);
-		free(ctx->decodebuf);
-		return;
-	}
-
-	// 'decbufhead' and 'decbuflen' are 0 initially
-	// The callback will never be called if '(pos2 >= bufstart && pos <= bufend)' is true
-	*buf = ctx->decodebuf;
-	if (pos < ctx->decbufhead) { // If the requested play head pos is behind the sample pos of the decode buffer,
-		pos -= ctx->decbuflen;             // Assume the play head is going backwards and go back a bit to start decoding samples 
-		if (pos < 0) pos = 0;              // Clamp to 0
-		stb_vorbis_seek(ctx->vorbis, pos); // Seek to that point
-	} else if (pos != ctx->decbufhead + ctx->decbuflen) { // If the requested play head position is NOT directly after the last decoded sample,
-		stb_vorbis_seek(ctx->vorbis, pos); // Skip forwards to that point
-	}
-
-	long tmpend = pos + ctx->decbuflen;                       // Calculate the end position
-	if (tmpend > ctx->samplecount) tmpend = ctx->samplecount; // Clamp
-	*start = pos;                                             // Output startpoint
-	sctx->decbufhead = pos;                                   // Set decode buffer head pos
-	*end = tmpend - 1;                                        // Output endpoint
-	tmpend -= pos;                                            // Tomfoolery (tmpend is now "how many samples to decode")
-	ctx->decbuflen = tmpend;                                  // Set the decode buffer len to how many samples are going to be decoded
-
-	stb_vorbis_get_samples_short_interleaved(ctx->vorbis, ctx->channels, ctx->decodebuf, tmpend); // Decode
+	return ((MyAudioData*)ctx)->sampledata;      // Set buffer pointer
 }
 
 #endif
@@ -66,11 +30,11 @@ static void my_callback(void* voidctx, long loop, long pos, long* start, long* e
 struct audiostate audiostate;
 
 static inline void deleteSound(struct audiosound* s) {
-	s->cb.cb(s->cb.ctx, 0, 0, NULL, NULL, NULL);
-	s->prio = AUDIOPRIO_INVALID;
+	s->cb.cb(s->cb.ctx, 0, 0, NULL, NULL);
 }
 static void delete3DSound(size_t si, struct audiosound* s) {
 	deleteSound(s);
+	s->prio = AUDIOPRIO_INVALID;
 	--audiostate.sounds3dorder.len;
 	if (audiostate.sounds3dorder.data[audiostate.sounds3dorder.len] != si) {
 		for (size_t i = 0; i < audiostate.sounds3dorder.len; ++i) {
@@ -83,6 +47,7 @@ static void delete3DSound(size_t si, struct audiosound* s) {
 }
 static void delete2DSound(size_t si, struct audiosound* s) {
 	deleteSound(s);
+	s->prio = AUDIOPRIO_INVALID;
 	--audiostate.sounds2dorder.len;
 	if (audiostate.sounds2dorder.data[audiostate.sounds2dorder.len] != si) {
 		for (size_t i = 0; i < audiostate.sounds2dorder.len; ++i) {
@@ -1122,14 +1087,18 @@ static inline void applyAudioEnv(int** inp, int** outp) {
 			else tmpu = audiostate.freq - tmpu;
 			env->reverb.state.hpfilt[newparami] = tmpu;
 			if (env->envch & AUDIOENVMASK_REVERB_HPFILT) {
-				env->reverb.state.lpfilt[curparami] = tmpu;
+				env->reverb.state.hpfilt[curparami] = tmpu;
 			}
 		} else {
 			env->reverb.state.hpfilt[newparami] = env->reverb.state.hpfilt[curparami];
 		}
-		if (env->reverb.state.len) {
-			doReverb_interp(&env->reverb.state, audiostate.buflen, inp[0], inp[1]);
-		}
+        if (env->reverb.state.len) {
+            if (env->envch & ~env->envchimm) {
+			    doReverb_interp(&env->reverb.state, audiostate.buflen, inp[0], inp[1]);
+            } else {
+                doReverb(&env->reverb.state, audiostate.buflen, inp[0], inp[1]);
+		    }
+	    }
 		env->reverb.state.parami = newparami;
 	} else if (env->reverb.state.len) {
 		doReverb(&env->reverb.state, audiostate.buflen, inp[0], inp[1]);
@@ -1230,45 +1199,58 @@ static inline void applyAudioEnv(int** inp, int** outp) {
 }
 
 #define MIXSOUND__DOMIXING(l) do {\
-	if (!oob) {\
-		register int sample_l, sample_r;\
-		if (pos > bufend || pos < bufstart) {\
-			s->cb.cb(s->cb.ctx, loop, pos, &bufstart, &bufend, &buf);\
-		}\
-		register long bufpos = (pos - bufstart) * (long)ch;\
-		sample_l = buf[bufpos];\
-		sample_r = buf[bufpos + (ch != 1)];\
-		if (frac) {\
-			long pos2 = pos + 1;\
-			if (pos2 > bufend || pos2 < bufstart) {\
-				register long loop2 = loop;\
-				if (pos2 == len) {\
-					if (!(flags & SOUNDFLAG_LOOP)) {\
-						goto skipinterp_##l;\
-					} else {\
-						pos2 = 0;\
-						++loop2;\
-					}\
-				}\
-				s->cb.cb(s->cb.ctx, loop2, pos2, &bufstart, &bufend, &buf);\
-			}\
-			int mix = frac / outfreq;\
-			int imix = 256 - mix;\
-			sample_l *= imix;\
-			sample_r *= imix;\
-			bufpos = (pos2 - bufstart) * (long)ch;\
-			sample_l += buf[bufpos] * mix;\
-			sample_r += buf[bufpos + (ch != 1)] * mix;\
-			sample_l /= 256;\
-			sample_r /= 256;\
-			skipinterp_##l:;\
-		}\
-		audiostate.fxbuf[0][i] = sample_l;\
-		audiostate.fxbuf[1][i] = sample_r;\
-	} else {\
-		audiostate.fxbuf[0][i] = 0;\
-		audiostate.fxbuf[1][i] = 0;\
-	}\
+    if (!oob) {\
+        register int sample_l, sample_r;\
+        if (pos > bufend || pos < bufstart || !buf) {\
+            /*puts("NORM");*/\
+            if (!(buf = s->cb.cb(s->cb.ctx, loop, pos, &bufstart, &bufend))) {\
+                /*puts("NORM OOB");*/\
+                oob = true;\
+                goto cbfail_##l;\
+            }\
+            /*puts("NORM NOT OOB");*/\
+        }\
+        register long bufpos = (pos - bufstart) * (long)ch;\
+        /*printf("%ld %ld %ld %ld %ld %ld\n", bufstart, bufend, pos, pos - bufstart, (long)ch, bufpos);*/\
+        sample_l = buf[bufpos];\
+        sample_r = buf[bufpos + (ch != 1)];\
+        if (frac) {\
+            long pos2 = pos + 1;\
+            if (pos2 > bufend || pos2 < bufstart) {\
+                register long loop2 = loop;\
+                if (pos2 == len) {\
+                    if (!(flags & SOUNDFLAG_LOOP)) {\
+                        goto skipinterp_##l;\
+                    } else {\
+                        pos2 = 0;\
+                        ++loop2;\
+                    }\
+                }\
+                /*puts("FRAC");*/\
+                if (!(buf = s->cb.cb(s->cb.ctx, loop2, pos2, &bufstart, &bufend))) {\
+                    /*puts("FRAC OOB");*/\
+                    goto skipinterp_##l;\
+                }\
+                /*puts("FRAC NOT OOB");*/\
+            }\
+            int mix = frac / outfreq;\
+            int imix = 256 - mix;\
+            sample_l *= imix;\
+            sample_r *= imix;\
+            bufpos = (pos2 - bufstart) * (long)ch;\
+            sample_l += buf[bufpos] * mix;\
+            sample_r += buf[bufpos + (ch != 1)] * mix;\
+            sample_l /= 256;\
+            sample_r /= 256;\
+            skipinterp_##l:;\
+        }\
+        audiostate.fxbuf[0][i] = sample_l;\
+        audiostate.fxbuf[1][i] = sample_r;\
+    } else {\
+        cbfail_##l:;\
+        audiostate.fxbuf[0][i] = 0;\
+        audiostate.fxbuf[1][i] = 0;\
+    }\
 } while (0)
 #define MIXSOUND__DOMIXING_EVALLINE(l) MIXSOUND__DOMIXING(l)
 #define MIXSOUND_DOMIXING() MIXSOUND__DOMIXING_EVALLINE(__LINE__)
@@ -1652,8 +1634,8 @@ static void mixsounds(unsigned buf) {
 
 static inline void initAudioPlayerData(struct audioplayerdata* pldata) {
 	pldata->valid = true;
-	pldata->env.envch = (uint8_t)AUDIOENVMASK_ALL;
-	pldata->env.envchimm = (uint8_t)AUDIOENVMASK_ALL;
+	pldata->env.envch = (uint16_t)AUDIOENVMASK_ALL;
+	pldata->env.envchimm = (uint16_t)AUDIOENVMASK_ALL;
 	pldata->env.panning = 0.0f;
 	pldata->env.lpfilt.amount = 0.0f;
 	pldata->env.lpfilt.muli = 0;
@@ -1827,6 +1809,8 @@ bool startAudio(void) {
 
 	//adjfilters = ...; // <-- should be config var (already statically initialized to 44100)
 
+	initAudioPlayerData(&audiostate.playerdata.data[0]);
+
 	audiostate.valid = true;
 	SDL_PauseAudioDevice(output, 0);
 	return true;
@@ -1834,6 +1818,33 @@ bool startAudio(void) {
 
 void stopAudio(void) {
 	if (!audiostate.valid) goto ret;
+	freeAudioPlayerData(&audiostate.playerdata.data[0]);
+    for (size_t i = 0; i < audiostate.sounds3d.len; ++i) {
+        deleteSound(&audiostate.sounds3d.data[i]);
+    }
+    for (size_t i = 0; i < audiostate.sounds2d.len; ++i) {
+        deleteSound(&audiostate.sounds2d.data[i]);
+    }
+    audiostate.emitters3d.len = 0;
+    VLB_FREE(audiostate.emitters3d);
+    audiostate.sounds3d.len = 0;
+    VLB_FREE(audiostate.sounds3d);
+    audiostate.sounds3dorder.len = 0;
+    VLB_FREE(audiostate.sounds3dorder);
+    audiostate.emitters2d.len = 0;
+    VLB_FREE(audiostate.emitters2d);
+    audiostate.sounds2d.len = 0;
+    VLB_FREE(audiostate.sounds2d);
+    audiostate.sounds2dorder.len = 0;
+    VLB_FREE(audiostate.sounds2dorder);
+    free(audiostate.fxbuf[0]);
+    free(audiostate.fxbuf[1]);
+    free(audiostate.envbuf[0]);
+    free(audiostate.envbuf[1]);
+    free(audiostate.mixbuf[0]);
+    free(audiostate.mixbuf[1]);
+    free(audiostate.outbuf[0]);
+    if (audiostate.usecallback) free(audiostate.outbuf[1]);
 	audiostate.valid = false;
 	ret:;
 }
@@ -1849,12 +1860,9 @@ bool initAudio(void) {
 		return false;
 	}
 	audiostate.playerdata.len = 1;
-	initAudioPlayerData(&audiostate.playerdata.data[0]);
 	return true;
 }
 
 void quitAudio(bool quick) {
-	if (!quick) {
-		freeAudioPlayerData(&audiostate.playerdata.data[0]);
-	}
+    (void)quick;
 }

@@ -68,7 +68,7 @@ static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* siz
 	strncat(pathAdd, "/", 4096 - strlen(pathAdd));
 	strncat(pathAdd, path, 4096 - strlen(pathAdd));
 
-	return ReadFile(pathAdd, size);
+	return ReadFile_(pathAdd, size);
 }
 
 ResourceDrive* NewFolderDrive(const char* path) {

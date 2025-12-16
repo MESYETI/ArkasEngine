@@ -21,6 +21,13 @@ enum {
 	RESOURCE_TYPE_AUDIO
 };
 
+typedef struct {
+	short* data;
+	size_t len;
+	int    channels;
+	int    sampleRate;
+} AudioResource;
+
 typedef union {
 	Texture*      texture;
 	AudioResource audio;
