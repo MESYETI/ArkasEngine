@@ -3,4 +3,8 @@
 
 #include <stb/stb_image.h>
 
+// what the hell stb???
+#define STB_VORBIS_HEADER_ONLY
+#include <stb/stb_vorbis.c>
+
 #endif

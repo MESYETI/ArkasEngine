@@ -2,6 +2,7 @@
 #include <string.h>
 #include "ark.h"
 #include "mem.h"
+#include "stb.h"
 #include "util.h"
 #include "builtin.h"
 #include "resources.h"
@@ -58,14 +59,14 @@ void Resources_Init(void) {
 	Log("%d resource drives mounted", resources.drivesNum);
 
 	// init resource pool
-	resources.resources = SafeMalloc(64 * sizeof(resources));
+	resources.resources = SafeMalloc(64 * sizeof(*resources.resources));
 	resources.capacity  = 64;
 
 	for (size_t i = 0; i < resources.capacity; ++ i) {
 		resources.resources[i].active = false;
 	}
 
-	Log("Resource pool initialised at %d bytes", (int) (64 * sizeof(resources)));
+	Log("Resource pool initialised at %d bytes", (int) (64 * sizeof(*resources.resources)));
 }
 
 void Resources_Free(void) {
@@ -247,11 +248,34 @@ Resource* Resources_GetRes(const char* path) {
 		free(data);
 
 		if (!ret->v.texture) {
-			Log("Failed to load resource");
+			Log("Failed to load resource '%s'", path);
 			ret->active = false;
 			free(ret->name);
 			return NULL;
 		}
+	}
+	else if (strcmp(ext, ".ogg") == 0) {
+		// TODO: don't allow loading ogg resources when it's received via
+		// the internet
+		ret->type = RESOURCE_TYPE_AUDIO;
+
+		size_t   size;
+		uint8_t* data = (uint8_t*) Resources_ReadFile(path, &size);
+
+		int res = stb_vorbis_decode_memory(
+			data, (int) size, &ret->v.audio.channels, &ret->v.audio.sampleRate,
+			&ret->v.audio.data
+		);
+		free(data);
+
+		if (res == -1) {
+			Log("Failed to load resource '%s'", path);
+			ret->active = false;
+			free(ret->name);
+			return NULL;
+		}
+
+		ret->v.audio.len = res;
 	}
 	else {
 		Log("Unknown resource type '%s'", ext);
@@ -270,6 +294,10 @@ void Resources_FreeRes(Resource* resource) {
 		switch (resource->type) {
 			case RESOURCE_TYPE_TEXTURE: {
 				Backend_FreeTexture(resource->v.texture);
+				break;
+			}
+			case RESOURCE_TYPE_AUDIO: {
+				free(resource->v.audio.data);
 				break;
 			}
 			default: assert(0);

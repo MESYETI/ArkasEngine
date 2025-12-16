@@ -1,8 +1,6 @@
 #ifndef AE_BACKENDS_GL11_H
 #define AE_BACKENDS_GL11_H
 
-#include "../common.h"
-
 #define GL_GLEXT_PROTOTYPES
 #ifdef PLATFORM_OSX
 	#include <OpenGL/gl.h>
