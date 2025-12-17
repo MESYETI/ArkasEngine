@@ -6,6 +6,7 @@
 
 typedef struct {
 	float sensitivity;
+	float musicVolume;
 } GameBaseConfig;
 
 extern GameBaseConfig gameBaseConfig;

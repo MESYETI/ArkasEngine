@@ -1,5 +1,9 @@
 #include "app.h"
+#include "game.h"
 #include "audio.h"
+
+AudioEmitter musicEmitter;
+bool         playingMusic = false;
 
 void Audio_Init(void) {
 	initAudio();
@@ -65,4 +69,31 @@ bool Audio_Play3DSound(
 
 	if (!res) Resources_FreeRes(resource);
 	return res;
+}
+
+bool Audio_MusicPlaying(void) {
+	return playingMusic;
+}
+
+bool Audio_PlayMusic(const char* path) {
+	Resource* res = Resources_GetRes(path);
+
+	if (!res) return false;
+
+	Audio_Play2DSound(
+		musicEmitter, res,
+		AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
+		AUDIOFXMASK_VOL,
+		&(struct audiofx) {.vol = gameBaseConfig.musicVolume}
+	);
+	Resources_FreeRes(res);
+	playingMusic = true;
+	return true;
+}
+
+void Audio_StopMusic(void) {
+	assert(playingMusic);
+
+	delete2DAudioEmitter(musicEmitter);
+	playingMusic = false;
 }

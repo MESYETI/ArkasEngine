@@ -140,6 +140,7 @@ static void Command_Set(size_t argc, char** argv) {
 		{VAR_FLOAT, "air-speed",       &player.airSpeed},
 		{VAR_FLOAT, "jump-speed",      &player.jumpSpeed},
 		{VAR_FLOAT, "sensitivity",     &gameBaseConfig.sensitivity},
+		{VAR_FLOAT, "music-volume",    &gameBaseConfig.musicVolume},
 		{VAR_BOOL,  "echo",            &console.echo}
 	};
 

@@ -153,7 +153,7 @@ void Game_Update(bool top) {
 	playeraud->rotcos[1] = CosDeg(-camera.yaw);
 	playeraud->rotcos[2] = CosDeg(-camera.roll);
 
-	if (moved) {
+	{
 		// camera
 		FVec2 a1 = (FVec2) {oldPos.x,     oldPos.z};
 		FVec2 a2 = (FVec2) {camera.pos.x, camera.pos.z};
@@ -188,7 +188,7 @@ void Game_Update(bool top) {
 				}
 			}
 		}
-	}
+	};
 }
 
 void Game_HandleEvent(SDL_Event* e) {
