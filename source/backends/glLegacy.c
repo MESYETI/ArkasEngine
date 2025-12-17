@@ -5,7 +5,9 @@
 #include "../video.h"
 #include "../camera.h"
 #include "../backend.h"
-#include "gl11.h"
+#include "glLegacy.h"
+
+#ifdef AE_BACKEND_LEGACY_GL
 
 static void GL_Error(GLenum error) {
 	const char* errorStr;
@@ -110,7 +112,7 @@ void Backend_Init(bool beforeWindow) {
 			SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
 		) == 0);
 		assert(SDL_GL_SetAttribute(
-			SDL_GL_CONTEXT_MAJOR_VERSION, 2
+			SDL_GL_CONTEXT_MAJOR_VERSION, 1
 		) == 0);
 		assert(SDL_GL_SetAttribute(
 			SDL_GL_CONTEXT_MINOR_VERSION, 0
@@ -132,7 +134,14 @@ void Backend_Init(bool beforeWindow) {
 	}
 	// SDL_GL_SetSwapInterval(0);
 
-	Log("Backend info: GL11");
+	Log("Backend info: GL Legacy");
+
+	#ifdef AE_BACKEND_GL11
+		Log("Using OpenGL 1.1");
+	#else
+		Log("ERROR! Cannot log GL version");
+	#endif
+
 	Log("==================");
 	Log("Vendor:           %s", (const char*) glGetString(GL_VENDOR));
 	Log("Renderer:         %s", (const char*) glGetString(GL_RENDERER));
@@ -550,3 +559,5 @@ void Backend_FinishRender(void) {
 	GL(glFinish());
 	SDL_GL_SwapWindow(video.window);
 }
+
+#endif

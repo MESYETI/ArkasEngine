@@ -6,8 +6,9 @@
 
 // defined:
 //   (struct) Texture
-#ifdef AE_BACKEND_GL11
-	#include "backends/gl11.h"
+#if defined(AE_BACKEND_GL11)
+	#define AE_BACKEND_LEGACY_GL
+	#include "backends/glLegacy.h"
 #else
 	#error "No backend"
 #endif

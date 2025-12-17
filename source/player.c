@@ -18,7 +18,7 @@ void Player_Init(void) {
 	player.gravity        = 4.0;
 	player.speed          = 100.0;
 	player.airSpeed       = 1.0;
-	player.jumpSpeed      = 3.0;
+	player.jumpSpeed      = 2.0;
 }
 
 void Player_FPCamera(void) {
