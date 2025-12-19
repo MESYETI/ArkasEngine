@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "game.h"
 #include "util.h"
+#include "audio.h"
 #include "scene.h"
 #include "player.h"
 #include "console.h"
@@ -294,6 +295,25 @@ static void Command_HexDump(size_t argc, char** argv) {
 	}
 }
 
+static void Command_Music(size_t argc, char** argv) {
+	if (argc == 0) {
+		if (!Audio_MusicPlaying()) {
+			Log("Music is already stopped");
+			return;
+		}
+
+		Audio_StopMusic();
+	}
+	else if (argc == 1) {
+		if (!Audio_PlayMusic(argv[0])) {
+			Log("Failed to play music");
+		}
+	}
+	else {
+		Log("Command requires 0 or 1 parameters\n");
+	}
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -311,4 +331,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "#",            &Command_Comment});
 	Console_AddCommand((ConsoleCommand) {false, "parse-test",   &Command_ParseTest});
 	Console_AddCommand((ConsoleCommand) {true,  "hex-dump",     &Command_HexDump});
+	Console_AddCommand((ConsoleCommand) {true,  "music",        &Command_Music});
 }

@@ -22,6 +22,7 @@ void SaveConfig(void) {
 
 void SaveDefaultConfig(void) {
 	gameBaseConfig.sensitivity = 7.5;
+	gameBaseConfig.musicVolume = 100.0;
 
 	SaveConfig();
 }

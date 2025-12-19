@@ -80,11 +80,19 @@ bool Audio_PlayMusic(const char* path) {
 
 	if (!res) return false;
 
+	if (playingMusic) {
+		Audio_StopMusic();
+	}
+
+	musicEmitter = new2DAudioEmitter(AUDIOPRIO_DEFAULT, 1, 0, 0, NULL);
+
 	Audio_Play2DSound(
 		musicEmitter, res,
 		AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
 		AUDIOFXMASK_VOL,
-		&(struct audiofx) {.vol = gameBaseConfig.musicVolume}
+		&(struct audiofx) {.vol = {
+			gameBaseConfig.musicVolume, gameBaseConfig.musicVolume
+		}}
 	);
 	Resources_FreeRes(res);
 	playingMusic = true;
