@@ -14,9 +14,9 @@ void Player_Init(void) {
 	player.maxSpeed       = 3.333;
 	player.skipFriction   = false;
 	player.groundFriction = 30;
-	player.airFriction    = 0.1;
+	player.airFriction    = 0.4;
 	player.gravity        = 4.0;
-	player.speed          = 100.0;
+	player.speed          = 75.0;
 	player.airSpeed       = 1.0;
 	player.jumpSpeed      = 2.0;
 }
