@@ -64,6 +64,8 @@ void App_Init(void) {
 }
 
 void App_Free(void) {
+	Log("Goodbye!");
+
 	Audio_Free();
 	SceneManager_Free();
 	Text_FreeFont(&app.font);

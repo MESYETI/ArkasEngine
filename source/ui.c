@@ -14,6 +14,23 @@ void UI_ManagerInit(UI_Manager* man, size_t poolSize) {
 }
 
 void UI_ManagerFree(UI_Manager* man) {
+	for (size_t i = 0; i < man->containerLen; ++ i) {
+		UI_Container* container = &man->containers[i];
+
+		for (size_t j = 0; j < container->rowAmount; ++ j) {
+			UI_Row* row = &container->rows[j];
+
+			for (size_t k = 0; k < row->elemAmount; ++ k) {
+				UI_Element* elem = &row->elems[k];
+				elem->free(elem);
+			}
+
+			if (row->elemAmount > 0) free(container->rows[j].elems);
+		}
+
+		if (container->rowAmount > 0) free(container->rows);
+	}
+
 	if (man->containers) {
 		free(man->containers);
 	}
