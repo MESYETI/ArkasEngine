@@ -23,12 +23,13 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 
 UI_Element UI_NewLabel(const char* label) {
 	UI_Element ret;
-	ret.fixedWidth = 0;
-	ret.data       = SafeMalloc(sizeof(LabelData));
-	ret.free       = &Free;
-	ret.render     = &Render;
-	ret.onClick    = NULL;
-	ret.onEvent    = NULL;
+	ret.fixedWidth      = 0;
+	ret.data            = SafeMalloc(sizeof(LabelData));
+	ret.preferredHeight = app.font.charHeight;
+	ret.free            = &Free;
+	ret.render          = &Render;
+	ret.onClick         = NULL;
+	ret.onEvent         = NULL;
 
 	LabelData* data = (LabelData*) ret.data;
 	data->label     = NewString(label);

@@ -14,7 +14,7 @@ static void Init(Scene* scene) {
 	UI_Row* row = UI_ContainerAddRow(container, 32);
 
 	UI_RowAddElement(row, UI_NewLabel("hello!"));
-	UI_RowFinish(row);
+	UI_RowFinish(row, true);
 }
 
 static void Free(Scene* scene) {

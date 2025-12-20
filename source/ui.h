@@ -15,6 +15,7 @@ struct UI_Element {
 	int   w;
 	int   h;
 	void* data;
+	int   preferredHeight; // minimum height this element should use
 
 	void (*free)(UI_Element* e);
 	void (*render)(UI_Container* container, UI_Element* e, bool focus);
@@ -85,6 +86,6 @@ void    UI_ContainerRender(UI_Container* container, bool focus);
 Rect    UI_ContainerGetRect(UI_Container* container);
 
 UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element);
-void        UI_RowFinish(UI_Row* row);
+void        UI_RowFinish(UI_Row* row, bool autoHeight);
 
 #endif

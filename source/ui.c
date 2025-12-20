@@ -174,9 +174,21 @@ UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element) {
 	return &row->elems[row->elemAmount - 1];
 }
 
-void UI_RowFinish(UI_Row* row) {
+void UI_RowFinish(UI_Row* row, bool autoHeight) {
 	int usableSpace = row->container->w -
 		row->container->padLeft - row->container->padRight;
+
+	if (autoHeight) {
+		int preferredHeight = 0;
+
+		for (size_t i = 0; i < row->elemAmount; ++ i) {
+			if (row->elems[i].preferredHeight > preferredHeight) {
+				preferredHeight = row->elems[i].preferredHeight;
+			}
+		}
+
+		row->height = preferredHeight;
+	}
 
 	int resizable = 0;
 
