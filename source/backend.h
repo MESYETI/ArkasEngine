@@ -35,6 +35,8 @@ void Backend_DrawTexture(
 void Backend_Begin(void);
 void Backend_Begin2D(void);
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b);
+void Backend_Viewport(int x, int y, int w, int h);
+void Backend_RenderRect(Rect rect, Colour colour);
 void Backend_FinishRender(void);
 
 #endif

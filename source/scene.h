@@ -1,6 +1,7 @@
 #ifndef AE_SCENE_H
 #define AE_SCENE_H
 
+#include "ui.h"
 #include "util.h"
 #include "video.h"
 #include "common.h"
@@ -16,6 +17,7 @@ struct Scene {
 	int         type;
 	void*       data;
 	const char* name;
+	UI_Manager  ui;
 
 	FUNCTION_POINTER(void, init, Scene*);
 	FUNCTION_POINTER(void, free, Scene*);

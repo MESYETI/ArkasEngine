@@ -216,6 +216,7 @@ static Texture* LoadTexture(uint8_t* data, int width, int height, int ch) {
     GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_REPEAT));
 
     free(data);
+    GL(glBindTexture(GL_TEXTURE_2D, 0));
 
     // now put this texture in the texture array
     for (size_t i = 0; i < sizeof(state.textures) / sizeof(Texture); ++ i) {
@@ -528,6 +529,8 @@ void Backend_DrawTexture(
 	);
 	glVertex2i(dest.x, dest.y + dest.h);
 	GL(glEnd());
+
+	GL(glBindTexture(GL_TEXTURE_2D, 0));
 }
 
 void Backend_Begin(void) {
@@ -553,6 +556,22 @@ void Backend_Begin2D(void) {
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
 	glClearColor(((float) r) / 256.0, ((float) g) / 256.0, ((float) b) / 256.0, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Backend_Viewport(int x, int y, int w, int h) {
+	glViewport(x, y, w, h);
+}
+
+void Backend_RenderRect(Rect rect, Colour colour) {
+	GL(glDisable(GL_TEXTURE_2D));
+	glBegin(GL_TRIANGLE_FAN);
+	glColor3ub(colour.r, colour.g, colour.b);
+	glVertex2i(rect.x,              rect.y);
+	glVertex2i(rect.x + rect.w - 1, rect.y);
+	glVertex2i(rect.x + rect.w - 1, rect.y + rect.h - 1);
+	glVertex2i(rect.x,              rect.y + rect.h - 1);
+	GL(glEnd());
+	GL(glEnable(GL_TEXTURE_2D));
 }
 
 void Backend_FinishRender(void) {

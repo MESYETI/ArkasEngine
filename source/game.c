@@ -184,7 +184,8 @@ void Game_Update(bool top) {
 				camera.sector = &map.sectors[wall->portalSector];
 
 				if (player.sector->floor > player.pos.y) {
-					player.pos.y  = player.sector->floor;
+					player.pos.y = player.sector->floor;
+					player.vel.y = 0.0;
 				}
 			}
 		}
@@ -225,7 +226,7 @@ void Game_Render(void) {
 	Player_FPCamera();
 	Backend_RenderScene();
 
-	static char text[80];
+	/*static char text[80];
 	snprintf(text, 80, "FPS: %d", (int) (1 / app.delta));
 	Text_Render(&app.font, text, 8, 8);
 
@@ -251,5 +252,5 @@ void Game_Render(void) {
 		text, 80, "Grounded: %s",
 		FloatEqual(player.sector->floor, player.pos.y, 0.05)? "true" : "false"
 	);
-	Text_Render(&app.font, text, 8, 8 + (16 * 10));
+	Text_Render(&app.font, text, 8, 8 + (16 * 10));*/
 }

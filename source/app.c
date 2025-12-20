@@ -2,6 +2,7 @@
 #include "app.h"
 #include "map.h"
 #include "util.h"
+#include "theme.h"
 #include "scene.h"
 #include "video.h"
 #include "audio.h"
@@ -17,6 +18,7 @@ void App_Init(void) {
 	// make game engine folders
 	MakeDir("game",        true);
 	MakeDir("game/extra",  true);
+	MakeDir("game/net",    true);
 	MakeDir("maps",        true);
 	MakeDir("screenshots", true);
 
@@ -33,6 +35,7 @@ void App_Init(void) {
 	Video_Init();
 	SceneManager_Init();
 	Audio_Init();
+	Theme_Init();
 
 	app.running = true;
 	app.font    = Text_LoadFont("font.png");

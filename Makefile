@@ -52,7 +52,10 @@ bin/:
 bin/backends:
 	mkdir -p bin/backends
 
-bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends
+bin/ui:
+	mkdir -p bin/ui
+
+bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 clean:

@@ -9,6 +9,7 @@
 #include "console.h"
 #include "commands.h"
 #include "resources.h"
+#include "testScene.h"
 
 #define ASSERT_ARGC(N) \
 	(void) argv; \
@@ -23,7 +24,8 @@ static void Command_Test(size_t argc, char** argv) {
 	Log("Starting map viewer");
 
 	SceneManager_AddScene((Scene) {
-		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL, NULL
+		SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
+		NULL, NULL
 	});
 	Map_LoadTest();
 	app.console = false;
@@ -44,7 +46,8 @@ static void Command_Map(size_t argc, char** argv) {
 	free(path1);
 
 	SceneManager_AddScene((Scene) {
-		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL, NULL
+		SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
+		NULL, NULL
 	});
 
 	if (!Map_LoadFile(path2)) {
@@ -135,14 +138,14 @@ typedef struct {
 
 static void Command_Set(size_t argc, char** argv) {
 	static const Variable vars[] = {
-		{VAR_FLOAT, "ground-friction", &player.groundFriction},
-		{VAR_FLOAT, "gravity",         &player.gravity},
-		{VAR_FLOAT, "speed",           &player.speed},
-		{VAR_FLOAT, "air-speed",       &player.airSpeed},
-		{VAR_FLOAT, "jump-speed",      &player.jumpSpeed},
-		{VAR_FLOAT, "sensitivity",     &gameBaseConfig.sensitivity},
-		{VAR_FLOAT, "music-volume",    &gameBaseConfig.musicVolume},
-		{VAR_BOOL,  "echo",            &console.echo}
+		{VAR_FLOAT, "player.ground-friction", &player.groundFriction},
+		{VAR_FLOAT, "player.gravity",         &player.gravity},
+		{VAR_FLOAT, "player.speed",           &player.speed},
+		{VAR_FLOAT, "player.air-speed",       &player.airSpeed},
+		{VAR_FLOAT, "player.jump-speed",      &player.jumpSpeed},
+		{VAR_FLOAT, "game.sensitivity",       &gameBaseConfig.sensitivity},
+		{VAR_FLOAT, "game.music-volume",      &gameBaseConfig.musicVolume},
+		{VAR_BOOL,  "echo",                   &console.echo}
 	};
 
 	if (argc == 0) {
@@ -314,6 +317,16 @@ static void Command_Music(size_t argc, char** argv) {
 	}
 }
 
+static void Command_TestScene(size_t argc, char** argv) {
+	(void) argc;
+	(void) argv;
+
+	Log("Starting test scene");
+
+	SceneManager_AddScene(TestScene());
+	app.console = false;
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -332,4 +345,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {false, "parse-test",   &Command_ParseTest});
 	Console_AddCommand((ConsoleCommand) {true,  "hex-dump",     &Command_HexDump});
 	Console_AddCommand((ConsoleCommand) {true,  "music",        &Command_Music});
+	Console_AddCommand((ConsoleCommand) {true,  "test-scene",   &Command_TestScene});
 }
