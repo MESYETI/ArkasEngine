@@ -45,15 +45,26 @@ static void OnClick(UI_Element* e, uint8_t button, bool down) {
 	}
 }
 
+static bool OnEvent(UI_Element* e, SDL_Event* ev, bool focus) {
+	(void) focus;
+
+	if (ev->type == SDL_MOUSEBUTTONUP) {
+		UI_Button* data = (UI_Button*) e->data;
+		data->pressed = false;
+	}
+
+	return false;
+}
+
 UI_Element UI_NewButton(const char* label, bool fixed, UI_ButtonFunc onClick) {
 	UI_Element ret;
-	ret.fixedWidth      = 0;
+	ret.fixedWidth      = fixed? strlen(label) * app.font.charWidth : 0;
 	ret.data            = SafeMalloc(sizeof(UI_Button));
 	ret.preferredHeight = app.font.charHeight + 8;
 	ret.free            = &Free;
 	ret.render          = &Render;
 	ret.onClick         = &OnClick;
-	ret.onEvent         = NULL;
+	ret.onEvent         = &OnEvent;
 
 	UI_Button* data = (UI_Button*) ret.data;
 	data->label     = NewString(label);

@@ -21,8 +21,8 @@ ifeq ($(BUILD),release)
 	override CFLAGS += -O3
 	#override CPPFLAGS += -NDEBUG
 else
-	override CFLAGS += -Og -g
-	override LDFLAGS += -Og -g
+	override CFLAGS += -O0 -g
+	override LDFLAGS += -O0 -g
 	ifeq ($(ASAN),y)
 		override CFLAGS += -fno-omit-frame-pointer -fsanitize=address
 		override LDFLAGS += -fno-omit-frame-pointer -fsanitize=address

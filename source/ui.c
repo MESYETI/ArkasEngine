@@ -61,6 +61,7 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w) {
 
 void UI_ManagerRender(UI_Manager* man) {
 	for (size_t i = 0; i < man->containerLen; ++ i) {
+		if (!man->containers[i].active) continue;
 		UI_ContainerRender(
 			&man->containers[i], man->focus == &man->containers[i]
 		);
@@ -120,6 +121,47 @@ bool UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 			}
 
 			if (!focus) man->focus = NULL;
+		}
+	}
+
+	// send events to the focused container first
+	if (man->focus) {
+		// send events to the focused element first
+		UI_Element* focusElem = man->focus->focus;
+
+		if (focusElem) {
+			if (focusElem->onEvent) if (focusElem->onEvent(focusElem, e, true)) {
+				return true;
+			}
+		}
+
+		for (size_t i = 0; i < man->focus->rowAmount; ++ i) {
+			UI_Row* row = &man->focus->rows[i];
+
+			for (size_t j = 0; j < row->elemAmount; ++ j) {
+				UI_Element* elem = &row->elems[i];
+
+				if (elem == focusElem) continue;
+
+				if (elem->onEvent) if (elem->onEvent(elem, e, false)) {
+					return true;
+				}
+			}
+		}
+	}
+
+	for (size_t i = 0; i < man->containerLen; ++ i) {
+		if (&man->containers[i] == man->focus) continue;
+		if (&man->containers[i].active) continue;
+
+		for (size_t j = 0; j < man->containers[i].rowAmount; ++ i) {
+			for (size_t k = 0; k < man->containers[i].rows[j].elemAmount; ++ k) {
+				UI_Element* elem = &man->containers[i].rows[j].elems[k];
+
+				if (elem->onEvent) if (elem->onEvent(elem, e, false)) {
+					return true;
+				}
+			}
 		}
 	}
 

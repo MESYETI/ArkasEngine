@@ -20,7 +20,7 @@ struct UI_Element {
 	void (*free)(UI_Element* e);
 	void (*render)(UI_Container* container, UI_Element* e, bool focus);
 	void (*onClick)(UI_Element* e, uint8_t button, bool down);
-	void (*onEvent)(UI_Element* e, SDL_Event* ev, bool focus);
+	bool (*onEvent)(UI_Element* e, SDL_Event* ev, bool focus);
 };
 
 typedef struct {
