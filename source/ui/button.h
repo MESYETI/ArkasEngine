@@ -10,6 +10,7 @@ typedef void (*UI_ButtonFunc)(UI_Button* this, uint8_t button);
 struct UI_Button {
 	char*         label;
 	UI_ButtonFunc onClick;
+	bool          pressed;
 };
 
 UI_Element UI_NewButton(const char* label, bool fixed, UI_ButtonFunc onClick);

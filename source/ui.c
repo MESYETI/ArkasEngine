@@ -69,6 +69,7 @@ void UI_ManagerRender(UI_Manager* man) {
 
 bool UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 	switch (e->type) {
+		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP: {
 			int     x      = e->button.x;
 			int     y      = e->button.y;
@@ -102,7 +103,9 @@ bool UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 
 						if (PointInRect((Vec2) {x, y}, elemRect)) {
 							if (elem->onClick) {
-								elem->onClick(elem, button);
+								elem->onClick(
+									elem, button, e->type == SDL_MOUSEBUTTONDOWN
+								);
 							}
 
 							container->focus = elem;
@@ -123,10 +126,17 @@ bool UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 	return false;
 }
 
-void UI_RenderBG(size_t depth, Rect rect) {
+void UI_RenderBG(size_t depth, Rect rect, bool swap) {
 	Backend_RenderRect(rect, theme.bg[depth]);
 	Colour bright = Video_MultiplyColour(theme.bg[depth], 1.5);
 	Colour dark   = Video_MultiplyColour(theme.bg[depth], 0.5);
+
+	if (swap) {
+		Colour temp = dark;
+
+		dark   = bright;
+		bright = temp;
+	}
 
 	// dark edges
 	Backend_HLine(rect.x, rect.y + rect.h - 2, 2, rect.w, dark);
@@ -199,7 +209,7 @@ UI_Row* UI_ContainerAddRow(UI_Container* container, int height) {
 void UI_ContainerRender(UI_Container* container, bool focus) {
 	Rect rect = UI_ContainerGetRect(container);
 
-	UI_RenderBG(0, rect);
+	UI_RenderBG(0, rect, false);
 
 	for (size_t rowIdx = 0; rowIdx < container->rowAmount; ++ rowIdx) {
 		UI_Row* row = &container->rows[rowIdx];

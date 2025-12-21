@@ -19,7 +19,7 @@ struct UI_Element {
 
 	void (*free)(UI_Element* e);
 	void (*render)(UI_Container* container, UI_Element* e, bool focus);
-	void (*onClick)(UI_Element* e, uint8_t button);
+	void (*onClick)(UI_Element* e, uint8_t button, bool down);
 	void (*onEvent)(UI_Element* e, SDL_Event* ev, bool focus);
 };
 
@@ -70,7 +70,7 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w);
 void          UI_ManagerRender(UI_Manager* man);
 bool          UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e);
 
-void UI_RenderBG(size_t depth, Rect rect);
+void UI_RenderBG(size_t depth, Rect rect, bool swap);
 
 void    UI_ContainerCenterX(UI_Container* container);
 void    UI_ContainerCenterY(UI_Container* container);

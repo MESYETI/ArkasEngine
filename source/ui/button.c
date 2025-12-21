@@ -18,7 +18,7 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 		rect.x + e->x, rect.y + e->y, e->w, e->h
 	};
 
-	UI_RenderBG(1, btnRect);
+	UI_RenderBG(1, btnRect, data->pressed);
 
 	Vec2 textSize = {
 		app.font.charWidth  * strlen(data->label), app.font.charHeight
@@ -33,9 +33,16 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	// TODO: render outline if mouse is hovered over button
 }
 
-static void OnClick(UI_Element* e, uint8_t button) {
+static void OnClick(UI_Element* e, uint8_t button, bool down) {
 	UI_Button* data = (UI_Button*) e->data;
-	data->onClick(data, button);
+
+	if (down) {
+		data->pressed = true;
+	}
+	else {
+		data->pressed = false;
+		data->onClick(data, button);
+	}
 }
 
 UI_Element UI_NewButton(const char* label, bool fixed, UI_ButtonFunc onClick) {
@@ -51,5 +58,6 @@ UI_Element UI_NewButton(const char* label, bool fixed, UI_ButtonFunc onClick) {
 	UI_Button* data = (UI_Button*) ret.data;
 	data->label     = NewString(label);
 	data->onClick   = onClick;
+	data->pressed   = false;
 	return ret;
 }
