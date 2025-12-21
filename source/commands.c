@@ -10,6 +10,7 @@
 #include "commands.h"
 #include "resources.h"
 #include "testScene.h"
+#include "mapEditor.h"
 
 #define ASSERT_ARGC(N) \
 	(void) argv; \
@@ -327,6 +328,16 @@ static void Command_TestScene(size_t argc, char** argv) {
 	app.console = false;
 }
 
+static void Command_Editor(size_t argc, char** argv) {
+	(void) argc;
+	(void) argv;
+
+	Log("Starting map editor");
+
+	SceneManager_AddScene(MapEditorScene());
+	app.console = false;
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -346,4 +357,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "hex-dump",     &Command_HexDump});
 	Console_AddCommand((ConsoleCommand) {true,  "music",        &Command_Music});
 	Console_AddCommand((ConsoleCommand) {true,  "test-scene",   &Command_TestScene});
+	Console_AddCommand((ConsoleCommand) {true,  "editor",       &Command_Editor});
 }

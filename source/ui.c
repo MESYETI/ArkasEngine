@@ -19,6 +19,8 @@ void UI_ManagerFree(UI_Manager* man) {
 	for (size_t i = 0; i < man->containerLen; ++ i) {
 		UI_Container* container = &man->containers[i];
 
+		if (!container->active) continue;
+
 		for (size_t j = 0; j < container->rowAmount; ++ j) {
 			UI_Row* row = &container->rows[j];
 
