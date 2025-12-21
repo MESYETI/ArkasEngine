@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "mem.h"
 #include "theme.h"
+#include "video.h"
 #include "backend.h"
 
 void UI_ManagerInit(UI_Manager* man, size_t poolSize) {
@@ -65,6 +66,61 @@ void UI_ManagerRender(UI_Manager* man) {
 	}
 }
 
+void UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
+	switch (e->type) {
+		case SDL_MOUSEBUTTONUP: {
+			int x = e->button.x;
+			int y = e->button.y;
+
+			Vec2 mouse = (Vec2) {x, y};
+			bool focus = false;
+
+			for (size_t i = 0; i < man->containerLen; ++ i) {
+				UI_Container* container = &man->containers[i];
+				Rect rect = UI_ContainerGetRect(container);
+
+				if (PointInRect(mouse, rect)) {
+					break;
+				}
+
+				man->focus = container;
+				focus      = true;
+
+				bool elemFocus = false;
+
+				for (size_t j = 0; j < container->rowAmount; ++ j) {
+					UI_Row* row = &container->rows[j];
+
+					for (size_t k = 0; k < row->elemAmount; ++ k) {
+						UI_Element* elem = &row->elems[k];
+						// TODO
+					}
+				}
+
+				if (!elemFocus) {
+					container->focus = NULL;
+				}
+			}
+
+			if (!focus) man->focus = NULL;
+		}
+	}
+}
+
+void UI_RenderBG(size_t depth, Rect rect) {
+	Backend_RenderRect(rect, theme.bg[depth]);
+	Colour bright = Video_MultiplyColour(theme.bg[depth], 1.5);
+	Colour dark   = Video_MultiplyColour(theme.bg[depth], 0.5);
+
+	// dark edges
+	Backend_HLine(rect.x, rect.y + rect.h - 2, 2, rect.w, dark);
+	Backend_VLine(rect.x + rect.w - 2, rect.y, 2, rect.h, dark);
+
+	// bright edges
+	Backend_HLine(rect.x, rect.y, 2, rect.w, bright);
+	Backend_VLine(rect.x, rect.y, 2, rect.h, bright);
+}
+
 void UI_ContainerCenterX(UI_Container* container) {
 	container->xMode = UI_MODE_CENTERED;
 }
@@ -102,7 +158,7 @@ void UI_ContainerFixedPos(UI_Container* container, int x, int y) {
 
 void UI_ContainerSetPadding(
 	UI_Container* container, int top, int bottom, int left, int right
-) {
+) {;
 	container->padTop    = top;
 	container->padBottom = bottom;
 	container->padLeft   = left;
@@ -127,7 +183,7 @@ UI_Row* UI_ContainerAddRow(UI_Container* container, int height) {
 void UI_ContainerRender(UI_Container* container, bool focus) {
 	Rect rect = UI_ContainerGetRect(container);
 
-	Backend_RenderRect(rect, theme.bg);
+	UI_RenderBG(0, rect);
 
 	for (size_t rowIdx = 0; rowIdx < container->rowAmount; ++ rowIdx) {
 		UI_Row* row = &container->rows[rowIdx];
@@ -194,9 +250,13 @@ void UI_RowFinish(UI_Row* row, bool autoHeight) {
 
 	for (size_t i = 0; i < row->elemAmount; ++ i) {
 		if (row->elems[i].fixedWidth == 0) {
-			usableSpace -= row->elems[i].w;
 			++ resizable;
 		}
+		else {
+			usableSpace -= row->elems[i].fixedWidth;
+		}
+
+		usableSpace -= row->container->padLeft;
 	}
 
 	int x = row->container->padLeft;
@@ -204,8 +264,15 @@ void UI_RowFinish(UI_Row* row, bool autoHeight) {
 	for (size_t i = 0; i < row->elemAmount; ++ i) {
 		row->elems[i].x = x;
 		row->elems[i].y = row->y;
-		row->elems[i].w = row->elems[i].fixedWidth == 0?
-			row->elems[i].fixedWidth : usableSpace / resizable;
+
+		if (row->elems[i].fixedWidth == 0) {
+			row->elems[i].w = row->elems[i].fixedWidth == 0?
+				usableSpace / resizable : row->elems[i].fixedWidth;
+		}
+		else {
+			row->elems[i].w = row->elems[i].fixedWidth;
+		}
+
 		row->elems[i].h = row->height;
 
 		x += row->elems[i].w + row->container->padLeft;

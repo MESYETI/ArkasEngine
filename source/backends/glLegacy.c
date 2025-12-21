@@ -566,10 +566,10 @@ void Backend_RenderRect(Rect rect, Colour colour) {
 	GL(glDisable(GL_TEXTURE_2D));
 	glBegin(GL_TRIANGLE_FAN);
 	glColor3ub(colour.r, colour.g, colour.b);
-	glVertex2i(rect.x,              rect.y);
-	glVertex2i(rect.x + rect.w - 1, rect.y);
-	glVertex2i(rect.x + rect.w - 1, rect.y + rect.h - 1);
-	glVertex2i(rect.x,              rect.y + rect.h - 1);
+	glVertex2i(rect.x,          rect.y);
+	glVertex2i(rect.x + rect.w, rect.y);
+	glVertex2i(rect.x + rect.w, rect.y + rect.h);
+	glVertex2i(rect.x,          rect.y + rect.h);
 	GL(glEnd());
 	GL(glEnable(GL_TEXTURE_2D));
 }

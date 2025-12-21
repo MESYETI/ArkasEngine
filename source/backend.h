@@ -18,6 +18,7 @@ typedef struct {
 	Colour tint;
 } TextureRenderOpt;
 
+// implemented per backend
 void     Backend_Init(bool beforeWindow);
 void     Backend_Free(void);
 Texture* Backend_LoadMemTexture(uint8_t* data, size_t len);
@@ -38,5 +39,9 @@ void Backend_Clear(uint8_t r, uint8_t g, uint8_t b);
 void Backend_Viewport(int x, int y, int w, int h);
 void Backend_RenderRect(Rect rect, Colour colour);
 void Backend_FinishRender(void);
+
+// portable
+void Backend_HLine(int x, int y, int thick, int len, Colour colour);
+void Backend_VLine(int x, int y, int thick, int len, Colour colour);
 
 #endif

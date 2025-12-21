@@ -4,9 +4,8 @@
 #include "video.h"
 
 typedef struct {
-	Colour bg;
+	Colour bg[4]; // 4 levels of bg
 	Colour text;
-	Colour button;
 } Theme;
 
 extern Theme theme;

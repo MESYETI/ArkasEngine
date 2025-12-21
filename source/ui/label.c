@@ -18,7 +18,10 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	LabelData* data = (LabelData*) e->data;
 	Rect rect       = UI_ContainerGetRect(container);
 
-	Text_Render(&app.font, data->label, rect.x + e->x, rect.y + e->y);
+	Text_Render(
+		&app.font, data->label, rect.x + e->x,
+		rect.y + e->y + ((e->h / 2) - (app.font.charHeight / 2))
+	);
 }
 
 UI_Element UI_NewLabel(const char* label) {
