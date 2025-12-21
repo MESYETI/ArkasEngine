@@ -1,6 +1,7 @@
 #ifndef AE_RESOURCES_H
 #define AE_RESOURCES_H
 
+#include "text.h"
 #include "util.h"
 #include "common.h"
 #include "backend.h"
@@ -18,7 +19,12 @@ struct ResourceDrive {
 
 enum {
 	RESOURCE_TYPE_TEXTURE = 0,
-	RESOURCE_TYPE_AUDIO
+	RESOURCE_TYPE_AUDIO,
+	RESOURCE_TYPE_FONT
+};
+
+enum {
+	RESOURCE_IS_FONT = 1
 };
 
 typedef struct {
@@ -31,6 +37,7 @@ typedef struct {
 typedef union {
 	Texture*      texture;
 	AudioResource audio;
+	Font          font;
 } ResourceContents; // C99 moment
 
 typedef struct {
@@ -57,7 +64,7 @@ void      Resources_Free(void);
 bool      Resources_FileExists(const char* path);
 void      Resources_List(const char* path);
 void*     Resources_ReadFile(const char* path, size_t* size);
-Resource* Resources_GetRes(const char* path);
+Resource* Resources_GetRes(const char* path, uint32_t opt);
 void      Resources_FreeRes(Resource* resource);
 
 #endif

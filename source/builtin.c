@@ -3,15 +3,15 @@
 #include "builtin.h"
 
 typedef struct {
-	const char* name;
-	uint8_t*    data;
-	size_t      len;
+	const char*    name;
+	const uint8_t* data;
+	const size_t   len;
 } File;
 
 #include "../builtin/font.c"
 #include "../builtin/no_texture.c"
 
-static File files[2] = {
+static const File files[2] = {
 	{"font.png",       font,      sizeof(font)},
 	{"no_texture.png", noTexture, sizeof(noTexture)}
 };
@@ -41,7 +41,10 @@ static void* DriveReadFile(ResourceDrive* drive, const char* path, size_t* size)
 	for (size_t i = 0; i < sizeof(files) / sizeof(File); ++ i) {
 		if (strcmp(files[i].name, path) == 0) {
 			*size = files[i].len;
-			return (void*) files[i].data;
+
+			void* ret = SafeMalloc(files[i].len);
+			memcpy(ret, files[i].data, files[i].len);
+			return ret;
 		}
 	}
 

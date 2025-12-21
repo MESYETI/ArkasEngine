@@ -244,16 +244,16 @@ Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 	return LoadTexture(data, width, height, ch);
 }
 
-Texture* Backend_LoadTexture(const char* path) {
-	int width, height, ch;
-
-	uint8_t* data = stbi_load(path, &width, &height, &ch, 0);
-	if (data == NULL) {
-		Error("Failed to load %s: %s", path, stbi_failure_reason());
-	}
-
-	return LoadTexture(data, width, height, ch);
-}
+// Texture* Backend_LoadTexture(const char* path) {
+// 	int width, height, ch;
+// 
+// 	uint8_t* data = stbi_load(path, &width, &height, &ch, 0);
+// 	if (data == NULL) {
+// 		Error("Failed to load %s: %s", path, stbi_failure_reason());
+// 	}
+// 
+// 	return LoadTexture(data, width, height, ch);
+// }
 
 void Backend_FreeTexture(Texture* texture) {
 	GL(glDeleteTextures(1, &texture->name));

@@ -194,7 +194,7 @@ static Resource* AllocResource(void) {
 	return NULL;
 }
 
-Resource* Resources_GetRes(const char* path) {
+Resource* Resources_GetRes(const char* path, uint32_t opt) {
 	for (size_t i = 0; i < resources.capacity; ++ i) {
 		if (
 			resources.resources[i].active &&
@@ -232,26 +232,41 @@ Resource* Resources_GetRes(const char* path) {
 	}
 
 	if (strcmp(ext, ".png") == 0) {
-		ret->type = RESOURCE_TYPE_TEXTURE;
+		if (opt & RESOURCE_IS_FONT) {
+			bool success;
 
-		size_t   size;
-		uint8_t* data = (uint8_t*) Resources_ReadFile(path, &size);
+			ret->type   = RESOURCE_TYPE_FONT;
+			ret->v.font = Text_LoadFont(path, &success);
 
-		if (!data) {
-			Log("Failed to read path '%s'", path);
-			ret->active = false;
-			free(ret->name);
-			return NULL;
+			if (!success) {
+				Log("Failed to read font");
+				ret->active = false;
+				free(ret->name);
+				return NULL;
+			}
 		}
+		else {
+			ret->type = RESOURCE_TYPE_TEXTURE;
 
-		ret->v.texture = Backend_LoadMemTexture(data, size);
-		free(data);
+			size_t   size;
+			uint8_t* data = (uint8_t*) Resources_ReadFile(path, &size);
 
-		if (!ret->v.texture) {
-			Log("Failed to load resource '%s'", path);
-			ret->active = false;
-			free(ret->name);
-			return NULL;
+			if (!data) {
+				Log("Failed to read path '%s'", path);
+				ret->active = false;
+				free(ret->name);
+				return NULL;
+			}
+
+			ret->v.texture = Backend_LoadMemTexture(data, size);
+			free(data);
+
+			if (!ret->v.texture) {
+				Log("Failed to load resource '%s'", path);
+				ret->active = false;
+				free(ret->name);
+				return NULL;
+			}
 		}
 	}
 	else if (strcmp(ext, ".ogg") == 0) {

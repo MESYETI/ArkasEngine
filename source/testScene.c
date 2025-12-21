@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "app.h"
 #include "backend.h"
 #include "ui/label.h"
 #include "ui/button.h"
@@ -20,7 +21,7 @@ static void Init(Scene* scene) {
 
 	UI_Row* row = UI_ContainerAddRow(container, 24);
 
-	UI_RowAddElement(row, UI_NewLabel("hello!"));
+	UI_RowAddElement(row, UI_NewLabel(&app.font, "hello!", 0));
 	UI_RowAddElement(row, UI_NewButton("manul button", false, &ManulButton));
 	UI_RowFinish(row, true);
 }

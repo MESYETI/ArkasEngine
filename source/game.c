@@ -35,7 +35,7 @@ void Game_Init(void) {
 		AUDIOPRIO_DEFAULT, -1, 0,
 		0, NULL
 	);
-	Resource* resource = Resources_GetRes(":base/sfx/air1.ogg");
+	Resource* resource = Resources_GetRes(":base/sfx/air1.ogg", 0);
 	if (resource) {
 		Audio_Play2DSound(
 			emitters2d[0], resource,
@@ -57,7 +57,7 @@ void Game_Init(void) {
 		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {6.0f, -0.3f, 4.0f}}
 	);
 
-	resource = Resources_GetRes(":base/sfx/drip1.ogg");
+	resource = Resources_GetRes(":base/sfx/drip1.ogg", 0);
 
 	if (resource) {
 		Audio_Play3DSound(

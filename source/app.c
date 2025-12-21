@@ -37,9 +37,14 @@ void App_Init(void) {
 	Audio_Init();
 	Theme_Init();
 
+	bool success;
 	app.running = true;
-	app.font    = Text_LoadFont("font.png");
+	app.font    = Text_LoadFont(":builtin/font.png", &success);
 	app.console = true;
+
+	if (!success) {
+		Error("Failed to load font");
+	}
 
 	if (!FileExists("startup.cmd")) {
 		Log("Generating startup.cmd");

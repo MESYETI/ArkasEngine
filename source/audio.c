@@ -76,7 +76,7 @@ bool Audio_MusicPlaying(void) {
 }
 
 bool Audio_PlayMusic(const char* path) {
-	Resource* res = Resources_GetRes(path);
+	Resource* res = Resources_GetRes(path, 0);
 
 	if (!res) return false;
 

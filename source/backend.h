@@ -22,7 +22,6 @@ typedef struct {
 void     Backend_Init(bool beforeWindow);
 void     Backend_Free(void);
 Texture* Backend_LoadMemTexture(uint8_t* data, size_t len);
-Texture* Backend_LoadTexture(const char* path);
 void     Backend_FreeTexture(Texture* texture);
 Vec2     Backend_GetTextureSize(Texture* texture);
 void     Backend_RenderScene(void);
@@ -43,5 +42,6 @@ void Backend_FinishRender(void);
 // portable
 void Backend_HLine(int x, int y, int thick, int len, Colour colour);
 void Backend_VLine(int x, int y, int thick, int len, Colour colour);
+void Backend_RenderRectOL(Rect rect, Colour colour);
 
 #endif

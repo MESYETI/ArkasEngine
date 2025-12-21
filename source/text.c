@@ -1,12 +1,33 @@
 #include "text.h"
+#include "util.h"
+#include "resources.h"
 
-Font Text_LoadFont(const char* path) {
-	Font ret;
-	ret.texture = Backend_LoadTexture(path);
+Font Text_LoadFont(const char* path, bool* success) {
+	Font ret = {0};
+	*success = true;
+	/*ret.texture = Backend_LoadTexture(path);*/
 
-	Vec2 size      = Backend_GetTextureSize(ret.texture);
-	ret.charWidth  = size.x / 16;
-	ret.charHeight = size.y / 16;
+	size_t   size;
+	uint8_t* data = (uint8_t*) Resources_ReadFile(path, &size);
+
+	if (!data) {
+		Log("Failed to read path '%s'", path);
+		*success = false;
+		return ret;
+	}
+
+	ret.texture = Backend_LoadMemTexture(data, size);
+	free(data);
+
+	if (!ret.texture) {
+		Log("Failed to load file '%s'", path);
+		*success = false;
+		return ret;
+	}
+
+	Vec2 fontSize  = Backend_GetTextureSize(ret.texture);
+	ret.charWidth  = fontSize.x / 16;
+	ret.charHeight = fontSize.y / 16;
 	return ret;
 }
 

@@ -5,6 +5,8 @@
 
 typedef struct {
 	char* label;
+	bool  centered;
+	Font* font;
 } LabelData;
 
 static void Free(UI_Element* e) {
@@ -18,17 +20,25 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	LabelData* data = (LabelData*) e->data;
 	Rect rect       = UI_ContainerGetRect(container);
 
+	int x = rect.x + e->x;
+
+	if (data->centered) {
+		int width = strlen(data->label) * data->font->charWidth;
+
+		x += (e->h / 2) - (width / 2);
+	}
+
 	Text_Render(
-		&app.font, data->label, rect.x + e->x,
-		rect.y + e->y + ((e->h / 2) - (app.font.charHeight / 2))
+		data->font, data->label, x,
+		rect.y + e->y + ((e->h / 2) - (data->font->charHeight / 2))
 	);
 }
 
-UI_Element UI_NewLabel(const char* label) {
+UI_Element UI_NewLabel(Font* font, const char* label, int opt) {
 	UI_Element ret;
 	ret.fixedWidth      = 0;
 	ret.data            = SafeMalloc(sizeof(LabelData));
-	ret.preferredHeight = app.font.charHeight;
+	ret.preferredHeight = font->charHeight;
 	ret.free            = &Free;
 	ret.render          = &Render;
 	ret.onClick         = NULL;
@@ -36,5 +46,7 @@ UI_Element UI_NewLabel(const char* label) {
 
 	LabelData* data = (LabelData*) ret.data;
 	data->label     = NewString(label);
+	data->centered  = (opt & UI_LABEL_CENTERED) != 0;
+	data->font      = font;
 	return ret;
 }

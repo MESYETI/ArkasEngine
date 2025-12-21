@@ -9,7 +9,7 @@ typedef struct {
 	int      charHeight;
 } Font;
 
-Font Text_LoadFont(const char* path);
+Font Text_LoadFont(const char* path, bool* success);
 void Text_FreeFont(Font* font);
 void Text_Render(Font* font, const char* string, int x, int y);
 
