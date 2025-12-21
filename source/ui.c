@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "mem.h"
+#include "util.h"
 #include "theme.h"
 #include "video.h"
 #include "backend.h"
@@ -66,11 +67,12 @@ void UI_ManagerRender(UI_Manager* man) {
 	}
 }
 
-void UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
+bool UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 	switch (e->type) {
 		case SDL_MOUSEBUTTONUP: {
-			int x = e->button.x;
-			int y = e->button.y;
+			int     x      = e->button.x;
+			int     y      = e->button.y;
+			uint8_t button = e->button.button;
 
 			Vec2 mouse = (Vec2) {x, y};
 			bool focus = false;
@@ -79,7 +81,7 @@ void UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 				UI_Container* container = &man->containers[i];
 				Rect rect = UI_ContainerGetRect(container);
 
-				if (PointInRect(mouse, rect)) {
+				if (!PointInRect(mouse, rect)) {
 					break;
 				}
 
@@ -93,7 +95,19 @@ void UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 
 					for (size_t k = 0; k < row->elemAmount; ++ k) {
 						UI_Element* elem = &row->elems[k];
-						// TODO
+
+						Rect elemRect = {
+							rect.x + elem->x, rect.y + elem->y, elem->w, elem->h
+						};
+
+						if (PointInRect((Vec2) {x, y}, elemRect)) {
+							if (elem->onClick) {
+								elem->onClick(elem, button);
+							}
+
+							container->focus = elem;
+							return true;
+						}
 					}
 				}
 
@@ -105,6 +119,8 @@ void UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 			if (!focus) man->focus = NULL;
 		}
 	}
+
+	return false;
 }
 
 void UI_RenderBG(size_t depth, Rect rect) {

@@ -4,6 +4,12 @@
 #include "ui/button.h"
 #include "testScene.h"
 
+static void ManulButton(UI_Button* this, uint8_t button) {
+	(void) this;
+	(void) button;
+	Log("Manul");
+}
+
 static void Init(Scene* scene) {
 	UI_ManagerInit(&scene->ui, 1);
 
@@ -15,7 +21,7 @@ static void Init(Scene* scene) {
 	UI_Row* row = UI_ContainerAddRow(container, 24);
 
 	UI_RowAddElement(row, UI_NewLabel("hello!"));
-	UI_RowAddElement(row, UI_NewButton("manul button", false, NULL));
+	UI_RowAddElement(row, UI_NewButton("manul button", false, &ManulButton));
 	UI_RowFinish(row, true);
 }
 
@@ -24,9 +30,7 @@ static void Free(Scene* scene) {
 }
 
 static bool HandleEvent(Scene* scene, SDL_Event* e) {
-	(void) scene;
-	(void) e;
-	return true;
+	return UI_ManagerHandleEvent(&scene->ui, e);
 }
 
 static void Update(Scene* scene, bool top) {

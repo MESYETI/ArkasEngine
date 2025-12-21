@@ -68,7 +68,7 @@ void          UI_ManagerInit(UI_Manager* man, size_t poolSize);
 void          UI_ManagerFree(UI_Manager* man);
 UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w);
 void          UI_ManagerRender(UI_Manager* man);
-void          UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e);
+bool          UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e);
 
 void UI_RenderBG(size_t depth, Rect rect);
 
