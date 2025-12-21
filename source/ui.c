@@ -152,9 +152,9 @@ bool UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 
 	for (size_t i = 0; i < man->containerLen; ++ i) {
 		if (&man->containers[i] == man->focus) continue;
-		if (man->containers[i].active) continue;
+		if (!man->containers[i].active) continue;
 
-		for (size_t j = 0; j < man->containers[i].rowAmount; ++ i) {
+		for (size_t j = 0; j < man->containers[i].rowAmount; ++ j) {
 			for (size_t k = 0; k < man->containers[i].rows[j].elemAmount; ++ k) {
 				UI_Element* elem = &man->containers[i].rows[j].elems[k];
 
@@ -259,9 +259,9 @@ void UI_ContainerRender(UI_Container* container, bool focus) {
 		for (size_t col = 0; col < row->elemAmount; ++ col) {
 			UI_Element* elem = &row->elems[col];
 
-			Backend_RenderRectOL((Rect) {
-				rect.x + elem->x, rect.y + elem->y, elem->w, elem->h
-			}, (Colour) {0xFF, 0xFF, 0xFF});
+			// Backend_RenderRectOL((Rect) {
+			// 	rect.x + elem->x, rect.y + elem->y, elem->w, elem->h
+			// }, (Colour) {0xFF, 0xFF, 0xFF});
 
 			elem->render(container, elem, focus && container->focus == elem);
 		}
