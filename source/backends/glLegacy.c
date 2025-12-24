@@ -246,7 +246,9 @@ Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 	int newWidth  = width;
 	int newHeight = height;
 
-	if ((width > 0) && !(width & (width - 1))) {
+	printf("Current width: %dx%d\n", width, height);
+
+	if (width & (width - 1)) {
 		// i don't know what's going on either
 		-- newWidth;
 		newWidth |= newWidth >> 1;
@@ -257,7 +259,7 @@ Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 		++ newWidth;
 	}
 
-	if ((height > 0) && !(height & (height - 1))) {
+	if (height & (height - 1)) {
 		-- newHeight;
 		newHeight |= newHeight >> 1;
 		newHeight |= newHeight >> 2;
@@ -276,6 +278,8 @@ Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 	stbir_resize_uint8_linear(data, width, height, 0, data2, newWidth, newHeight, 0, ch);
 	free(data);
 	data = data2;
+
+	printf("New width: %dx%d\n", newWidth, newHeight);
 
 	return LoadTexture(data, newWidth, newHeight, ch);
 }
