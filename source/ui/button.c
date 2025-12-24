@@ -39,7 +39,7 @@ static void OnClick(UI_Element* e, uint8_t button, bool down) {
 	if (down) {
 		data->pressed = true;
 	}
-	else {
+	else if (data->pressed) {
 		data->pressed = false;
 
 		if (data->onClick) {
