@@ -204,7 +204,7 @@ void Backend_Free(void) {
 	Model_Free(&state.model);
 }
 
-static Texture* LoadTexture(uint8_t* data, int width, int height, int ch) {
+static Texture* LoadTexture(uint8_t* data, uint32_t width, uint32_t height, int ch) {
 	GLuint tex;
     GL(glGenTextures(1, &tex));
     GL(glBindTexture(GL_TEXTURE_2D, tex));
@@ -243,7 +243,41 @@ Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 		Error("Failed to load texture from memory: %s", stbi_failure_reason());
 	}
 
-	return LoadTexture(data, width, height, ch);
+	int newWidth  = width;
+	int newHeight = height;
+
+	if ((width > 0) && !(width & (width - 1))) {
+		// i don't know what's going on either
+		-- newWidth;
+		newWidth |= newWidth >> 1;
+		newWidth |= newWidth >> 2;
+		newWidth |= newWidth >> 4;
+		newWidth |= newWidth >> 8;
+		newWidth |= newWidth >> 16;
+		++ newWidth;
+	}
+
+	if ((height > 0) && !(height & (height - 1))) {
+		-- newHeight;
+		newHeight |= newHeight >> 1;
+		newHeight |= newHeight >> 2;
+		newHeight |= newHeight >> 4;
+		newHeight |= newHeight >> 8;
+		newHeight |= newHeight >> 16;
+		++ newHeight;
+	}
+
+	uint8_t* data2 = malloc(newWidth * newHeight * ch);
+	if (data2 == NULL) {
+		free(data);
+		return NULL;
+	}
+
+	stbir_resize_uint8_linear(data, width, height, 0, data2, newWidth, newHeight, 0, ch);
+	free(data);
+	data = data2;
+
+	return LoadTexture(data, newWidth, newHeight, ch);
 }
 
 // Texture* Backend_LoadTexture(const char* path) {

@@ -19,7 +19,7 @@ void App_Init(void) {
 	MakeDir("game",        true);
 	MakeDir("game/extra",  true);
 	MakeDir("game/net",    true);
-	MakeDir("maps",        true);
+	MakeDir("game/maps",   true);
 	MakeDir("screenshots", true);
 
 	Console_Init();
