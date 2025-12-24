@@ -26,7 +26,10 @@ void UI_ManagerFree(UI_Manager* man) {
 
 			for (size_t k = 0; k < row->elemAmount; ++ k) {
 				UI_Element* elem = &row->elems[k];
-				elem->free(elem);
+
+				if (elem->free) {
+					elem->free(elem);
+				}
 			}
 
 			if (row->elemAmount > 0) free(container->rows[j].elems);
@@ -264,6 +267,8 @@ void UI_ContainerRender(UI_Container* container, bool focus) {
 			// Backend_RenderRectOL((Rect) {
 			// 	rect.x + elem->x, rect.y + elem->y, elem->w, elem->h
 			// }, (Colour) {0xFF, 0xFF, 0xFF});
+
+			if (!elem->render) continue;
 
 			elem->render(container, elem, focus && container->focus == elem);
 		}

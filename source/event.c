@@ -1,0 +1,115 @@
+#include <string.h>
+#include <SDL2/SDL.h>
+#include "event.h"
+#include "util.h"
+
+#define EVENTS_AMOUNT 32
+
+AE_Event events[EVENTS_AMOUNT];
+
+void AE_InitEvents(void) {
+	for (size_t i = 0; i < EVENTS_AMOUNT; ++ i) {
+		events[i].type = AE_EVENT_NONE;
+	}
+}
+
+static int FindFree(void) {
+	int i;
+
+	for (i = 0; i < EVENTS_AMOUNT; ++ i) {
+		if (events[i].type == AE_EVENT_NONE) return i;
+	}
+
+	Error("Event pool full");
+	return -1;
+}
+
+void AE_AddEvent(AE_Event e) {
+	events[FindFree()] = e;
+}
+
+void AE_UpdateEvents(void) {
+	SDL_Event e;
+
+	while (SDL_PollEvent(&e)) {
+		switch (e.type) {
+			case SDL_MOUSEMOTION: {
+				events[FindFree()].mouseMove = (AE_MouseMoveEvent) {
+					.type = AE_EVENT_MOUSE_MOVE,
+					.x    = e.motion.x,
+					.y    = e.motion.y,
+					.xRel = e.motion.xrel,
+					.yRel = e.motion.yrel
+				};
+				break;
+			}
+			case SDL_MOUSEBUTTONUP:
+			case SDL_MOUSEBUTTONDOWN: {
+				events[FindFree()].mouseButton = (AE_MouseButtonEvent) {
+					.type   = e.type == SDL_MOUSEBUTTONDOWN?
+						AE_EVENT_MOUSE_BUTTON_DOWN : AE_EVENT_MOUSE_BUTTON_UP,
+					.button = e.button.button
+				};
+				break;
+			}
+			case SDL_KEYUP:
+			case SDL_KEYDOWN: {
+				events[FindFree()].key = (AE_KeyEvent) {
+					.type = e.type == SDL_KEYDOWN?
+						AE_EVENT_KEY_DOWN : AE_EVENT_KEY_UP,
+					.key  = AE_SDLScancodeToKey(e.key.keysym.scancode)
+				};
+				break;
+			}
+			case SDL_QUIT: {
+				events[FindFree()].type = AE_EVENT_QUIT;
+				break;
+			}
+			case SDL_WINDOWEVENT: {
+				if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
+					events[FindFree()].windowResize = (AE_WindowResizeEvent) {
+						.type   = AE_EVENT_WINDOW_RESIZE,
+						.width  = e.window.data1,
+						.height = e.window.data2
+					};
+				}
+				break;
+			}
+			case SDL_TEXTINPUT: {
+				AE_TextInputEvent textInput;
+				textInput.type = AE_EVENT_TEXT_INPUT;
+				strcpy(textInput.input, e.text.text);
+
+				events[FindFree()].textInput = textInput;
+				break;
+			}
+			default: break;
+		}
+	}
+}
+
+bool AE_EventsAvailable(void) {
+	for (size_t i = 0; i < EVENTS_AMOUNT; ++ i) {
+		if (events[i].type != AE_EVENT_NONE) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool AE_PollEvents(AE_Event* e) {
+	if (!AE_EventsAvailable()) {
+		AE_UpdateEvents();
+	}
+
+	for (size_t i = 0; i < EVENTS_AMOUNT; ++ i) {
+		if (events[i].type != AE_EVENT_NONE) {
+			*e             = events[i];
+			events[i].type = AE_EVENT_NONE;
+			return true;
+		}
+	}
+
+	return false;
+}

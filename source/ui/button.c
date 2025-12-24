@@ -41,7 +41,10 @@ static void OnClick(UI_Element* e, uint8_t button, bool down) {
 	}
 	else {
 		data->pressed = false;
-		data->onClick(data, button);
+
+		if (data->onClick) {
+			data->onClick(data, button);
+		}
 	}
 }
 

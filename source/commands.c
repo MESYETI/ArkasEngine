@@ -5,6 +5,7 @@
 #include "util.h"
 #include "audio.h"
 #include "scene.h"
+#include "config.h"
 #include "player.h"
 #include "console.h"
 #include "commands.h"
@@ -146,7 +147,8 @@ static void Command_Set(size_t argc, char** argv) {
 		{VAR_FLOAT, "player.jump-speed",      &player.jumpSpeed},
 		{VAR_FLOAT, "game.sensitivity",       &gameBaseConfig.sensitivity},
 		{VAR_FLOAT, "game.music-volume",      &gameBaseConfig.musicVolume},
-		{VAR_BOOL,  "echo",                   &console.echo}
+		{VAR_BOOL,  "echo",                   &console.echo},
+		{VAR_INT,   "engine.scale-2D",        &globalConfig.scale2D}
 	};
 
 	if (argc == 0) {

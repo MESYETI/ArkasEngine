@@ -4,9 +4,11 @@
 #include "backend.h"
 #include "ui/label.h"
 #include "ui/button.h"
+#include "ui/spacer.h"
 #include "testScene.h"
 
 static UI_Container* topCont;
+static UI_Container* bottomCont;
 
 static Vec2 camera;
 
@@ -21,9 +23,21 @@ static void Init(Scene* scene) {
 	UI_Row* row = UI_ContainerAddRow(topCont, 18);
 
 	UI_RowAddElement(row, UI_NewLabel(&app.font, "Arkas Map Editor", 0));
-	UI_RowAddElement(row, UI_NewButton("New sector", false, NULL));
-	UI_RowAddElement(row, UI_NewButton("Select sector", false, NULL));
+	UI_RowAddElement(row, UI_NewButton("File", false, NULL));
+	UI_RowAddElement(row, UI_NewButton("Edit", false, NULL));
+	UI_RowAddElement(row, UI_NewButton("Sector", false, NULL));
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));
+	UI_RowFinish(row, false);
+
+	bottomCont = UI_ManagerAddContainer(&scene->ui, video.width);
+	UI_ContainerAlignLeft(bottomCont, 0);
+	UI_ContainerAlignBottom(bottomCont, 0);
+	UI_ContainerSetPadding(bottomCont, 5, 5, 5, 5);
+
+	row = UI_ContainerAddRow(bottomCont, 18);
+
+	UI_RowAddElement(row, UI_NewLabel(&app.font, "X: 0.0, Y: 0.0", 0));
+	UI_RowAddElement(row, UI_NewSpacer(0));
 	UI_RowAddElement(row, UI_NewButton("Play", false, NULL));
 	UI_RowFinish(row, false);
 

@@ -9,7 +9,7 @@
 
 #ifdef AE_BACKEND_LEGACY_GL
 
-static void GL_Error(GLenum error) {
+static void GL_Error(GLenum error, const char* file, int line) {
 	const char* errorStr;
 	switch (error) {
 		case GL_INVALID_ENUM:      errorStr = "Invalid enum"; break;
@@ -21,17 +21,19 @@ static void GL_Error(GLenum error) {
 		default:                   errorStr = "???";
 	}
 
-	Error("OpenGL error: %s", errorStr);
+	Error("%s:%d: OpenGL error: %s", file, line, errorStr);
 }
 
-#define GL(CALL) do { \
+#define GL_CALL(CALL, FILE, LINE) do { \
 	CALL; \
 	GLenum error = glGetError(); \
  \
 	if (error != GL_NO_ERROR) { \
-		GL_Error(error); \
+		GL_Error(error, FILE, LINE); \
 	} \
 } while(0)
+
+#define GL(CALL) GL_CALL(CALL, __FILE__, __LINE__)
 
 typedef struct {
 	float nearPlane;

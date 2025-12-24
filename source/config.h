@@ -3,6 +3,12 @@
 
 #include <stdio.h>
 
+typedef struct {
+	int scale2D;
+} GlobalConfig;
+
+extern GlobalConfig globalConfig;
+
 typedef void (*ConfigExt)(FILE*);
 extern ConfigExt configExt;
 
