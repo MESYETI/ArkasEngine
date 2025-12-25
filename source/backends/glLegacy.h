@@ -25,6 +25,8 @@ typedef struct {
 	GLuint name;
 	int    width;
 	int    height;
+	int    actualWidth;
+	int    actualHeight;
 } Texture;
 
 #endif

@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"yeti"
+	],
+	"copyright": "Copyright © 2025, yeti",
+	"description": "A minimal D application.",
+	"license": "MIT",
+	"name": "genarf"
+}

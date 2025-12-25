@@ -28,6 +28,8 @@ Font Text_LoadFont(const char* path, bool* success) {
 	Vec2 fontSize  = Backend_GetTextureSize(ret.texture);
 	ret.charWidth  = fontSize.x / 16;
 	ret.charHeight = fontSize.y / 16;
+
+	printf("Font is %dx%d\n", fontSize.x, fontSize.y);
 	return ret;
 }
 

@@ -204,37 +204,6 @@ void Backend_Free(void) {
 	Model_Free(&state.model);
 }
 
-static Texture* LoadTexture(uint8_t* data, uint32_t width, uint32_t height, int ch) {
-	GLuint tex;
-    GL(glGenTextures(1, &tex));
-    GL(glBindTexture(GL_TEXTURE_2D, tex));
-	GL(glTexImage2D(
-		GL_TEXTURE_2D, 0, ch, width, height, 0, (ch == 3) ? GL_RGB : GL_RGBA,
-		GL_UNSIGNED_BYTE, data
-	));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_REPEAT));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_REPEAT));
-
-    free(data);
-    GL(glBindTexture(GL_TEXTURE_2D, 0));
-
-    // now put this texture in the texture array
-    for (size_t i = 0; i < sizeof(state.textures) / sizeof(Texture); ++ i) {
-    	if (!state.textures[i].used) {
-    		state.textures[i].used   = true;
-    		state.textures[i].name   = tex;
-    		state.textures[i].width  = width;
-    		state.textures[i].height = height;
-    		return &state.textures[i];
-    	}
-    }
-
-    Error("No more room for textures");
-    return NULL;
-}
-
 Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 	int width, height, ch;
 
@@ -275,13 +244,51 @@ Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 		return NULL;
 	}
 
-	stbir_resize_uint8_linear(data, width, height, 0, data2, newWidth, newHeight, 0, ch);
+	//stbir_resize_uint8_linear(data, width, height, 0, data2, newWidth, newHeight, 0, ch);
+
+	memset(data2, 0, newWidth * newHeight * ch);
+
+	for (int y = 0; y < height; ++ y) {
+		memcpy(&data2[(y * newWidth * ch)], &data[(y * width * ch)], width * ch);
+	}
+
 	free(data);
 	data = data2;
 
 	printf("New width: %dx%d\n", newWidth, newHeight);
 
-	return LoadTexture(data, newWidth, newHeight, ch);
+	// return LoadTexture(data, newWidth, newHeight, ch);
+
+	GLuint tex;
+    GL(glGenTextures(1, &tex));
+    GL(glBindTexture(GL_TEXTURE_2D, tex));
+	GL(glTexImage2D(
+		GL_TEXTURE_2D, 0, ch, newWidth, newHeight, 0, (ch == 3) ? GL_RGB : GL_RGBA,
+		GL_UNSIGNED_BYTE, data
+	));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_REPEAT));
+    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_REPEAT));
+
+    free(data);
+    GL(glBindTexture(GL_TEXTURE_2D, 0));
+
+    // now put this texture in the texture array
+    for (size_t i = 0; i < sizeof(state.textures) / sizeof(Texture); ++ i) {
+    	if (!state.textures[i].used) {
+    		state.textures[i].used         = true;
+    		state.textures[i].name         = tex;
+    		state.textures[i].width        = width;
+    		state.textures[i].height       = height;
+    		state.textures[i].actualWidth  = newWidth;
+    		state.textures[i].actualHeight = newHeight;
+    		return &state.textures[i];
+    	}
+    }
+
+    Error("No more room for textures");
+    return NULL;
 }
 
 // Texture* Backend_LoadTexture(const char* path) {
@@ -549,23 +556,23 @@ void Backend_DrawTexture(
 	}
 
 	glTexCoord2f(
-		((float) src.x) / ((float) texture->width),
-		((float) src.y) / ((float) texture->height)
+		((float) src.x) / ((float) texture->actualWidth),
+		((float) src.y) / ((float) texture->actualHeight)
 	);
 	glVertex2i(dest.x, dest.y);
 	glTexCoord2f(
-		((float) (src.x + src.w)) / ((float) texture->width),
-		((float) src.y) / ((float) texture->height)
+		((float) (src.x + src.w)) / ((float) texture->actualWidth),
+		((float) src.y) / ((float) texture->actualHeight)
 	);
 	glVertex2i(dest.x + dest.w, dest.y);
 	glTexCoord2f(
-		((float) (src.x + src.w)) / ((float) texture->width),
-		((float) (src.y + src.h)) / ((float) texture->height)
+		((float) (src.x + src.w)) / ((float) texture->actualWidth),
+		((float) (src.y + src.h)) / ((float) texture->actualHeight)
 	);
 	glVertex2i(dest.x + dest.w, dest.y + dest.h);
 	glTexCoord2f(
-		((float) src.x) / ((float) texture->width),
-		((float) (src.y + src.h)) / ((float) texture->height)
+		((float) src.x) / ((float) texture->actualWidth),
+		((float) (src.y + src.h)) / ((float) texture->actualHeight)
 	);
 	glVertex2i(dest.x, dest.y + dest.h);
 	GL(glEnd());
