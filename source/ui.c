@@ -73,13 +73,13 @@ void UI_ManagerRender(UI_Manager* man) {
 	}
 }
 
-bool UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
+bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 	switch (e->type) {
-		case SDL_MOUSEBUTTONDOWN:
-		case SDL_MOUSEBUTTONUP: {
-			int     x      = e->button.x;
-			int     y      = e->button.y;
-			uint8_t button = e->button.button;
+		case AE_EVENT_MOUSE_BUTTON_DOWN:
+		case AE_EVENT_MOUSE_BUTTON_UP: {
+			int     x      = e->mouseButton.x;
+			int     y      = e->mouseButton.y;
+			uint8_t button = e->mouseButton.button;
 
 			Vec2 mouse = (Vec2) {x, y};
 			bool focus = false;
@@ -110,7 +110,8 @@ bool UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e) {
 						if (PointInRect((Vec2) {x, y}, elemRect)) {
 							if (elem->onClick) {
 								elem->onClick(
-									elem, button, e->type == SDL_MOUSEBUTTONDOWN
+									elem, button,
+									e->type == AE_EVENT_MOUSE_BUTTON_DOWN
 								);
 							}
 

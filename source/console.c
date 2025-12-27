@@ -262,22 +262,19 @@ bool Console_RunFile(const char* path) {
 	return true;
 }
 
-void Console_HandleEvent(SDL_Event* e) {
+void Console_HandleEvent(Event* e) {
 	switch (e->type) {
-		case SDL_TEXTINPUT: {
+		case AE_EVENT_TEXT_INPUT: {
 			strncat(
-				console.editor, e->text.text, 99 - strlen(console.editor)
+				console.editor, e->textInput.input, 99 - strlen(console.editor)
 			);
 			break;
 		}
-		case SDL_KEYDOWN: {
-			if (
-				(e->key.keysym.scancode == SDL_SCANCODE_BACKSPACE) &&
-				(console.editor[0] != 0)
-			) {
+		case AE_EVENT_KEY_DOWN: {
+			if ((e->key.key == AE_KEY_BACKSPACE) && (console.editor[0] != 0)) {
 				console.editor[strlen(console.editor) - 1] = 0;
 			}
-			if (e->key.keysym.scancode == SDL_SCANCODE_RETURN) {
+			if (e->key.key == AE_KEY_RETURN) {
 				RunCommand();
 			}
 			break;

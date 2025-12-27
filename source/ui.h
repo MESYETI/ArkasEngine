@@ -3,6 +3,7 @@
 
 #include "video.h"
 #include "types.h"
+#include "event.h"
 #include "common.h"
 
 typedef struct UI_Container UI_Container;
@@ -20,7 +21,7 @@ struct UI_Element {
 	void (*free)(UI_Element* e);
 	void (*render)(UI_Container* container, UI_Element* e, bool focus);
 	void (*onClick)(UI_Element* e, uint8_t button, bool down);
-	bool (*onEvent)(UI_Element* e, SDL_Event* ev, bool focus);
+	bool (*onEvent)(UI_Element* e, Event* ev, bool focus);
 };
 
 typedef struct {
@@ -68,7 +69,7 @@ void          UI_ManagerInit(UI_Manager* man, size_t poolSize);
 void          UI_ManagerFree(UI_Manager* man);
 UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w);
 void          UI_ManagerRender(UI_Manager* man);
-bool          UI_ManagerHandleEvent(UI_Manager* man, SDL_Event* e);
+bool          UI_ManagerHandleEvent(UI_Manager* man, Event* e);
 
 void UI_RenderBG(size_t depth, Rect rect, bool swap);
 

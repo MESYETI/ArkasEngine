@@ -192,11 +192,11 @@ void Game_Update(bool top) {
 	};
 }
 
-void Game_HandleEvent(SDL_Event* e) {
+void Game_HandleEvent(Event* e) {
 	switch (e->type) {
-		case SDL_KEYDOWN: {
-			switch (e->key.keysym.scancode) {
-				case SDL_SCANCODE_SPACE: {
+		case AE_EVENT_KEY_DOWN: {
+			switch (e->key.key) {
+				case AE_KEY_SPACE: {
 					if (FloatEqual(player.sector->floor, player.pos.y, 0.05)) {
 						player.acc.y        = player.jumpSpeed;
 						player.skipFriction = true;
@@ -208,11 +208,11 @@ void Game_HandleEvent(SDL_Event* e) {
 
 			break;
 		}
-		case SDL_MOUSEMOTION: {
+		case AE_EVENT_MOUSE_MOVE: {
 			player.yaw +=
-				(float) e->motion.xrel * gameBaseConfig.sensitivity * app.delta;
+				(float) e->mouseMove.xRel * gameBaseConfig.sensitivity * app.delta;
 			player.pitch -=
-				(float) e->motion.yrel * gameBaseConfig.sensitivity * app.delta;
+				(float) e->mouseMove.yRel * gameBaseConfig.sensitivity * app.delta;
 
 			if (player.pitch >  90.0) player.pitch =  90.0;
 			if (player.pitch < -90.0) player.pitch = -90.0;

@@ -2,6 +2,7 @@
 #include "app.h"
 #include "map.h"
 #include "util.h"
+#include "event.h"
 #include "theme.h"
 #include "scene.h"
 #include "video.h"
@@ -86,19 +87,19 @@ void App_Update(void) {
 	uint64_t frameTimeDiff = newFrameTime - oldFrameTime;
 	app.delta              = frameTimeDiff / 1000.0f;
 
-	SDL_Event e;
-	while (SDL_PollEvent(&e)) {
+	Event e;
+	while (Event_Poll(&e)) {
 		switch (e.type) {
-			case SDL_KEYDOWN: {
-				switch (e.key.keysym.scancode) {
-					case SDL_SCANCODE_GRAVE: {
+			case AE_EVENT_KEY_DOWN: {
+				switch (e.key.key) {
+					case AE_KEY_GRAVE: {
 						if (!app.console) {
 							Console_Begin();
 							app.console = true;
 						}
 						break;
 					}
-					case SDL_SCANCODE_ESCAPE: {
+					case AE_KEY_ESCAPE: {
 						if (app.console) {
 							Console_End();
 							app.console = false;
@@ -109,16 +110,11 @@ void App_Update(void) {
 				}
 				break;
 			}
-			case SDL_QUIT: app.running = false; break;
-			case SDL_WINDOWEVENT: {
-				if (
-					(e.window.event == SDL_WINDOWEVENT_RESIZED) ||
-					(e.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-				) {
-					video.width  = e.window.data1;
-					video.height = e.window.data2;
-					Backend_OnWindowResize();
-				}
+			case AE_EVENT_QUIT: app.running = false; break;
+			case AE_EVENT_WINDOW_RESIZE: {
+				video.width  = e.windowResize.width;
+				video.height = e.windowResize.height;
+				Backend_OnWindowResize();
 				break;
 			}
 		}

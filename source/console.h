@@ -2,6 +2,7 @@
 #define AE_CONSOLE_H
 
 #include "util.h"
+#include "event.h"
 #include "video.h"
 
 typedef struct {
@@ -29,7 +30,7 @@ void Console_Begin(void);
 void Console_End(void);
 void Console_AddCommand(ConsoleCommand cmd);
 bool Console_RunFile(const char* path);
-void Console_HandleEvent(SDL_Event* e);
+void Console_HandleEvent(Event* e);
 void Console_Render(void);
 
 #endif

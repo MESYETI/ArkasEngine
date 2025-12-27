@@ -21,7 +21,7 @@ struct Scene {
 
 	FUNCTION_POINTER(void, init, Scene*);
 	FUNCTION_POINTER(void, free, Scene*);
-	FUNCTION_POINTER(bool, handleEvent, Scene*, SDL_Event* e);
+	FUNCTION_POINTER(bool, handleEvent, Scene*, Event* e);
 	FUNCTION_POINTER(void, update, Scene*, bool top);
 	FUNCTION_POINTER(void, render, Scene*);
 };
@@ -38,7 +38,7 @@ void SceneManager_PopScene(void);
 void SceneManager_InitActive(void);
 void SceneManager_FreeActive(void);
 void SceneManager_UpdateActive(void);
-void SceneManager_HandleEvent(SDL_Event* e);
+void SceneManager_HandleEvent(Event* e);
 void SceneManager_Update(void);
 void SceneManager_Render(void);
 

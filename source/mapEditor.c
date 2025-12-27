@@ -48,7 +48,7 @@ static void Free(Scene* scene) {
 	UI_ManagerFree(&scene->ui);
 }
 
-static bool HandleEvent(Scene* scene, SDL_Event* e) {
+static bool HandleEvent(Scene* scene, Event* e) {
 	return UI_ManagerHandleEvent(&scene->ui, e);
 }
 

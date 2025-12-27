@@ -48,10 +48,10 @@ static void OnClick(UI_Element* e, uint8_t button, bool down) {
 	}
 }
 
-static bool OnEvent(UI_Element* e, SDL_Event* ev, bool focus) {
+static bool OnEvent(UI_Element* e, Event* ev, bool focus) {
 	(void) focus;
 
-	if (ev->type == SDL_MOUSEBUTTONUP) {
+	if (ev->type == AE_EVENT_MOUSE_BUTTON_UP) {
 		UI_Button* data = (UI_Button*) e->data;
 		data->pressed = false;
 	}

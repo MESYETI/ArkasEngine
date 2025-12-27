@@ -74,7 +74,7 @@ void SceneManager_UpdateActive(void) {
 	sm.scenes[sm.activeScenes - 1].update(&sm.scenes[sm.activeScenes - 1], true);
 }
 
-void SceneManager_HandleEvent(SDL_Event* e) {
+void SceneManager_HandleEvent(Event* e) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
