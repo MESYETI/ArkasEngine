@@ -17,7 +17,7 @@
 // Returns a pointer to a buffer of interleaved int16_t samples on success, or NULL on failure
 // When freeing the sound, the callback will be called with bufptr being NULL
 // See lines 10-64 of audio.c for examples
-typedef int16_t* (*audiocb)(void* ctx, long loop, long pos, long* start, long* end);
+typedef int16_t* (*audiocb)(void* ctx, int64_t loop, long pos, long* start, long* end);
 
 // Audio priorities
 #define AUDIOPRIO_DEFAULT (-128)
@@ -129,7 +129,7 @@ struct audiosoundcb {
 #define SOUNDIFLAG_NEEDSINIT (1U << 1) /* Internal, do not use */
 struct audiosound {
 	uint32_t emitter;
-	long loop;
+	int64_t loop;
 	long pos;
 	long frac;
 	int8_t prio;

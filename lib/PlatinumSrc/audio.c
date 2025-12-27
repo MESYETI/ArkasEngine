@@ -12,7 +12,7 @@
 // Callback examples
 
 // Demonstrates handling a pre-decoded buffer
-static int16_t* my_callback(void* ctx, long loop, long pos, long* start, long* end) {
+static int16_t* my_callback(void* ctx, int64_t loop, long pos, long* start, long* end) {
 	(void)loop; // Unused
 
 	if (!buf) { // 'buf' is NULL so deinit
@@ -772,7 +772,7 @@ static inline void calc3DSoundFx(struct audiosound* s, struct audioemitter3d* e)
 			s->calcfx[curfxi].posoff = s->calcfx[newfxi].posoff = toff;
 			toff -= oldposoff;
 			toff *= s->cb.freq;
-			long loop = s->loop;
+			int64_t loop = s->loop;
 			long pos = s->pos;
 			long frac = s->frac;
 			pos += toff / (long)audiostate.freq;
@@ -889,7 +889,7 @@ static inline void calc2DSoundFx(struct audiosound* s, struct audioemitter2d* e)
 			s->calcfx[curfxi].posoff = s->calcfx[newfxi].posoff = toff;
 			toff -= oldposoff;
 			toff *= s->cb.freq;
-			long loop = s->loop;
+			int64_t loop = s->loop;
 			long pos = s->pos;
 			long frac = s->frac;
 			pos += toff / (long)audiostate.freq;
@@ -1293,8 +1293,8 @@ static bool mixsound(struct audiosound* s, int** outp) {
 	unsigned ch = s->cb.ch;
 
 	uint8_t flags = s->flags;
-	long loop = s->loop;
-	long oldloop = loop;
+	int64_t loop = s->loop;
+	int64_t oldloop = loop;
 	register long pos = s->pos;
 	register long frac = s->frac;
 	long outfreq = audiostate.freq;

@@ -18,7 +18,7 @@ void Audio_Update(void) {
 }
 
 static int16_t* Callback(
-	Resource* resource, long loop, long pos, long* start, long* end
+	Resource* resource, int64_t loop, long pos, long* start, long* end
 ) {
 	(void) loop;
 	(void) pos;
