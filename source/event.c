@@ -1,5 +1,6 @@
 #include <string.h>
 #include <SDL2/SDL.h>
+#include "input/sdl.h"
 #include "event.h"
 #include "util.h"
 
@@ -59,7 +60,7 @@ void Event_Update(void) {
 				events[FindFree()].key = (Event_Key) {
 					.type = e.type == SDL_KEYDOWN?
 						AE_EVENT_KEY_DOWN : AE_EVENT_KEY_UP,
-					.key  = AE_SDLScancodeToKey(e.key.keysym.scancode)
+					.key  = Input_SDLScancodeToKey(e.key.keysym.scancode)
 				};
 				break;
 			}

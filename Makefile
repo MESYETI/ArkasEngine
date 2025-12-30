@@ -14,7 +14,7 @@ LD := $(CC)
 override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib
 override LDLIBS += -lm
 
-override CFLAGS += -DAE_BACKEND_GL11 -DAE_AUDIO_PSRC
+override CFLAGS += -DAE_BACKEND_GL11 -DAE_AUDIO_PSRC -DAE_USE_SDL2
 override CPPFLAGS += -DSDL_MAIN_HANDLED
 
 ifeq ($(BUILD),release)
@@ -55,7 +55,10 @@ bin/backends:
 bin/ui:
 	mkdir -p bin/ui
 
-bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui
+bin/input:
+	mkdir -p bin/input
+
+bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 clean:

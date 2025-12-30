@@ -1,102 +1,117 @@
+#include <string.h>
 #include "keyboard.h"
 
-AE_Key AE_SDLScancodeToKey(SDL_Scancode key) {
-	switch (key) {
-		case SDL_SCANCODE_A:             return AE_KEY_A;
-		case SDL_SCANCODE_B:             return AE_KEY_B;
-		case SDL_SCANCODE_C:             return AE_KEY_C;
-		case SDL_SCANCODE_D:             return AE_KEY_D;
-		case SDL_SCANCODE_E:             return AE_KEY_E;
-		case SDL_SCANCODE_F:             return AE_KEY_F;
-		case SDL_SCANCODE_G:             return AE_KEY_G;
-		case SDL_SCANCODE_H:             return AE_KEY_H;
-		case SDL_SCANCODE_I:             return AE_KEY_I;
-		case SDL_SCANCODE_J:             return AE_KEY_J;
-		case SDL_SCANCODE_K:             return AE_KEY_K;
-		case SDL_SCANCODE_L:             return AE_KEY_L;
-		case SDL_SCANCODE_M:             return AE_KEY_M;
-		case SDL_SCANCODE_N:             return AE_KEY_N;
-		case SDL_SCANCODE_O:             return AE_KEY_O;
-		case SDL_SCANCODE_P:             return AE_KEY_P;
-		case SDL_SCANCODE_Q:             return AE_KEY_Q;
-		case SDL_SCANCODE_R:             return AE_KEY_R;
-		case SDL_SCANCODE_S:             return AE_KEY_S;
-		case SDL_SCANCODE_T:             return AE_KEY_T;
-		case SDL_SCANCODE_U:             return AE_KEY_U;
-		case SDL_SCANCODE_V:             return AE_KEY_V;
-		case SDL_SCANCODE_W:             return AE_KEY_W;
-		case SDL_SCANCODE_X:             return AE_KEY_X;
-		case SDL_SCANCODE_Y:             return AE_KEY_Y;
-		case SDL_SCANCODE_Z:             return AE_KEY_Z;
-		case SDL_SCANCODE_0:             return AE_KEY_0;
-		case SDL_SCANCODE_1:             return AE_KEY_1;
-		case SDL_SCANCODE_2:             return AE_KEY_2;
-		case SDL_SCANCODE_3:             return AE_KEY_3;
-		case SDL_SCANCODE_4:             return AE_KEY_4;
-		case SDL_SCANCODE_5:             return AE_KEY_5;
-		case SDL_SCANCODE_6:             return AE_KEY_6;
-		case SDL_SCANCODE_7:             return AE_KEY_7;
-		case SDL_SCANCODE_8:             return AE_KEY_8;
-		case SDL_SCANCODE_9:             return AE_KEY_9;
-		case SDL_SCANCODE_RETURN:        return AE_KEY_RETURN;
-		case SDL_SCANCODE_ESCAPE:        return AE_KEY_ESCAPE;
-		case SDL_SCANCODE_BACKSPACE:     return AE_KEY_BACKSPACE;
-		case SDL_SCANCODE_TAB:           return AE_KEY_TAB;
-		case SDL_SCANCODE_SPACE:         return AE_KEY_SPACE;
-		case SDL_SCANCODE_MINUS:         return AE_KEY_MINUS;
-		case SDL_SCANCODE_EQUALS:        return AE_KEY_EQUALS;
-		case SDL_SCANCODE_LEFTBRACKET:   return AE_KEY_LEFT_BRACKET;
-		case SDL_SCANCODE_RIGHTBRACKET:  return AE_KEY_RIGHT_BRACKET;
-		case SDL_SCANCODE_BACKSLASH:     return AE_KEY_BACKSLASH;
-		case SDL_SCANCODE_SEMICOLON:     return AE_KEY_SEMICOLON;
-		case SDL_SCANCODE_APOSTROPHE:    return AE_KEY_APOSTROPHE;
-		case SDL_SCANCODE_GRAVE:         return AE_KEY_GRAVE;
-		case SDL_SCANCODE_COMMA:         return AE_KEY_COMMA;
-		case SDL_SCANCODE_PERIOD:        return AE_KEY_PERIOD;
-		case SDL_SCANCODE_SLASH:         return AE_KEY_SLASH;
-		case SDL_SCANCODE_CAPSLOCK:      return AE_KEY_CAPS_LOCK;
-		case SDL_SCANCODE_F1:            return AE_KEY_F1;
-		case SDL_SCANCODE_F2:            return AE_KEY_F2;
-		case SDL_SCANCODE_F3:            return AE_KEY_F3;
-		case SDL_SCANCODE_F4:            return AE_KEY_F4;
-		case SDL_SCANCODE_F5:            return AE_KEY_F5;
-		case SDL_SCANCODE_F6:            return AE_KEY_F6;
-		case SDL_SCANCODE_F7:            return AE_KEY_F7;
-		case SDL_SCANCODE_F8:            return AE_KEY_F8;
-		case SDL_SCANCODE_F9:            return AE_KEY_F9;
-		case SDL_SCANCODE_F10:           return AE_KEY_F10;
-		case SDL_SCANCODE_F11:           return AE_KEY_F11;
-		case SDL_SCANCODE_F12:           return AE_KEY_F12;
-		case SDL_SCANCODE_PRINTSCREEN:   return AE_KEY_PRINT_SCREEN;
-		case SDL_SCANCODE_SCROLLLOCK:    return AE_KEY_SCROLL_LOCK;
-		case SDL_SCANCODE_PAUSE:         return AE_KEY_PAUSE;
-		case SDL_SCANCODE_INSERT:        return AE_KEY_INSERT;
-		case SDL_SCANCODE_HOME:          return AE_KEY_HOME;
-		case SDL_SCANCODE_PAGEUP:        return AE_KEY_PAGE_UP;
-		case SDL_SCANCODE_PAGEDOWN:      return AE_KEY_PAGE_DOWN;
-		case SDL_SCANCODE_DELETE:        return AE_KEY_DELETE;
-		case SDL_SCANCODE_END:           return AE_KEY_END;
-		case SDL_SCANCODE_RIGHT:         return AE_KEY_RIGHT;
-		case SDL_SCANCODE_LEFT:          return AE_KEY_LEFT;
-		case SDL_SCANCODE_DOWN:          return AE_KEY_DOWN;
-		case SDL_SCANCODE_UP:            return AE_KEY_UP;
-		case SDL_SCANCODE_NUMLOCKCLEAR:  return AE_KEY_NUM_LOCK;
-		case SDL_SCANCODE_KP_DIVIDE:     return AE_KEY_NP_DIVIDE;
-		case SDL_SCANCODE_KP_MULTIPLY:   return AE_KEY_NP_MULTIPLY;
-		case SDL_SCANCODE_KP_MINUS:      return AE_KEY_NP_MINUS;
-		case SDL_SCANCODE_KP_PLUS:       return AE_KEY_NP_PLUS;
-		case SDL_SCANCODE_KP_ENTER:      return AE_KEY_NP_ENTER;
-		case SDL_SCANCODE_KP_0:          return AE_KEY_NP_0;
-		case SDL_SCANCODE_KP_1:          return AE_KEY_NP_1;
-		case SDL_SCANCODE_KP_2:          return AE_KEY_NP_2;
-		case SDL_SCANCODE_KP_3:          return AE_KEY_NP_3;
-		case SDL_SCANCODE_KP_4:          return AE_KEY_NP_4;
-		case SDL_SCANCODE_KP_5:          return AE_KEY_NP_5;
-		case SDL_SCANCODE_KP_6:          return AE_KEY_NP_6;
-		case SDL_SCANCODE_KP_7:          return AE_KEY_NP_7;
-		case SDL_SCANCODE_KP_8:          return AE_KEY_NP_8;
-		case SDL_SCANCODE_KP_9:          return AE_KEY_NP_9;
-		case SDL_SCANCODE_KP_PERIOD:     return AE_KEY_NP_PERIOD;
-		default: return 0;
+static const char* keyTable[] = {
+	/* AE_KEY_NONE */          "None",
+	/* AE_KEY_A */             "A",
+	/* AE_KEY_B */             "B",
+	/* AE_KEY_C */             "C",
+	/* AE_KEY_D */             "D",
+	/* AE_KEY_E */             "E",
+	/* AE_KEY_F */             "F",
+	/* AE_KEY_G */             "G",
+	/* AE_KEY_H */             "H",
+	/* AE_KEY_I */             "I",
+	/* AE_KEY_J */             "J",
+	/* AE_KEY_K */             "K",
+	/* AE_KEY_L */             "L",
+	/* AE_KEY_M */             "M",
+	/* AE_KEY_N */             "N",
+	/* AE_KEY_O */             "O",
+	/* AE_KEY_P */             "P",
+	/* AE_KEY_Q */             "Q",
+	/* AE_KEY_R */             "R",
+	/* AE_KEY_S */             "S",
+	/* AE_KEY_T */             "T",
+	/* AE_KEY_U */             "U",
+	/* AE_KEY_V */             "V",
+	/* AE_KEY_W */             "W",
+	/* AE_KEY_X */             "X",
+	/* AE_KEY_Y */             "Y",
+	/* AE_KEY_Z */             "Z",
+	/* AE_KEY_0 */             "0",
+	/* AE_KEY_1 */             "1",
+	/* AE_KEY_2 */             "2",
+	/* AE_KEY_3 */             "3",
+	/* AE_KEY_4 */             "4",
+	/* AE_KEY_5 */             "5",
+	/* AE_KEY_6 */             "6",
+	/* AE_KEY_7 */             "7",
+	/* AE_KEY_8 */             "8",
+	/* AE_KEY_9 */             "9",
+	/* AE_KEY_RETURN */        "Return",
+	/* AE_KEY_ESCAPE */        "Escape",
+	/* AE_KEY_BACKSPACE */     "Backspace",
+	/* AE_KEY_TAB */           "Tab",
+	/* AE_KEY_SPACE */         "Space",
+	/* AE_KEY_MINUS */         "Minus",
+	/* AE_KEY_EQUALS */        "Equals",
+	/* AE_KEY_LEFT_BRACKET */  "Left bracket",
+	/* AE_KEY_RIGHT_BRACKET */ "Right bracket",
+	/* AE_KEY_BACKSLASH */     "Backslash",
+	/* AE_KEY_SEMICOLON */     "Semicolon",
+	/* AE_KEY_APOSTROPHE */    "Apostrophe",
+	/* AE_KEY_GRAVE */         "Grave",
+	/* AE_KEY_COMMA */         "Comma",
+	/* AE_KEY_PERIOD */        "Period",
+	/* AE_KEY_SLASH */         "Slash",
+	/* AE_KEY_CAPS_LOCK */     "Caps lock",
+	/* AE_KEY_F1 */            "F1",
+	/* AE_KEY_F2 */            "F2",
+	/* AE_KEY_F3 */            "F3",
+	/* AE_KEY_F4 */            "F4",
+	/* AE_KEY_F5 */            "F5",
+	/* AE_KEY_F6 */            "F6",
+	/* AE_KEY_F7 */            "F7",
+	/* AE_KEY_F8 */            "F8",
+	/* AE_KEY_F9 */            "F9",
+	/* AE_KEY_F10 */           "F10",
+	/* AE_KEY_F11 */           "F11",
+	/* AE_KEY_F12 */           "F12",
+	/* AE_KEY_PRINT_SCREEN */  "Print screen",
+	/* AE_KEY_SCROLL_LOCK */   "Scroll lock",
+	/* AE_KEY_PAUSE */         "Pause",
+	/* AE_KEY_INSERT */        "Insert",
+	/* AE_KEY_HOME */          "Home",
+	/* AE_KEY_PAGE_UP */       "Page up",
+	/* AE_KEY_PAGE_DOWN */     "Page down",
+	/* AE_KEY_DELETE */        "Delete",
+	/* AE_KEY_END */           "End",
+	/* AE_KEY_RIGHT */         "Right arrow",
+	/* AE_KEY_LEFT */          "Left arrow",
+	/* AE_KEY_DOWN */          "Down arrow",
+	/* AE_KEY_UP */            "Up arrow",
+	/* AE_KEY_NUM_LOCK */      "Num lock",
+	/* AE_KEY_NP_DIVIDE */     "Numpad divide",
+	/* AE_KEY_NP_MULTIPLY */   "Numpad multiply",
+	/* AE_KEY_NP_MINUS */      "Numpad minus",
+	/* AE_KEY_NP_PLUS */       "Numpad plus",
+	/* AE_KEY_NP_ENTER */      "Numpad enter",
+	/* AE_KEY_NP_0 */          "Numpad 0",
+	/* AE_KEY_NP_1 */          "Numpad 1",
+	/* AE_KEY_NP_2 */          "Numpad 2",
+	/* AE_KEY_NP_3 */          "Numpad 3",
+	/* AE_KEY_NP_4 */          "Numpad 4",
+	/* AE_KEY_NP_5 */          "Numpad 5",
+	/* AE_KEY_NP_6 */          "Numpad 6",
+	/* AE_KEY_NP_7 */          "Numpad 7",
+	/* AE_KEY_NP_8 */          "Numpad 8",
+	/* AE_KEY_NP_9 */          "Numpad 9",
+	/* AE_KEY_NP_PERIOD */     "Numpad period"
+};
+
+const char* Key_ToString(Key key) {
+	if ((key < 0) || (key >= AE_KEY_AMOUNT)) {
+		return "???";
 	}
+
+	return keyTable[key];
+}
+
+Key Key_FromString(const char* str) {
+	for (size_t i = 0; i < AE_KEY_AMOUNT; ++ i) {
+		if (strcmp(keyTable[i], str) == 0) return (Key) i;
+	}
+
+	return 0;
 }

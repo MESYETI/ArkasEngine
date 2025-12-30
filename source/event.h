@@ -34,7 +34,7 @@ typedef struct {
 
 typedef struct {
 	Event_Type type;
-	AE_Key    key;
+	Key        key;
 } Event_Key;
 
 typedef struct {

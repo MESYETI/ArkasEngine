@@ -340,6 +340,65 @@ static void Command_Editor(size_t argc, char** argv) {
 	app.console = false;
 }
 
+typedef struct {
+	const char*   name;
+	Input_BindID* bind;
+} Bind;
+
+static void Command_Bind(size_t argc, char** argv) {
+	static const Bind binds[] = {
+		{"game.forward",  &gameBaseConfig.forward},
+		{"game.left",     &gameBaseConfig.left},
+		{"game.backward", &gameBaseConfig.backward},
+		{"game.right",    &gameBaseConfig.right},
+		{"game.jump",     &gameBaseConfig.jump}
+	};
+
+	if (argc == 0) {
+		puts("Available binds");
+
+		for (size_t i = 0; i < sizeof(binds) / sizeof(Bind); ++ i) {
+			Log("- %s", binds[i].name);
+		}
+
+		return;
+	}
+
+	if (argc < 2) {
+		Log("Command must have these parameters: ACTION [MOD1 MOD2 MOD3] KEY");
+		return;
+	}
+
+	Key mod[3] = {0, 0, 0};
+
+	if (argc > 2) mod[0] = Key_FromString(argv[1]);
+	if (argc > 3) mod[1] = Key_FromString(argv[2]);
+	if (argc > 4) mod[2] = Key_FromString(argv[3]);
+
+	Key key = Key_FromString(argv[argc - 1]);
+
+	const char*   bindName;
+	Input_BindID* bind = NULL;
+	for (size_t i = 0; i < sizeof(binds) / sizeof(Bind); ++ i) {
+		if (strcmp(binds[i].name, argv[0]) == 0) {
+			bindName = binds[i].name;
+			bind     = binds[i].bind;
+		}
+	}
+
+	if (!bind) {
+		Log("Couldn't find action '%s'", argv[0]);
+		return;
+	}
+
+	*bind = Input_AddKeyBind(mod, key);
+
+	char bindStr[32];
+	Input_PrintBind(bindStr, sizeof(bindStr), *bind);
+
+	Log("Binded '%s' to %s", bindName, bindStr);
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -360,4 +419,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "music",        &Command_Music});
 	Console_AddCommand((ConsoleCommand) {true,  "test-scene",   &Command_TestScene});
 	Console_AddCommand((ConsoleCommand) {true,  "editor",       &Command_Editor});
+	Console_AddCommand((ConsoleCommand) {true,  "bind",         &Command_Bind});
 }

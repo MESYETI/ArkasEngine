@@ -2,12 +2,19 @@
 #define AE_GAME_H
 
 #include "event.h"
+#include "input.h"
 #include "video.h"
 #include "common.h"
 
 typedef struct {
 	float sensitivity;
 	float musicVolume;
+
+	Input_BindID forward;
+	Input_BindID left;
+	Input_BindID backward;
+	Input_BindID right;
+	Input_BindID jump;
 } GameBaseConfig;
 
 extern GameBaseConfig gameBaseConfig;

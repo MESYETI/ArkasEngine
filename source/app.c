@@ -3,6 +3,7 @@
 #include "map.h"
 #include "util.h"
 #include "event.h"
+#include "input.h"
 #include "theme.h"
 #include "scene.h"
 #include "video.h"
@@ -72,6 +73,7 @@ void App_Init(void) {
 void App_Free(void) {
 	Log("Goodbye!");
 
+	Input_Free();
 	Audio_Free();
 	SceneManager_Free();
 	Text_FreeFont(&app.font);

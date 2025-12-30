@@ -215,8 +215,6 @@ Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 	int newWidth  = width;
 	int newHeight = height;
 
-	printf("Current width: %dx%d\n", width, height);
-
 	if (width & (width - 1)) {
 		// i don't know what's going on either
 		-- newWidth;
@@ -254,8 +252,6 @@ Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
 
 	free(data);
 	data = data2;
-
-	printf("New width: %dx%d\n", newWidth, newHeight);
 
 	// return LoadTexture(data, newWidth, newHeight, ch);
 

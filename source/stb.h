@@ -7,6 +7,6 @@
 #define STB_VORBIS_HEADER_ONLY
 #include <stb/stb_vorbis.c>
 
-#include <stb/stb_image_resize2.h>
+//#include <stb/stb_image_resize2.h>
 
 #endif

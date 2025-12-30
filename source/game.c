@@ -8,7 +8,13 @@
 #include "backend.h"
 #include "audio.h"
 
-GameBaseConfig gameBaseConfig;
+GameBaseConfig gameBaseConfig = {
+	.forward  = INPUT_BIND_NONE,
+	.left     = INPUT_BIND_NONE,
+	.backward = INPUT_BIND_NONE,
+	.right    = INPUT_BIND_NONE,
+	.jump     = INPUT_BIND_NONE
+};
 
 AudioEmitter emitters2d[1];
 AudioEmitter emitters3d[2];
@@ -99,37 +105,37 @@ void Game_Update(bool top) {
 	bool  moved  = false;
 	FVec3 oldPos = camera.pos;
 
-	if (keys[SDL_SCANCODE_W]) {
+	if (Input_BindPressed(gameBaseConfig.forward)) {
 		player.acc.z += CosDeg(player.yaw) * speed * app.delta;
 		player.acc.x += SinDeg(player.yaw) * speed * app.delta;
 		moved         = true;
 	}
-	if (keys[SDL_SCANCODE_A]) {
+	if (Input_BindPressed(gameBaseConfig.left)) {
 		player.acc.z += CosDeg(player.yaw - 90) * speed * app.delta;
 		player.acc.x += SinDeg(player.yaw - 90) * speed * app.delta;
 		moved         = true;
 	}
-	if (keys[SDL_SCANCODE_S]) {
+	if (Input_BindPressed(gameBaseConfig.backward)) {
 		player.acc.z += CosDeg(player.yaw + 180) * speed * app.delta;
 		player.acc.x += SinDeg(player.yaw + 180) * speed * app.delta;
 		moved         = true;
 	}
-	if (keys[SDL_SCANCODE_D]) {
+	if (Input_BindPressed(gameBaseConfig.right)) {
 		player.acc.z += CosDeg(player.yaw + 90) * speed * app.delta;
 		player.acc.x += SinDeg(player.yaw + 90) * speed * app.delta;
 		moved         = true;
 	}
-	if (keys[SDL_SCANCODE_P]) {
+	if (Input_KeyPressed(AE_KEY_P)) {
 		SDL_SetRelativeMouseMode(SDL_TRUE);
 	}
-	if (keys[SDL_SCANCODE_O]) {
+	if (Input_KeyPressed(AE_KEY_O)) {
 		SDL_SetRelativeMouseMode(SDL_FALSE);
 	}
 
-	if (keys[SDL_SCANCODE_A]) {
+	if (Input_BindPressed(gameBaseConfig.left)) {
 		camera.roll = -2.0;
 	}
-	else if (keys[SDL_SCANCODE_D]) {
+	else if (Input_BindPressed(gameBaseConfig.right)) {
 		camera.roll = 2.0;
 	}
 	else {
@@ -142,16 +148,16 @@ void Game_Update(bool top) {
 	player.acc.y = 0.0;
 	player.acc.z = 0.0;
 
-	struct audioplayerdata* playeraud = &audiostate.playerdata.data[0];
-	playeraud->pos[0] = camera.pos.x;
-	playeraud->pos[1] = camera.pos.y;
-	playeraud->pos[2] = camera.pos.z;
-	playeraud->rotsin[0] = SinDeg(-camera.pitch);
-	playeraud->rotsin[1] = SinDeg(-camera.yaw);
-	playeraud->rotsin[2] = SinDeg(-camera.roll);
-	playeraud->rotcos[0] = CosDeg(-camera.pitch);
-	playeraud->rotcos[1] = CosDeg(-camera.yaw);
-	playeraud->rotcos[2] = CosDeg(-camera.roll);
+	struct audioplayerdata* playerAudio = &audiostate.playerdata.data[0];
+	playerAudio->pos[0]    = camera.pos.x;
+	playerAudio->pos[1]    = camera.pos.y;
+	playerAudio->pos[2]    = camera.pos.z;
+	playerAudio->rotsin[0] = SinDeg(-camera.pitch);
+	playerAudio->rotsin[1] = SinDeg(-camera.yaw);
+	playerAudio->rotsin[2] = SinDeg(-camera.roll);
+	playerAudio->rotcos[0] = CosDeg(-camera.pitch);
+	playerAudio->rotcos[1] = CosDeg(-camera.yaw);
+	playerAudio->rotcos[2] = CosDeg(-camera.roll);
 
 	{
 		// camera
@@ -195,15 +201,11 @@ void Game_Update(bool top) {
 void Game_HandleEvent(Event* e) {
 	switch (e->type) {
 		case AE_EVENT_KEY_DOWN: {
-			switch (e->key.key) {
-				case AE_KEY_SPACE: {
-					if (FloatEqual(player.sector->floor, player.pos.y, 0.05)) {
-						player.acc.y        = player.jumpSpeed;
-						player.skipFriction = true;
-					}
-					break;
+			if (Input_MatchBind(gameBaseConfig.jump, e)) {
+				if (FloatEqual(player.sector->floor, player.pos.y, 0.05)) {
+					player.acc.y        = player.jumpSpeed;
+					player.skipFriction = true;
 				}
-				default: break;
 			}
 
 			break;
@@ -226,7 +228,7 @@ void Game_Render(void) {
 	Player_FPCamera();
 	Backend_RenderScene();
 
-	/*static char text[80];
+	static char text[80];
 	snprintf(text, 80, "FPS: %d", (int) (1 / app.delta));
 	Text_Render(&app.font, text, 8, 8);
 
@@ -252,5 +254,5 @@ void Game_Render(void) {
 		text, 80, "Grounded: %s",
 		FloatEqual(player.sector->floor, player.pos.y, 0.05)? "true" : "false"
 	);
-	Text_Render(&app.font, text, 8, 8 + (16 * 10));*/
+	Text_Render(&app.font, text, 8, 8 + (16 * 10));
 }

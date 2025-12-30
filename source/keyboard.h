@@ -1,8 +1,6 @@
 #ifndef AE_KEYBOARD_H
 #define AE_KEYBOARD_H
 
-#include <SDL2/SDL.h>
-
 #include "common.h"
 
 typedef enum {
@@ -111,9 +109,10 @@ typedef enum {
 	AE_KEY_NP_9        = 96,
 	AE_KEY_NP_PERIOD   = 97,
 
-	AE_KEY_COUNT
-} AE_Key;
+	AE_KEY_AMOUNT
+} Key;
 
-AE_Key AE_SDLScancodeToKey(SDL_Scancode key);
+const char* Key_ToString(Key key);
+Key         Key_FromString(const char* str);
 
 #endif
