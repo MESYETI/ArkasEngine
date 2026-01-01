@@ -1,17 +1,18 @@
 #include <string.h>
 #include "ark.h"
-#include "file.h"
 #include "util.h"
 #include "mem.h"
 #include "resources.h"
 
 ErrorRet Ark_InitReader(ArchiveReader* reader, const char* path) {
-	reader->file = fopen(path, "rb");
+	FILE* file = fopen(path, "rb");
 
-	if (!reader->file) {
+	if (!file) {
 		Log("Failed to open archive '%s'", path);
 		return Error_Fail("Failed to open archive");
 	}
+
+	reader->file = Stream_File(file, true);
 
 	return Error_Success();
 }
@@ -27,9 +28,7 @@ static void FreeDir(ArkEntry* dir) {
 }
 
 void Ark_FreeReader(ArchiveReader* reader) {
-	if (reader->file) {
-		fclose(reader->file);
-	}
+	Stream_Close(&reader->file);
 
 	FreeDir(&reader->root);
 	free(reader->strings);
@@ -38,10 +37,10 @@ void Ark_FreeReader(ArchiveReader* reader) {
 ArkEntry ReadEntry(ArchiveReader* reader, ErrorRet* error) {
 	ArkEntry entry;
 
-	entry.folder = File_Read8(reader->file) != 0;
-	entry.size   = File_Read32(reader->file);
+	entry.folder = Stream_Read8(&reader->file) != 0;
+	entry.size   = Stream_Read32(&reader->file);
 
-	uint32_t offset = File_Read32(reader->file);
+	uint32_t offset = Stream_Read32(&reader->file);
 	if (offset > reader->stringsLen) {
 		Log("SECURITY ALERT: Out of bounds string table offset in archive");
 		*error = Error_Fail("Out of bounds string table offset");
@@ -50,7 +49,7 @@ ArkEntry ReadEntry(ArchiveReader* reader, ErrorRet* error) {
 
 	entry.name = &reader->strings[offset];
 
-	long contentsOffset = ftell(reader->file);
+	long contentsOffset = Stream_Peek(&reader->file);
 	if (contentsOffset < 0) {
 		assert(0);
 	}
@@ -58,7 +57,7 @@ ArkEntry ReadEntry(ArchiveReader* reader, ErrorRet* error) {
 	entry.contentsOffset = (size_t) contentsOffset;
 
 	if (entry.folder) {
-		size_t length = File_Read32(reader->file);
+		size_t length        = Stream_Read32(&reader->file);
 		entry.folderContents = SafeMalloc(length * sizeof(ArkEntry));
 		entry.folderSize     = length;
 
@@ -73,7 +72,8 @@ ArkEntry ReadEntry(ArchiveReader* reader, ErrorRet* error) {
 		}
 	}
 	else {
-		fseek(reader->file, (long) entry.size, SEEK_CUR);
+		// fseek(reader->file, (long) entry.size, SEEK_CUR);
+		Stream_Seek(&reader->file, Stream_Peek(&reader->file) + entry.size);
 	}
 
 	*error = Error_Success();
@@ -81,11 +81,11 @@ ArkEntry ReadEntry(ArchiveReader* reader, ErrorRet* error) {
 }
 
 ErrorRet Ark_Read(ArchiveReader* reader) {
-	reader->ver = File_Read16(reader->file);
-	File_Read8(reader->file); // unused
+	reader->ver = Stream_Read16(&reader->file);
+	Stream_Read8(&reader->file); // unused
 
-	reader->stringsLen = File_Read32(reader->file);
-	File_Read32(reader->file); // random number
+	reader->stringsLen = Stream_Read32(&reader->file);
+	Stream_Read32(&reader->file); // random number
 
 	if (reader->stringsLen == 0xFFFFFFFF) {
 		return Error_Fail("String table too big");
@@ -96,7 +96,8 @@ ErrorRet Ark_Read(ArchiveReader* reader) {
 
 	reader->strings[reader->stringsLen] = 0;
 	
-	size_t actualLen = fread(reader->strings, 1, reader->stringsLen, reader->file);
+	// size_t actualLen = fread(reader->strings, 1, reader->stringsLen, reader->file);
+	size_t actualLen = Stream_Read(&reader->file, reader->stringsLen, reader->strings);
 	if (actualLen != reader->stringsLen) {
 		Log("Unexpected EOF in archive string table");
 		return Error_Fail("Unexpected EOF");
@@ -111,10 +112,12 @@ ErrorRet Ark_Read(ArchiveReader* reader) {
 }
 
 void* Ark_ReadFile(ArchiveReader* reader, ArkEntry* entry) {
-	fseek(reader->file, (long) entry->contentsOffset, SEEK_SET);
+	// fseek(reader->file, (long) entry->contentsOffset, SEEK_SET);
+	Stream_Seek(&reader->file, entry->contentsOffset);
 	void* ret = SafeMalloc(entry->size);
 
-	assert(fread(ret, 1, entry->size, reader->file) == entry->size);
+	// assert(fread(ret, 1, entry->size, reader->file) == entry->size);
+	assert(Stream_Read(&reader->file, entry->size, ret) == entry->size);
 	return ret;
 }
 

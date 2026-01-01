@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include "map.h"
-#include "file.h"
 #include "util.h"
 #include "mem.h"
 #include "camera.h"
+#include "stream.h"
 #include "player.h"
 #include "backend.h"
 
@@ -111,7 +111,9 @@ void Map_LoadTest(void) {
 }
 
 bool Map_LoadFile(const char* path) {
-	FILE* file = fopen(path, "rb+");
+	FILE* fd = fopen(path, "rb+");
+
+	Stream file = Stream_File(fd, true);
 
 	Map_Free();
 
@@ -131,41 +133,41 @@ bool Map_LoadFile(const char* path) {
 
 	Log("Loading '%s'", map.name);
 
-	if (file == NULL) return false;
-	map.pointsLen  = File_Read32(file);
-	map.wallsLen   = File_Read32(file);
-	map.sectorsLen = File_Read32(file);
+	if (fd == NULL) return false;
+	map.pointsLen  = Stream_Read32(&file);
+	map.wallsLen   = Stream_Read32(&file);
+	map.sectorsLen = Stream_Read32(&file);
 
 	map.points  = SafeMalloc(map.pointsLen  * sizeof(MapPoint));
 	map.walls   = SafeMalloc(map.wallsLen   * sizeof(Wall));
 	map.sectors = SafeMalloc(map.sectorsLen * sizeof(Sector));
 
-	size_t stringsLen  = File_Read32(file);
+	size_t stringsLen  = Stream_Read32(&file);
 	char** stringTable = SafeMalloc((stringsLen + 1) * sizeof(char*));
 
 	stringTable[stringsLen] = NULL;
 
 	// read strings
 	for (size_t i = 0; i < stringsLen; ++ i) {
-		stringTable[i] = File_ReadString(file);
+		stringTable[i] = Stream_ReadString(&file);
 	}
 
 	// read points
 	for (size_t i = 0; i < map.pointsLen; ++ i) {
-		map.points[i].pos.x = File_ReadFloat(file);
-		map.points[i].pos.y = File_ReadFloat(file);
+		map.points[i].pos.x = Stream_ReadFloat(&file);
+		map.points[i].pos.y = Stream_ReadFloat(&file);
 	}
 
 	// read walls
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		map.walls[i].isPortal     = File_Read8(file) != 0;
-		map.walls[i].portalSector = File_Read32(file);
+		map.walls[i].isPortal     = Stream_Read8(&file) != 0;
+		map.walls[i].portalSector = Stream_Read32(&file);
 
 		if (map.walls[i].portalSector >= map.sectorsLen) {
 			Error("Out of bounds wall portal offset");
 		}
 
-		size_t texture = File_Read32(file);
+		size_t texture = Stream_Read32(&file);
 		if (texture >= stringsLen) {
 			Error("Out of bounds string table offset");
 		}
@@ -175,14 +177,14 @@ bool Map_LoadFile(const char* path) {
 
 	// read sectors
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
-		map.sectors[i].start   = File_Read32(file);
-		map.sectors[i].length  = File_Read32(file);
-		map.sectors[i].ceiling = File_ReadFloat(file);
-		map.sectors[i].floor   = File_ReadFloat(file);
+		map.sectors[i].start   = Stream_Read32(&file);
+		map.sectors[i].length  = Stream_Read32(&file);
+		map.sectors[i].ceiling = Stream_ReadFloat(&file);
+		map.sectors[i].floor   = Stream_ReadFloat(&file);
 		// map.sectors[i].texture = texture;
 
-		uint32_t floorTexture = File_Read32(file);
-		uint32_t ceilTexture  = File_Read32(file);
+		uint32_t floorTexture = Stream_Read32(&file);
+		uint32_t ceilTexture  = Stream_Read32(&file);
 
 		if ((floorTexture >= stringsLen) || (ceilTexture >= stringsLen)) {
 			Error("Out of bounds string table offset");
@@ -191,7 +193,7 @@ bool Map_LoadFile(const char* path) {
 		map.sectors[i].ceilingTexture = Resources_GetRes(stringTable[ceilTexture], 0);
 	}
 
-	fclose(file);
+	Stream_Close(&file);
 
 	Log("Loaded map");
 	camera.sector = &map.sectors[0];
@@ -201,9 +203,11 @@ bool Map_LoadFile(const char* path) {
 }
 
 bool Map_SaveFile(const char* path) {
-	FILE* file = fopen(path, "wb");
+	FILE* fd = fopen(path, "wb");
 
-	if (file == NULL) return false;
+	if (fd == NULL) return false;
+
+	Stream file = Stream_File(fd, true);
 
 	char** stringTable = SafeMalloc(sizeof(char*));
 	*stringTable       = NULL;
@@ -225,50 +229,50 @@ bool Map_SaveFile(const char* path) {
 		}
 	}
 
-	File_Write32(file, (uint32_t) map.pointsLen);
-	File_Write32(file, (uint32_t) map.wallsLen);
-	File_Write32(file, (uint32_t) map.sectorsLen);
-	File_Write32(file, StrArrayLength(stringTable));
+	Stream_Write32(&file, (uint32_t) map.pointsLen);
+	Stream_Write32(&file, (uint32_t) map.wallsLen);
+	Stream_Write32(&file, (uint32_t) map.sectorsLen);
+	Stream_Write32(&file, StrArrayLength(stringTable));
 
 	// write strings
 	for (size_t i = 0; stringTable[i]; ++ i) {
-		File_WriteString(file, stringTable[i]);
+		Stream_WriteString(&file, stringTable[i]);
 	}
 
 	// write points
 	for (size_t i = 0; i < map.pointsLen; ++ i) {
-		File_WriteFloat(file, map.points[i].pos.x);
-		File_WriteFloat(file, map.points[i].pos.y);
+		Stream_WriteFloat(&file, map.points[i].pos.x);
+		Stream_WriteFloat(&file, map.points[i].pos.y);
 	}
 
 	// write walls
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		File_Write8(file, map.walls[i].isPortal? 1 : 0);
-		File_Write32(file, map.walls[i].portalSector);
-		File_Write32(
-			file, (uint32_t) StrArrayFind(stringTable, map.walls[i].texture->name)
+		Stream_Write8(&file, map.walls[i].isPortal? 1 : 0);
+		Stream_Write32(&file, map.walls[i].portalSector);
+		Stream_Write32(
+			&file, (uint32_t) StrArrayFind(stringTable, map.walls[i].texture->name)
 		);
 	}
 
 	// write sectors
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
-		File_Write32(file, map.sectors[i].start);
-		File_Write32(file, map.sectors[i].length);
-		File_WriteFloat(file, map.sectors[i].ceiling);
-		File_WriteFloat(file, map.sectors[i].floor);
-		File_Write32(
-			file,
+		Stream_Write32(&file, map.sectors[i].start);
+		Stream_Write32(&file, map.sectors[i].length);
+		Stream_WriteFloat(&file, map.sectors[i].ceiling);
+		Stream_WriteFloat(&file, map.sectors[i].floor);
+		Stream_Write32(
+			&file,
 			(uint32_t) StrArrayFind(stringTable, map.sectors[i].floorTexture->name)
 		);
-		File_Write32(
-			file,
+		Stream_Write32(
+			&file,
 			(uint32_t) StrArrayFind(stringTable, map.sectors[i].ceilingTexture->name)
 		);
 	}
 
 	FreeStrArray(stringTable);
 
-	fclose(file);
+	Stream_Close(&file);
 
 	Log("Saved map '%s'", map.name);
 

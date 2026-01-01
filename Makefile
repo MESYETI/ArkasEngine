@@ -11,7 +11,7 @@ else
 endif
 LD := $(CC)
 
-override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib
+override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib -Werror=return-type
 override LDLIBS += -lm
 
 override CFLAGS += -DAE_BACKEND_GL11 -DAE_AUDIO_PSRC -DAE_USE_SDL2

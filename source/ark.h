@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "error.h"
+#include "stream.h"
 #include "common.h"
 #include "resources.h"
 
@@ -19,7 +20,7 @@ struct ArkEntry {
 };
 
 typedef struct {
-	FILE*    file;
+	Stream   file;
 	uint16_t ver;
 	char*    strings;
 	size_t   stringsLen;
