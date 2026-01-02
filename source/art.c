@@ -21,8 +21,8 @@ uint8_t* ART_Read(Stream* stream, int* width, int* height, int* ch) {
 	*width  = (int) Stream_Read16(stream);
 	*height = (int) Stream_Read16(stream);
 
-	if ((*width > 1024) || (*height > 1024)) {
-		Log("Image too big");
+	if ((*width > 4096) || (*height > 4096)) {
+		Log("Image too big: %dx%d", *width, *height);
 		return NULL;
 	}
 
@@ -58,7 +58,7 @@ uint8_t* ART_Read(Stream* stream, int* width, int* height, int* ch) {
 	switch (type) {
 		case AE_ART_TYPE_RGB:
 		case AE_ART_TYPE_RGBA: {
-			if (Stream_Read(stream, pixels, ret) != pixels) {
+			if (Stream_Read(stream, pixels * *ch, ret) != pixels * *ch) {
 				Log("EOF");
 				free(ret);
 				return NULL;

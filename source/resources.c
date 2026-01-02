@@ -231,7 +231,7 @@ Resource* Resources_GetRes(const char* path, uint32_t opt) {
 		return NULL;
 	}
 
-	if (strcmp(ext, ".png") == 0) {
+	if ((strcmp(ext, ".png") == 0) || (strcmp(ext, ".art") == 0)) {
 		if (opt & RESOURCE_IS_FONT) {
 			bool success;
 

@@ -139,6 +139,8 @@ static size_t MemRead(Stream* stream, size_t size, void* dest) {
 
 	memcpy(dest, &data->data[data->offset], size);
 
+	data->offset += size;
+
 	return size;
 }
 
