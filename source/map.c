@@ -97,7 +97,8 @@ void Map_LoadTest(void) {
 	map.sectorsLen = 2;
 
 	map.sectors[0] = (Sector) {0, 6, 50, -0.5, NULL, NULL};
-	map.sectors[1] = (Sector) {6, 6, 10, -0.3, NULL, NULL};
+	// map.sectors[1] = (Sector) {6, 6, 10, -0.3, NULL, NULL};
+	map.sectors[1] = (Sector) {6, 6, 3, -0.3, NULL, NULL};
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
 		map.sectors[i].floorTexture =

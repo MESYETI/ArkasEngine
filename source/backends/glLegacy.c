@@ -46,6 +46,8 @@ typedef struct {
 	float aspect;
 	Model model;
 
+	Texture* lightMap;
+
 	SDL_GLContext ctx;
 	Texture       textures[64];
 
@@ -199,6 +201,23 @@ void Backend_Init(bool beforeWindow) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	Model_Load(&state.model, "heavy.zkm");
+
+	size_t size;
+	void*  data = Resources_ReadFile(":extra/lightmap.png", &size);
+
+	if (data) {
+		state.lightMap = Backend_LoadMemTexture((uint8_t*) data, size);
+
+		if (!state.lightMap) return;
+
+		GL(glBindTexture(GL_TEXTURE_2D, state.lightMap->name));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		GL(glBindTexture(GL_TEXTURE_2D, 0));
+	}
+	else {
+		state.lightMap = NULL;
+	}
 }
 
 void Backend_Free(void) {
@@ -349,6 +368,33 @@ static void RenderSector(Sector* sector) {
 		float maxTexCoord;
 		maxTexCoord = Distance(point1->pos, point2->pos);
 
+		// render floor
+		glDisable(GL_BLEND);
+		glDepthMask(GL_TRUE);
+
+		glBindTexture(GL_TEXTURE_2D, sector->floorTexture->v.texture->name);
+		glBegin(GL_TRIANGLE_FAN);
+		glColor3f(1.0, 1.0, 1.0);
+
+		for (size_t i = sector->length - 1; true; -- i) {
+			size_t idx = i + sector->start;
+			glTexCoord2f(-map.points[idx].pos.x, map.points[idx].pos.y);
+			glVertex3f(map.points[idx].pos.x, sector->floor, map.points[idx].pos.y);
+
+			if (i == 0) break;
+		}
+		GL(glEnd());
+
+		// render ceiling
+		glBindTexture(GL_TEXTURE_2D, sector->ceilingTexture->v.texture->name);
+		glBegin(GL_TRIANGLE_FAN);
+		for (size_t i = 0; i < sector->length; ++ i) {
+			size_t idx = i + sector->start;
+			glTexCoord2f(map.points[idx].pos.x, map.points[idx].pos.y);
+			glVertex3f(map.points[idx].pos.x, sector->ceiling, map.points[idx].pos.y);
+		}
+		GL(glEnd());
+
 		if (wall->isPortal) {
 			Sector* nextSector = &map.sectors[wall->portalSector];
 
@@ -419,32 +465,34 @@ static void RenderSector(Sector* sector) {
 			glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
 
 			GL(glEnd());
+
+			GL(glEnable(GL_BLEND));
+			GL(glDepthMask(GL_FALSE));
+			GL(glDepthFunc(GL_LEQUAL));
+			GL(glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA));
+			GL(glBindTexture(GL_TEXTURE_2D, state.lightMap->name));
+
+			glBegin(GL_TRIANGLE_FAN);
+			glColor3ub(255, 255, 255);
+
+			glTexCoord2f(0.0, 1.0); // lower left
+			glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
+
+			glTexCoord2f(1.0, 1.0); // lower right
+			glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
+
+			glTexCoord2f(1.0, 0.0); // upper right
+			glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
+
+			glTexCoord2f(0.0, 0.0); // upper left
+			glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
+
+			GL(glEnd());
+			GL(glDisable(GL_BLEND));
+			GL(glDepthMask(GL_TRUE));
+			GL(glDepthFunc(GL_LESS));
 		}
 	}
-
-	// render floor
-	glBindTexture(GL_TEXTURE_2D, sector->floorTexture->v.texture->name);
-	glBegin(GL_TRIANGLE_FAN);
-	glColor3f(1.0, 1.0, 1.0);
-
-	for (size_t i = sector->length - 1; true; -- i) {
-		size_t idx = i + sector->start;
-		glTexCoord2f(-map.points[idx].pos.x, map.points[idx].pos.y);
-		glVertex3f(map.points[idx].pos.x, sector->floor, map.points[idx].pos.y);
-
-		if (i == 0) break;
-	}
-	GL(glEnd());
-
-	// render ceiling
-	glBindTexture(GL_TEXTURE_2D, sector->ceilingTexture->v.texture->name);
-	glBegin(GL_TRIANGLE_FAN);
-	for (size_t i = 0; i < sector->length; ++ i) {
-		size_t idx = i + sector->start;
-		glTexCoord2f(map.points[idx].pos.x, map.points[idx].pos.y);
-		glVertex3f(map.points[idx].pos.x, sector->ceiling, map.points[idx].pos.y);
-	}
-	GL(glEnd());
 
 	for (size_t i = 0; i < sector->length; ++ i) {
 		const Wall* wall = &map.walls[i + sector->start];
@@ -460,6 +508,8 @@ void Backend_RenderScene(void) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
+
+	glDepthMask(GL_TRUE);
 
 	GL(glMatrixMode(GL_PROJECTION));
 	GL(glLoadMatrixf((float*) state.projMatrix));
@@ -600,6 +650,7 @@ void Backend_Begin2D(void) {
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 	GL(glMatrixMode(GL_MODELVIEW));
 	GL(glLoadIdentity());
 	GL(glMatrixMode(GL_PROJECTION));
@@ -608,6 +659,7 @@ void Backend_Begin2D(void) {
 		0.0, (float) video.width, (float) video.height,
 		0.0, -1.0, 1.0
 	));
+	GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 }
 
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
