@@ -12,6 +12,7 @@
 #include "resources.h"
 #include "testScene.h"
 #include "mapEditor.h"
+#include "imageViewer.h"
 
 #define ASSERT_ARGC(N) \
 	(void) argv; \
@@ -399,6 +400,29 @@ static void Command_Bind(size_t argc, char** argv) {
 	Log("Binded '%s' to %s", bindName, bindStr);
 }
 
+static void Command_ImageViewer(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	Log("Viewing image '%s'", argv[0]);
+
+	Resource* res = Resources_GetRes(argv[0], 0);
+
+	if (!res) {
+		Log("Failed to load image viewer");
+		return;
+	}
+
+	if (res->type != RESOURCE_TYPE_TEXTURE) {
+		Log("Not an image");
+		return;
+	}
+
+	SceneManager_AddScene(ImageViewerScene(argv[0]));
+
+	Resources_FreeRes(res);
+	app.console = false;
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -420,4 +444,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-scene",   &Command_TestScene});
 	Console_AddCommand((ConsoleCommand) {true,  "editor",       &Command_Editor});
 	Console_AddCommand((ConsoleCommand) {true,  "bind",         &Command_Bind});
+	Console_AddCommand((ConsoleCommand) {true,  "image-viewer", &Command_ImageViewer});
 }

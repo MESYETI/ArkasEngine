@@ -1,6 +1,7 @@
 #ifndef AE_STREAM_H
 #define AE_STREAM_H
 
+#include <stdio.h>
 #include "common.h"
 
 typedef struct Stream Stream;
@@ -23,6 +24,7 @@ size_t Stream_Read(Stream* stream, size_t size, void* dest);
 size_t Stream_Peek(Stream* stream);
 bool   Stream_Seek(Stream* stream, size_t where);
 size_t Stream_Size(Stream* stream);
+bool   Stream_Advance(Stream* stream, size_t bytes);
 
 // different types of stream
 Stream Stream_File(FILE* file, bool close);

@@ -3,9 +3,11 @@
 #include "common.h"
 
 void* SafeMalloc(size_t size) {
+	if (size == 0) return NULL;
+
 	void* ret = malloc(size);
 
-	if ((ret == NULL) && (size != 0)) {
+	if (ret == NULL) {
 		fprintf(stderr, "Malloc returned NULL\n");
 		exit(1);
 	}

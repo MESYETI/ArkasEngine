@@ -31,6 +31,10 @@ size_t Stream_Size(Stream* stream) {
 	return stream->size(stream);
 }
 
+bool Stream_Advance(Stream* stream, size_t bytes) {
+	return Stream_Seek(stream, Stream_Peek(stream) + bytes);
+}
+
 /*
 // TEMPLATE
 static size_t Read(Stream* stream, size_t size, void* dest) {
