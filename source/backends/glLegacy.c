@@ -206,26 +206,7 @@ void Backend_Free(void) {
 	Model_Free(&state.model);
 }
 
-Texture* Backend_LoadMemTexture(uint8_t* img, size_t len) {
-	int width, height, ch;
-
-	if (len < 3) return NULL;
-
-	uint8_t* data;
-
-	if (memcmp(img, "ART", 3) == 0) {
-		Stream stream = Stream_Memory(img, len, false);
-
-		data = ART_Read(&stream, &width, &height, &ch);
-	}
-	else {
-		data = stbi_load_from_memory(img, (int) len, &width, &height, &ch, 0);
-	}
-
-	if (data == NULL) {
-		Error("Failed to load texture from memory: %s", stbi_failure_reason());
-	}
-
+Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch) {
 	int newWidth  = width;
 	int newHeight = height;
 

@@ -1,5 +1,6 @@
 #include "text.h"
 #include "util.h"
+#include "texture.h"
 #include "resources.h"
 
 Font Text_LoadFont(const char* path, bool* success) {
@@ -7,17 +8,7 @@ Font Text_LoadFont(const char* path, bool* success) {
 	*success = true;
 	/*ret.texture = Backend_LoadTexture(path);*/
 
-	size_t   size;
-	uint8_t* data = (uint8_t*) Resources_ReadFile(path, &size);
-
-	if (!data) {
-		Log("Failed to read path '%s'", path);
-		*success = false;
-		return ret;
-	}
-
-	ret.texture = Backend_LoadMemTexture(data, size);
-	free(data);
+	ret.texture = Texture_LoadFile(path);
 
 	if (!ret.texture) {
 		Log("Failed to load file '%s'", path);

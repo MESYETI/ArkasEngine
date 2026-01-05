@@ -5,6 +5,7 @@
 #include "stb.h"
 #include "util.h"
 #include "builtin.h"
+#include "texture.h"
 #include "resources.h"
 #include "folderDrive.h"
 
@@ -246,20 +247,8 @@ Resource* Resources_GetRes(const char* path, uint32_t opt) {
 			}
 		}
 		else {
-			ret->type = RESOURCE_TYPE_TEXTURE;
-
-			size_t   size;
-			uint8_t* data = (uint8_t*) Resources_ReadFile(path, &size);
-
-			if (!data) {
-				Log("Failed to read path '%s'", path);
-				ret->active = false;
-				free(ret->name);
-				return NULL;
-			}
-
-			ret->v.texture = Backend_LoadMemTexture(data, size);
-			free(data);
+			ret->type      = RESOURCE_TYPE_TEXTURE;
+			ret->v.texture = Texture_LoadFile(path);
 
 			if (!ret->v.texture) {
 				Log("Failed to load resource '%s'", path);
