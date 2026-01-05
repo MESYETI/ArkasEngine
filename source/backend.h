@@ -21,7 +21,7 @@ typedef struct {
 // implemented per backend
 void     Backend_Init(bool beforeWindow);
 void     Backend_Free(void);
-Texture* Backend_LoadMemTexture(uint8_t* data, size_t len);
+Texture* Backend_LoadTexture(uint8_t* img, int width, int height, int ch);
 void     Backend_FreeTexture(Texture* texture);
 Vec2     Backend_GetTextureSize(Texture* texture);
 void     Backend_RenderScene(void);
