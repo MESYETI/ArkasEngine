@@ -91,6 +91,8 @@ void App_Update(void) {
 
 	Event e;
 	while (Event_Poll(&e)) {
+		Input_HandleEvent(&e);
+
 		switch (e.type) {
 			case AE_EVENT_KEY_DOWN: {
 				switch (e.key.key) {

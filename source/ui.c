@@ -86,6 +86,9 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 
 			for (size_t i = 0; i < man->containerLen; ++ i) {
 				UI_Container* container = &man->containers[i];
+
+				if (!container->active) continue;
+
 				Rect rect = UI_ContainerGetRect(container);
 
 				if (!PointInRect(mouse, rect)) {

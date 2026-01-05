@@ -5,7 +5,10 @@
 
 Input_Manager input = {
 	.binds      = NULL,
-	.bindAmount = 0
+	.bindAmount = 0,
+
+	.mousePressed = false,
+	.mousePos     = {0, 0}
 };
 
 void Input_Free(void) {
@@ -104,4 +107,15 @@ Input_BindID Input_AddMouseButtonBind(uint8_t button) {
 	bind.mouseButton.button = button;
 
 	return Input_AddBind(bind);
+}
+
+void Input_HandleEvent(Event* e) {
+	switch (e->type) {
+		case AE_EVENT_MOUSE_MOVE: {
+			input.mousePos = (Vec2) {e->mouseMove.x, e->mouseMove.y};
+			break;
+		}
+		case AE_EVENT_MOUSE_BUTTON_DOWN: input.mousePressed = true;  break;
+		case AE_EVENT_MOUSE_BUTTON_UP:   input.mousePressed = false; break;
+	}
 }

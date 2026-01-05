@@ -2,6 +2,7 @@
 #include "../app.h"
 #include "../mem.h"
 #include "../util.h"
+#include "../input.h"
 
 static void Free(UI_Element* e) {
 	UI_Button* data = (UI_Button*) e->data;
@@ -11,8 +12,13 @@ static void Free(UI_Element* e) {
 static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	(void) focus;
 
+
 	UI_Button* data = (UI_Button*) e->data;
 	Rect rect       = UI_ContainerGetRect(container);
+
+	if (!input.mousePressed) {
+		data->pressed = false;
+	}
 
 	Rect btnRect = (Rect) {
 		rect.x + e->x, rect.y + e->y, e->w, e->h

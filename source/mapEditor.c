@@ -1,6 +1,7 @@
 #include "ui.h"
 #include "app.h"
 #include "video.h"
+#include "input.h"
 #include "backend.h"
 #include "ui/label.h"
 #include "ui/button.h"
@@ -11,6 +12,7 @@ static UI_Container* topCont;
 static UI_Container* bottomCont;
 
 static Vec2 camera;
+static bool dragging;
 
 static void Init(Scene* scene) {
 	UI_ManagerInit(&scene->ui, 4);
@@ -41,7 +43,8 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewButton("Play", false, NULL));
 	UI_RowFinish(row, false);
 
-	camera = (Vec2) {0, 0};
+	camera   = (Vec2) {0, 0};
+	dragging = false;
 }
 
 static void Free(Scene* scene) {
@@ -49,7 +52,28 @@ static void Free(Scene* scene) {
 }
 
 static bool HandleEvent(Scene* scene, Event* e) {
-	return UI_ManagerHandleEvent(&scene->ui, e);
+	if (UI_ManagerHandleEvent(&scene->ui, e)) return true;
+
+	switch (e->type) {
+		case AE_EVENT_MOUSE_BUTTON_DOWN: {
+			dragging = true;
+			break;
+		}
+		case AE_EVENT_MOUSE_BUTTON_UP: {
+			dragging = false;
+			break;
+		}
+		case AE_EVENT_MOUSE_MOVE: {
+			if (dragging) {
+				camera.x += e->mouseMove.xRel;
+				camera.y += e->mouseMove.yRel;
+				return true;
+			}
+			break;
+		}
+	}
+
+	return false;
 }
 
 static void Update(Scene* scene, bool top) {
@@ -61,19 +85,19 @@ static void Render(Scene* scene) {
 	Backend_Begin2D();
 
 	for (int i = 0; i < video.height; ++ i) {
-		if (i % 128 == 0) {
+		if ((i - camera.y) % 128 == 0) {
 			Backend_HLine(0, i, 1, video.width, (Colour) {0x80, 0x80, 0x80});
 		}
-		else if (i % 32 == 0) {
+		else if ((i - camera.y) % 32 == 0) {
 			Backend_HLine(0, i, 1, video.width, (Colour) {0x40, 0x40, 0x40});
 		}
 	}
 
 	for (int i = 0; i < video.width; ++ i) {
-		if (i % 128 == 0) {
+		if ((i - camera.x) % 128 == 0) {
 			Backend_VLine(i, 0, 1, video.height, (Colour) {0x80, 0x80, 0x80});
 		}
-		else if (i % 32 == 0) {
+		else if ((i - camera.x) % 32 == 0) {
 			Backend_VLine(i, 0, 1, video.height, (Colour) {0x40, 0x40, 0x40});
 		}
 	}

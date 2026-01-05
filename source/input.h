@@ -2,6 +2,7 @@
 #define AE_INPUT_H
 
 #include "event.h"
+#include "types.h"
 #include "keyboard.h"
 
 // mouse stuff
@@ -35,6 +36,9 @@ typedef union {
 typedef struct {
 	Input_Bind* binds;
 	size_t      bindAmount;
+
+	bool mousePressed;
+	Vec2 mousePos;
 } Input_Manager;
 
 typedef size_t Input_BindID;
@@ -56,5 +60,6 @@ bool         Input_BindPressed(Input_BindID bindID);
 Input_BindID Input_AddBind(Input_Bind bind);
 Input_BindID Input_AddKeyBind(Key mod[3], Key key);
 Input_BindID Input_AddMouseButtonBind(uint8_t button);
+void         Input_HandleEvent(Event* e);
 
 #endif
