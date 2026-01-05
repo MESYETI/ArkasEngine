@@ -89,7 +89,7 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 				Rect rect = UI_ContainerGetRect(container);
 
 				if (!PointInRect(mouse, rect)) {
-					break;
+					continue;
 				}
 
 				man->focus = container;
