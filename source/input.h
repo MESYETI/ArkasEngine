@@ -37,7 +37,7 @@ typedef struct {
 	Input_Bind* binds;
 	size_t      bindAmount;
 
-	bool mousePressed;
+	bool mouseBtn[3];
 	Vec2 mousePos;
 } Input_Manager;
 

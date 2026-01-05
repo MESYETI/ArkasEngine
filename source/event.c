@@ -46,10 +46,19 @@ void Event_Update(void) {
 			}
 			case SDL_MOUSEBUTTONUP:
 			case SDL_MOUSEBUTTONDOWN: {
+				uint8_t button;
+
+				switch (e.button.button) {
+					case SDL_BUTTON_LEFT:   button = 0; break;
+					case SDL_BUTTON_MIDDLE: button = 1; break;
+					case SDL_BUTTON_RIGHT:  button = 2; break;
+					default:                button = 0;
+				}
+
 				events[FindFree()].mouseButton = (Event_MouseButton) {
 					.type   = e.type == SDL_MOUSEBUTTONDOWN?
 						AE_EVENT_MOUSE_BUTTON_DOWN : AE_EVENT_MOUSE_BUTTON_UP,
-					.button = e.button.button,
+					.button = button,
 					.x      = e.button.x,
 					.y      = e.button.y
 				};

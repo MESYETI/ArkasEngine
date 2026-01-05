@@ -6,13 +6,21 @@
 #include "ui/label.h"
 #include "ui/button.h"
 #include "ui/spacer.h"
+#include "ui/dynLabel.h"
 #include "testScene.h"
 
 static UI_Container* topCont;
 static UI_Container* bottomCont;
 
-static Vec2 camera;
-static bool dragging;
+static FVec2 camera;
+static bool  dragging;
+
+static const char* CoordLabel(void) {
+	static char buf[64];
+	snprintf(buf, sizeof(buf), "X: %.2f, Y: %.2f", camera.x, camera.y);
+
+	return (const char*) buf;
+}
 
 static void Init(Scene* scene) {
 	UI_ManagerInit(&scene->ui, 4);
@@ -38,12 +46,12 @@ static void Init(Scene* scene) {
 
 	row = UI_ContainerAddRow(bottomCont, 18);
 
-	UI_RowAddElement(row, UI_NewLabel(&app.font, "X: 0.0, Y: 0.0", 0));
+	UI_RowAddElement(row, UI_NewDynLabel(&app.font, &CoordLabel, 0));
 	UI_RowAddElement(row, UI_NewSpacer(0));
 	UI_RowAddElement(row, UI_NewButton("Play", false, NULL));
 	UI_RowFinish(row, false);
 
-	camera   = (Vec2) {0, 0};
+	camera   = (FVec2) {0, 0};
 	dragging = false;
 }
 
@@ -65,8 +73,8 @@ static bool HandleEvent(Scene* scene, Event* e) {
 		}
 		case AE_EVENT_MOUSE_MOVE: {
 			if (dragging) {
-				camera.x += e->mouseMove.xRel;
-				camera.y += e->mouseMove.yRel;
+				camera.x += ((float) -e->mouseMove.xRel) / 32.0;
+				camera.y += ((float) -e->mouseMove.yRel) / 32.0;
 				return true;
 			}
 			break;
@@ -84,20 +92,27 @@ static void Update(Scene* scene, bool top) {
 static void Render(Scene* scene) {
 	Backend_Begin2D();
 
+	const int unitPx = 32;
+
+	Vec2 cam = {
+		(int) (camera.x * unitPx),
+		(int) (camera.y * unitPx)
+	};
+
 	for (int i = 0; i < video.height; ++ i) {
-		if ((i - camera.y) % 128 == 0) {
+		if ((i + cam.y) % (unitPx * 4) == 0) {
 			Backend_HLine(0, i, 1, video.width, (Colour) {0x80, 0x80, 0x80});
 		}
-		else if ((i - camera.y) % 32 == 0) {
+		else if ((i + cam.y) % unitPx == 0) {
 			Backend_HLine(0, i, 1, video.width, (Colour) {0x40, 0x40, 0x40});
 		}
 	}
 
 	for (int i = 0; i < video.width; ++ i) {
-		if ((i - camera.x) % 128 == 0) {
+		if ((i + cam.x) % (unitPx * 4) == 0) {
 			Backend_VLine(i, 0, 1, video.height, (Colour) {0x80, 0x80, 0x80});
 		}
-		else if ((i - camera.x) % 32 == 0) {
+		else if ((i + cam.x) % unitPx == 0) {
 			Backend_VLine(i, 0, 1, video.height, (Colour) {0x40, 0x40, 0x40});
 		}
 	}

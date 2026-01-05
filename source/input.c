@@ -7,8 +7,8 @@ Input_Manager input = {
 	.binds      = NULL,
 	.bindAmount = 0,
 
-	.mousePressed = false,
-	.mousePos     = {0, 0}
+	.mouseBtn = {false, false, false},
+	.mousePos = {0, 0}
 };
 
 void Input_Free(void) {
@@ -115,7 +115,13 @@ void Input_HandleEvent(Event* e) {
 			input.mousePos = (Vec2) {e->mouseMove.x, e->mouseMove.y};
 			break;
 		}
-		case AE_EVENT_MOUSE_BUTTON_DOWN: input.mousePressed = true;  break;
-		case AE_EVENT_MOUSE_BUTTON_UP:   input.mousePressed = false; break;
+		case AE_EVENT_MOUSE_BUTTON_DOWN: {
+			input.mouseBtn[e->mouseButton.button] = true;
+			break;
+		}
+		case AE_EVENT_MOUSE_BUTTON_UP: {
+			input.mouseBtn[e->mouseButton.button] = false;
+			break;
+		}
 	}
 }

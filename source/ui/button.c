@@ -16,7 +16,7 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	UI_Button* data = (UI_Button*) e->data;
 	Rect rect       = UI_ContainerGetRect(container);
 
-	if (!input.mousePressed) {
+	if (!input.mouseBtn[0]) {
 		data->pressed = false;
 	}
 
@@ -41,6 +41,8 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 
 static void OnClick(UI_Element* e, uint8_t button, bool down) {
 	UI_Button* data = (UI_Button*) e->data;
+
+	if (button != 0) return;
 
 	if (down) {
 		data->pressed = true;
