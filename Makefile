@@ -1,6 +1,12 @@
 SOURCES := $(wildcard source/*.c) $(wildcard source/**/*.c) lib/PlatinumSrc/audio.c
-OBJECTS := $(patsubst source/%.c,bin/%.o,$(SOURCES))
+OBJECTS := $(patsubst lib/PlatinumSrc/%.c,bin/PlatinumSrc_%.o,$(patsubst source/%.c,bin/%.o,$(SOURCES)))
 OUT     := arkas
+PLAT    := $(shell uname -s)
+
+ifeq ($(PLAT),NetBSD)
+	override CPPFLAGS += -I/usr/X11R7/include -I/usr/pkg/include
+	override LDFLAGS += -L/usr/X11R7/lib -L/usr/pkg/lib -Wl,-R/usr/X11R7/lib -Wl,-R/usr/pkg/lib
+endif
 
 ifeq ($(PLAT),windows)
 	CC := x86_64-w64-mingw32-gcc
@@ -14,7 +20,7 @@ LD := $(CC)
 override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib -Werror=return-type
 override LDLIBS += -lm
 
-override CFLAGS += -DAE_BACKEND_GL11 -DAE_AUDIO_PSRC -DAE_USE_SDL2
+override CPPFLAGS += -DAE_BACKEND_GL11 -DAE_AUDIO_PSRC -DAE_USE_SDL2
 override CPPFLAGS += -DSDL_MAIN_HANDLED
 
 ifeq ($(BUILD),release)
@@ -57,6 +63,9 @@ bin/ui:
 
 bin/input:
 	mkdir -p bin/input
+
+bin/PlatinumSrc_%.o: lib/PlatinumSrc/%.c $(call deps,lib/PlatinumSrc/%.c) | bin/ bin/backends bin/ui bin/input
+	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
