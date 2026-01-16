@@ -229,7 +229,7 @@ void Game_Render(void) {
 	Backend_RenderScene();
 
 	static char text[80];
-	snprintf(text, 80, "FPS: %d", (int) (1 / app.delta));
+	snprintf(text, 80, "FPS: %d", app.fps);
 	Text_Render(&app.font, text, 8, 8);
 
 	snprintf(text, 80, "X: %.3f", player.pos.x);

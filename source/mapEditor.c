@@ -7,6 +7,7 @@
 #include "ui/button.h"
 #include "ui/spacer.h"
 #include "ui/dynLabel.h"
+#include "ui/dropDown.h"
 #include "testScene.h"
 
 static UI_Container* topCont;
@@ -22,6 +23,12 @@ static const char* CoordLabel(void) {
 	return (const char*) buf;
 }
 
+static void Unimplemented(uint8_t button) {
+	(void) button;
+
+	Log("Unimplemented");
+}
+
 static void Init(Scene* scene) {
 	UI_ManagerInit(&scene->ui, 4);
 
@@ -32,8 +39,15 @@ static void Init(Scene* scene) {
 
 	UI_Row* row = UI_ContainerAddRow(topCont, 18);
 
+	static UI_DropDownButton fileButtons[] = {
+		{"New (c+N)", &Unimplemented},
+		{"Open (c+O)", &Unimplemented},
+		{"Save (c+S)", &Unimplemented},
+		{"Save as (c+D)", &Unimplemented}
+	};
+
 	UI_RowAddElement(row, UI_NewLabel(&app.font, "Arkas Map Editor", 0));
-	UI_RowAddElement(row, UI_NewButton("File", false, NULL));
+	UI_RowAddElement(row, UI_NewDropDown("File", fileButtons, 4, false));
 	UI_RowAddElement(row, UI_NewButton("Edit", false, NULL));
 	UI_RowAddElement(row, UI_NewButton("Sector", false, NULL));
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));

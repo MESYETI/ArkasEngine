@@ -43,6 +43,7 @@ void App_Init(void) {
 	app.running = true;
 	app.font    = Text_LoadFont(":builtin/font.png", &success);
 	app.console = true;
+	app.fps     = 0;
 
 	if (!success) {
 		Error("Failed to load font");
@@ -88,6 +89,18 @@ void App_Update(void) {
 	uint64_t newFrameTime  = SDL_GetTicks64();
 	uint64_t frameTimeDiff = newFrameTime - oldFrameTime;
 	app.delta              = frameTimeDiff / 1000.0f;
+
+	static float fpsTimer = 0.0;
+	static int   frames   = 0;
+
+	++ frames;
+	fpsTimer += app.delta;
+
+	if (fpsTimer >= 1.0) {
+		fpsTimer = 0.0;
+		app.fps  = frames;
+		frames   = 0;
+	}
 
 	Event e;
 	while (Event_Poll(&e)) {

@@ -39,7 +39,9 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	// TODO: render outline if mouse is hovered over button
 }
 
-static void OnClick(UI_Element* e, uint8_t button, bool down) {
+static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down) {
+	(void) cont;
+
 	UI_Button* data = (UI_Button*) e->data;
 
 	if (button != 0) return;
@@ -56,10 +58,19 @@ static void OnClick(UI_Element* e, uint8_t button, bool down) {
 	}
 }
 
-static bool OnEvent(UI_Element* e, Event* ev, bool focus) {
+static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {
+	(void) cont;
 	(void) focus;
 
-	if (ev->type == AE_EVENT_MOUSE_BUTTON_UP) {
+	Rect cRect   = UI_ContainerGetRect(cont);
+	Rect btnRect = (Rect) {
+		cRect.x + e->x, cRect.y + e->y, e->w, e->h
+	};
+
+	if (
+		(ev->type == AE_EVENT_MOUSE_BUTTON_UP) &&
+		!PointInRect(input.mousePos, btnRect)
+	) {
 		UI_Button* data = (UI_Button*) e->data;
 		data->pressed = false;
 	}

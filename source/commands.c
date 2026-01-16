@@ -423,6 +423,13 @@ static void Command_ImageViewer(size_t argc, char** argv) {
 	app.console = false;
 }
 
+static void Command_FPS(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	(void) argv;
+
+	Log("FPS: %d", app.fps);
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -445,4 +452,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "editor",       &Command_Editor});
 	Console_AddCommand((ConsoleCommand) {true,  "bind",         &Command_Bind});
 	Console_AddCommand((ConsoleCommand) {true,  "image-viewer", &Command_ImageViewer});
+	Console_AddCommand((ConsoleCommand) {true,  "fps",          &Command_FPS});
 }

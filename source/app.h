@@ -10,6 +10,7 @@ typedef struct {
 	float delta;
 	Font  font;
 	bool  console;
+	int   fps;
 } App;
 
 extern App app;

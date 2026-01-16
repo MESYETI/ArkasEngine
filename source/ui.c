@@ -9,6 +9,7 @@ void UI_ManagerInit(UI_Manager* man, size_t poolSize) {
 	man->containers   = SafeMalloc(poolSize * sizeof(UI_Container));
 	man->containerLen = poolSize;
 	man->focus        = NULL;
+	man->priority     = false;
 
 	for (size_t i = 0; i < poolSize; ++ i) {
 		man->containers[i].active = false;
@@ -56,7 +57,8 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w) {
 			.yMode = 0, .xMode = 0,
 			.rows      = NULL,
 			.rowAmount = 0,
-			.focus     = NULL
+			.focus     = NULL,
+			.manager   = man
 		};
 		return &man->containers[i];
 	}
@@ -73,7 +75,40 @@ void UI_ManagerRender(UI_Manager* man) {
 	}
 }
 
+static bool SendToFocused(UI_Manager* man, Event* e) {
+	if (man->focus) {
+		// send events to the focused element first
+		UI_Element* focusElem = man->focus->focus;
+
+		if (focusElem) {
+			if (focusElem->onEvent) if (focusElem->onEvent(man->focus, focusElem, e, true)) {
+				return true;
+			}
+		}
+
+		for (size_t i = 0; i < man->focus->rowAmount; ++ i) {
+			UI_Row* row = &man->focus->rows[i];
+
+			for (size_t j = 0; j < row->elemAmount; ++ j) {
+				UI_Element* elem = &row->elems[i];
+
+				if (elem == focusElem) continue;
+
+				if (elem->onEvent) if (elem->onEvent(man->focus, elem, e, false)) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
+}
+
 bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
+	if (man->priority) {
+		if (SendToFocused(man, e)) return true;
+	}
+
 	switch (e->type) {
 		case AE_EVENT_MOUSE_BUTTON_DOWN:
 		case AE_EVENT_MOUSE_BUTTON_UP: {
@@ -113,7 +148,7 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 						if (PointInRect((Vec2) {x, y}, elemRect)) {
 							if (elem->onClick) {
 								elem->onClick(
-									elem, button,
+									container, elem, button,
 									e->type == AE_EVENT_MOUSE_BUTTON_DOWN
 								);
 							}
@@ -134,29 +169,8 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 	}
 
 	// send events to the focused container first
-	if (man->focus) {
-		// send events to the focused element first
-		UI_Element* focusElem = man->focus->focus;
-
-		if (focusElem) {
-			if (focusElem->onEvent) if (focusElem->onEvent(focusElem, e, true)) {
-				return true;
-			}
-		}
-
-		for (size_t i = 0; i < man->focus->rowAmount; ++ i) {
-			UI_Row* row = &man->focus->rows[i];
-
-			for (size_t j = 0; j < row->elemAmount; ++ j) {
-				UI_Element* elem = &row->elems[i];
-
-				if (elem == focusElem) continue;
-
-				if (elem->onEvent) if (elem->onEvent(elem, e, false)) {
-					return true;
-				}
-			}
-		}
+	if (!man->priority) {
+		if (SendToFocused(man, e)) return true;
 	}
 
 	for (size_t i = 0; i < man->containerLen; ++ i) {
@@ -164,10 +178,12 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 		if (!man->containers[i].active) continue;
 
 		for (size_t j = 0; j < man->containers[i].rowAmount; ++ j) {
-			for (size_t k = 0; k < man->containers[i].rows[j].elemAmount; ++ k) {
-				UI_Element* elem = &man->containers[i].rows[j].elems[k];
+			UI_Container* cont = &man->containers[i];
 
-				if (elem->onEvent) if (elem->onEvent(elem, e, false)) {
+			for (size_t k = 0; k < man->containers[i].rows[j].elemAmount; ++ k) {
+				UI_Element* elem = &cont->rows[j].elems[k];
+
+				if (elem->onEvent) if (elem->onEvent(cont, elem, e, false)) {
 					return true;
 				}
 			}
@@ -189,13 +205,15 @@ void UI_RenderBG(size_t depth, Rect rect, bool swap) {
 		bright = temp;
 	}
 
+	static const int width = 2;
+
 	// dark edges
-	Backend_HLine(rect.x, rect.y + rect.h - 2, 2, rect.w, dark);
-	Backend_VLine(rect.x + rect.w - 2, rect.y, 2, rect.h, dark);
+	Backend_HLine(rect.x, rect.y + rect.h - width, width, rect.w, dark);
+	Backend_VLine(rect.x + rect.w - width, rect.y, width, rect.h, dark);
 
 	// bright edges
-	Backend_HLine(rect.x, rect.y, 2, rect.w, bright);
-	Backend_VLine(rect.x, rect.y, 2, rect.h, bright);
+	Backend_HLine(rect.x, rect.y, width, rect.w, bright);
+	Backend_VLine(rect.x, rect.y, width, rect.h, bright);
 }
 
 void UI_ContainerCenterX(UI_Container* container) {

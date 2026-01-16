@@ -11,6 +11,10 @@ else
 endif
 LD := $(CC)
 
+ifeq ($(STATIC), y)
+	override CFLAGS += -static -static-libgcc -static-libstdc++
+endif
+
 override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib -Werror=return-type
 override LDLIBS += -lm
 

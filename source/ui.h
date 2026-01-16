@@ -19,9 +19,9 @@ struct UI_Element {
 	int   preferredHeight; // minimum height this element should use
 
 	void (*free)(UI_Element* e);
-	void (*render)(UI_Container* container, UI_Element* e, bool focus);
-	void (*onClick)(UI_Element* e, uint8_t button, bool down);
-	bool (*onEvent)(UI_Element* e, Event* ev, bool focus);
+	void (*render)(UI_Container* cont, UI_Element* e, bool focus);
+	void (*onClick)(UI_Container* cont, UI_Element* e, uint8_t button, bool down);
+	bool (*onEvent)(UI_Container* cont, UI_Element* e, Event* ev, bool focus);
 };
 
 typedef struct {
@@ -40,6 +40,8 @@ enum {
 };
 typedef uint8_t UI_Mode;
 
+typedef struct UI_Manager UI_Manager;
+
 struct UI_Container {
 	bool    active;
 	int     x;
@@ -57,13 +59,15 @@ struct UI_Container {
 	size_t  rowAmount;
 
 	UI_Element* focus;
+	UI_Manager* manager;
 };
 
-typedef struct {
+struct UI_Manager {
 	UI_Container* containers;
 	size_t        containerLen;
 	UI_Container* focus;
-} UI_Manager;
+	bool          priority;
+};
 
 void          UI_ManagerInit(UI_Manager* man, size_t poolSize);
 void          UI_ManagerFree(UI_Manager* man);
