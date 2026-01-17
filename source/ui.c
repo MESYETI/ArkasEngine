@@ -90,7 +90,7 @@ static bool SendToFocused(UI_Manager* man, Event* e) {
 			UI_Row* row = &man->focus->rows[i];
 
 			for (size_t j = 0; j < row->elemAmount; ++ j) {
-				UI_Element* elem = &row->elems[i];
+				UI_Element* elem = &row->elems[j];
 
 				if (elem == focusElem) continue;
 

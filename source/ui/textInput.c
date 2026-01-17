@@ -56,6 +56,18 @@ static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {
 			data->cursor += strlen(ev->textInput.input);
 			return true;
 		}
+		case AE_EVENT_KEY_DOWN: {
+			switch (ev->key.key) {
+				case AE_KEY_BACKSPACE: {
+					if (data->cursor == 0) return true;
+
+					data->dest[strlen(data->dest) - 1] = 0;
+					-- data->cursor;
+					return true;
+				}
+				default: return false;
+			}
+		}
 	}
 
 	return false;
