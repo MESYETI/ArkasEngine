@@ -42,7 +42,7 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down) {
 	UI_ListBox* data = (UI_ListBox*) e->data;
 
-	if (button != 0) return;
+	if ((button != 0) || !down) return;
 
 	Rect cRect = UI_ContainerGetRect(cont);
 	Rect eRect = (Rect) {
