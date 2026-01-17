@@ -193,8 +193,7 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 	return false;
 }
 
-void UI_RenderBG(size_t depth, Rect rect, bool swap) {
-	Backend_RenderRect(rect, theme.bg[depth]);
+void UI_RenderBorder(size_t depth, Rect rect, bool swap) {
 	Colour bright = Video_MultiplyColour(theme.bg[depth], 1.5);
 	Colour dark   = Video_MultiplyColour(theme.bg[depth], 0.5);
 
@@ -278,7 +277,8 @@ UI_Row* UI_ContainerAddRow(UI_Container* container, int height) {
 void UI_ContainerRender(UI_Container* container, bool focus) {
 	Rect rect = UI_ContainerGetRect(container);
 
-	UI_RenderBG(0, rect, false);
+	Backend_RenderRect(rect, theme.bg[0]);
+	UI_RenderBorder(0, rect, false);
 
 	for (size_t rowIdx = 0; rowIdx < container->rowAmount; ++ rowIdx) {
 		UI_Row* row = &container->rows[rowIdx];

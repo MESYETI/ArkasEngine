@@ -5,7 +5,8 @@
 #include "../text.h"
 
 enum {
-	UI_LABEL_CENTERED = 1
+	UI_LABEL_CENTERED = 1,
+	UI_LABEL_FIXED    = 2
 };
 
 UI_Element UI_NewLabel(Font* font, const char* label, int opt);

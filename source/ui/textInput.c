@@ -1,6 +1,7 @@
 #include "../app.h"
 #include "../mem.h"
 #include "../text.h"
+#include "../theme.h"
 #include "../backend.h"
 #include "textInput.h"
 
@@ -19,7 +20,8 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	Rect          rect  = UI_ContainerGetRect(container);
 	Rect          eRect = (Rect) {rect.x + e->x, rect.y + e->y, e->w, e->h};
 
-	UI_RenderBG(1, eRect, 0);
+	Backend_RenderRect(eRect, theme.bg[1]);
+	UI_RenderBorder(1, eRect, true);
 
 	Vec2 textSize = {
 		app.font.charWidth * strlen(data->dest), app.font.charHeight

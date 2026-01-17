@@ -24,7 +24,8 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 		rect.x + e->x, rect.y + e->y, e->w, e->h
 	};
 
-	UI_RenderBG(
+	Backend_RenderRect(btnRect, theme.bg[1]);
+	UI_RenderBorder(
 		1, btnRect, input.mouseBtn[0] && PointInRect(input.mousePos, btnRect)
 	);
 
@@ -45,7 +46,8 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 		rect2.y    += btnRect.h;
 		rect2.h     = ((int) data->numButtons) * btnRect.h;
 
-		UI_RenderBG(1, rect2, false);
+		Backend_RenderRect(rect2, theme.bg[1]);
+		UI_RenderBorder(1, rect2, false);
 
 		for (size_t i = 0; i < data->numButtons; ++ i) {
 			UI_DropDownButton* button = &data->buttons[i];

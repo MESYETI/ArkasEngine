@@ -44,6 +44,10 @@ UI_Element UI_NewLabel(Font* font, const char* label, int opt) {
 	ret.onClick         = NULL;
 	ret.onEvent         = NULL;
 
+	if (opt & UI_LABEL_FIXED) {
+		ret.fixedWidth = strlen(label) * font->charWidth;
+	}
+
 	LabelData* data = (LabelData*) ret.data;
 	data->label     = NewString(label);
 	data->centered  = (opt & UI_LABEL_CENTERED) != 0;

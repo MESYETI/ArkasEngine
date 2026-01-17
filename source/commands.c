@@ -12,6 +12,7 @@
 #include "resources.h"
 #include "testScene.h"
 #include "mapEditor.h"
+#include "fileBrowser.h"
 #include "imageViewer.h"
 
 #define ASSERT_ARGC(N) \
@@ -430,6 +431,14 @@ static void Command_FPS(size_t argc, char** argv) {
 	Log("FPS: %d", app.fps);
 }
 
+static void Command_Browser(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	(void) argv;
+
+	SceneManager_AddScene(FileBrowserScene());
+	app.console = false;
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -453,4 +462,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "bind",         &Command_Bind});
 	Console_AddCommand((ConsoleCommand) {true,  "image-viewer", &Command_ImageViewer});
 	Console_AddCommand((ConsoleCommand) {true,  "fps",          &Command_FPS});
+	Console_AddCommand((ConsoleCommand) {false, "browser",      &Command_Browser});
 }

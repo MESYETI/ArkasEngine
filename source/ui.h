@@ -75,7 +75,7 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w);
 void          UI_ManagerRender(UI_Manager* man);
 bool          UI_ManagerHandleEvent(UI_Manager* man, Event* e);
 
-void UI_RenderBG(size_t depth, Rect rect, bool swap);
+void UI_RenderBorder(size_t depth, Rect rect, bool swap);
 
 void    UI_ContainerCenterX(UI_Container* container);
 void    UI_ContainerCenterY(UI_Container* container);

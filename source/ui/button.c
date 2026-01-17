@@ -3,6 +3,7 @@
 #include "../mem.h"
 #include "../util.h"
 #include "../input.h"
+#include "../theme.h"
 
 static void Free(UI_Element* e) {
 	UI_Button* data = (UI_Button*) e->data;
@@ -23,7 +24,8 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 		rect.x + e->x, rect.y + e->y, e->w, e->h
 	};
 
-	UI_RenderBG(1, btnRect, data->pressed);
+	Backend_RenderRect(btnRect, theme.bg[1]);
+	UI_RenderBorder(1, btnRect, data->pressed);
 
 	Vec2 textSize = {
 		app.font.charWidth  * strlen(data->label), app.font.charHeight
