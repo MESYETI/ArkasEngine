@@ -125,3 +125,11 @@ bool Event_Poll(Event* e) {
 
 	return false;
 }
+
+void Event_StartTextInput(void) {
+	SDL_StartTextInput();
+}
+
+void Event_StopTextInput(void) {
+	SDL_StopTextInput();
+}

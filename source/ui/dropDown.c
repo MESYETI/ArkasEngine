@@ -61,9 +61,15 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 			// );
 
 			if (PointInRect(input.mousePos, btnRect2)) {
-				Colour bright = Video_MultiplyColour(theme.bg[1], 1.5);
+				Colour bg     = Video_MultiplyColour(theme.bg[1], 1.5);
+				Colour bright = Video_MultiplyColour(bg,          1.5);
+				Colour dark   = Video_MultiplyColour(bg,          0.5);
 
-				Backend_RenderRect(btnRect2, bright);
+				Backend_RenderRect(btnRect2, bg);
+				// Backend_HLine(btnRect2.x, btnRect2.y, 1, btnRect2.w, bright);
+				// Backend_HLine(
+				// 	btnRect2.x, btnRect2.y + btnRect.h - 1, 1, btnRect2.w, dark
+				// );
 			}
 
 			textSize.x = app.font.charWidth * strlen(button->label);

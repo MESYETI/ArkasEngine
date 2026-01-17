@@ -75,7 +75,7 @@ bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 clean:
-	rm -r bin
+	-rm -r bin
 
 distclean: clean
 	rm $(OUT)

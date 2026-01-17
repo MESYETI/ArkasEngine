@@ -62,5 +62,7 @@ void Event_Add(Event e);
 void Event_Update(void);
 bool Event_Available(void);
 bool Event_Poll(Event* e);
+void Event_StartTextInput(void);
+void Event_StopTextInput(void);
 
 #endif
