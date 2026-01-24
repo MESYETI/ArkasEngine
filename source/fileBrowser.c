@@ -83,6 +83,7 @@ static void UpButton(UI_Button* this, uint8_t button) {
 		free(fileList);
 		fileList  = NULL;
 		filesSize = 0;
+		files     = NULL;
 	}
 
 	char* end = strrchr(cwd, '/');
