@@ -139,11 +139,13 @@ static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {
 		cRect.x + e->x, cRect.y + e->y, e->w, e->h
 	};
 
+	UI_DropDown* data = (UI_DropDown*) e->data;
+	if (!data->open) return false;
+
 	if (
 		(ev->type == AE_EVENT_MOUSE_BUTTON_UP) &&
 		!PointInRect(input.mousePos, btnRect)
 	) {
-		UI_DropDown* data = (UI_DropDown*) e->data;
 		data->pressed = false;
 
 		for (size_t i = 0; i < data->numButtons; ++ i) {
