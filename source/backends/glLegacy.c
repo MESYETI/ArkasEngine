@@ -4,6 +4,7 @@
 #include "../mem.h"
 #include "../util.h"
 #include "../video.h"
+#include "../skybox.h"
 #include "../camera.h"
 #include "../stream.h"
 #include "../backend.h"
@@ -234,6 +235,7 @@ Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch) {
 	uint8_t* data2 = malloc(newWidth * newHeight * ch);
 	if (data2 == NULL) {
 		free(data);
+		Log("Failed to allocate texture");
 		return NULL;
 	}
 
@@ -436,22 +438,111 @@ static void RenderSector(Sector* sector) {
 	}
 }
 
+static void RenderSkybox(void) {
+	Camera oldCam = camera;
+	camera.pos = (FVec3) {0.0, 0.0, 0.0};
+	GL(glMatrixMode(GL_MODELVIEW));
+	CalcViewMatrix();
+	GL(glLoadMatrixf((float*) state.viewMatrix));
+	camera = oldCam;
+
+	GL(glDisable(GL_DEPTH_TEST));
+
+	glBindTexture(GL_TEXTURE_2D, skybox.east->name);
+	glBegin(GL_TRIANGLE_FAN);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	glTexCoord2f(0.0, 0.0);
+	glVertex3f(0.5, 0.5, -0.5);
+	glTexCoord2f(1.0, 0.0);
+	glVertex3f(0.5, 0.5, 0.5);
+	glTexCoord2f(1.0, 1.0);
+	glVertex3f(0.5, -0.5, 0.5);
+	glTexCoord2f(0.0, 1.0);
+	glVertex3f(0.5, -0.5, -0.5);
+	GL(glEnd());
+
+	glBindTexture(GL_TEXTURE_2D, skybox.ground->name);
+	glBegin(GL_TRIANGLE_FAN);
+	glTexCoord2f(0.0, 0.0);
+	glVertex3f(-0.5, -0.5, -0.5);
+	glTexCoord2f(1.0, 0.0);
+	glVertex3f(0.5, -0.5, -0.5);
+	glTexCoord2f(1.0, 1.0);
+	glVertex3f(0.5, -0.5, 0.5);
+	glTexCoord2f(0.0, 1.0);
+	glVertex3f(-0.5, -0.5, 0.5);
+	GL(glEnd());
+
+	glBindTexture(GL_TEXTURE_2D, skybox.north->name);
+	glBegin(GL_TRIANGLE_FAN);
+	glTexCoord2f(1.0, 1.0);
+	glVertex3f(0.5, -0.5, 0.5);
+	glTexCoord2f(1.0, 0.0);
+	glVertex3f(0.5, 0.5, 0.5);
+	glTexCoord2f(0.0, 0.0);
+	glVertex3f(-0.5, 0.5, 0.5);
+	glTexCoord2f(0.0, 1.0);
+	glVertex3f(-0.5, -0.5, 0.5);
+	GL(glEnd());
+
+	glBindTexture(GL_TEXTURE_2D, skybox.sky->name);
+	glBegin(GL_TRIANGLE_FAN);
+	glTexCoord2f(0.0, 1.0);
+	glVertex3f(-0.5, 0.5, 0.5);
+	glTexCoord2f(1.0, 1.0);
+	glVertex3f(0.5, 0.5, 0.5);
+	glTexCoord2f(1.0, 0.0);
+	glVertex3f(0.5, 0.5, -0.5);
+	glTexCoord2f(0.0, 0.0);
+	glVertex3f(-0.5, 0.5, -0.5);
+	GL(glEnd());
+
+	glBindTexture(GL_TEXTURE_2D, skybox.south->name);
+	glBegin(GL_TRIANGLE_FAN);
+	glTexCoord2f(1.0, 1.0);
+	glVertex3f(-0.5, -0.5, -0.5);
+	glTexCoord2f(1.0, 0.0);
+	glVertex3f(-0.5, 0.5, -0.5);
+	glTexCoord2f(0.0, 0.0);
+	glVertex3f(0.5, 0.5, -0.5);
+	glTexCoord2f(0.0, 1.0);
+	glVertex3f(0.5, -0.5, -0.5);
+	GL(glEnd());
+
+	glBindTexture(GL_TEXTURE_2D, skybox.west->name);
+	glBegin(GL_TRIANGLE_FAN);
+	glTexCoord2f(0.0, 1.0);
+	glVertex3f(-0.5, -0.5, -0.5);
+	glTexCoord2f(1.0, 1.0);
+	glVertex3f(-0.5, -0.5, 0.5);
+	glTexCoord2f(1.0, 0.0);
+	glVertex3f(-0.5, 0.5, 0.5);
+	glTexCoord2f(0.0, 0.0);
+	glVertex3f(-0.5, 0.5, -0.5);
+	GL(glEnd());
+
+	GL(glEnable(GL_DEPTH_TEST));
+}
+
 void Backend_RenderScene(void) {
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 
-	GL(glMatrixMode(GL_PROJECTION));
-	GL(glLoadMatrixf((float*) state.projMatrix));
-	GL(glMatrixMode(GL_MODELVIEW));
-	CalcViewMatrix();
-	GL(glLoadMatrixf((float*) state.viewMatrix));
-
 	if (state.sectorsRendered == NULL) {
 		state.sectorsRendered = SafeMalloc(map.sectorsLen * sizeof(bool));
 	}
 	memset(state.sectorsRendered, 0, map.sectorsLen * sizeof(bool));
+
+	GL(glMatrixMode(GL_PROJECTION));
+	GL(glLoadMatrixf((float*) state.projMatrix));
+
+	if (skybox.active) RenderSkybox();
+
+	GL(glMatrixMode(GL_MODELVIEW));
+	CalcViewMatrix();
+	GL(glLoadMatrixf((float*) state.viewMatrix));
 
 	RenderSector(camera.sector);
 

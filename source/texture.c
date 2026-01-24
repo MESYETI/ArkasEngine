@@ -22,6 +22,7 @@ Texture* Texture_LoadMem(uint8_t* img, size_t len) {
 	}
 
 	if (data == NULL) {
+		Log("Texture_LoadMem: data = NULL");
 		return NULL;
 	}
 
@@ -33,6 +34,7 @@ Texture* Texture_LoadFile(const char* path) {
 	uint8_t* data = Resources_ReadFile(path, &size);
 
 	if (data == NULL) {
+		Log("Failed to read file: %s", path);
 		return NULL;
 	}
 

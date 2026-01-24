@@ -6,6 +6,7 @@
 #include "audio.h"
 #include "scene.h"
 #include "config.h"
+#include "skybox.h"
 #include "player.h"
 #include "console.h"
 #include "commands.h"
@@ -439,6 +440,11 @@ static void Command_Browser(size_t argc, char** argv) {
 	app.console = false;
 }
 
+static void Command_Skybox(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+	Skybox_Load(argv[0]);
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -463,4 +469,5 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "image-viewer", &Command_ImageViewer});
 	Console_AddCommand((ConsoleCommand) {true,  "fps",          &Command_FPS});
 	Console_AddCommand((ConsoleCommand) {false, "browser",      &Command_Browser});
+	Console_AddCommand((ConsoleCommand) {true,  "skybox",       &Command_Skybox});
 }
