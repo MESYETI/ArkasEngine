@@ -134,7 +134,35 @@ bool Resources_FileExists(const char* path) {
 	return drive->fileExists(drive, drivePath + 1);
 }
 
-void Resources_List(const char* path) {
+ResourceFile* Resources_List(const char* path, size_t* sz) {
+	ResourceDrive* drive = GetDrive(path);
+
+	if (!drive) {
+		Log("Invalid drive: %s", path);
+		return NULL;
+	}
+
+	const char* drivePath = strchr(path, '/');
+
+	if (drivePath == NULL) {
+		drivePath = "";
+	}
+	else {
+		++ drivePath;
+	}
+
+	return drive->list(drive, drivePath, sz);
+}
+
+void Resources_FreeFileList(ResourceFile* list, size_t size) {
+	for (size_t i = 0; i < size; ++ i) {
+		free(list[i].fullPath);
+	}
+
+	free(list);
+}
+
+void Resources_PrintList(const char* path) {
 	if (!path) {
 		Log("Mounted resource drives:");
 
@@ -159,7 +187,7 @@ void Resources_List(const char* path) {
 			++ drivePath;
 		}
 
-		drive->list(drive, drivePath);
+		drive->printList(drive, drivePath);
 	}
 }
 

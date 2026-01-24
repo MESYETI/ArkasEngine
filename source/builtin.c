@@ -26,13 +26,35 @@ static bool DriveFileExists(ResourceDrive* drive, const char* path) {
 	return false;
 }
 
-static void DriveList(ResourceDrive* drive, const char* folder) {
+static void DrivePrintList(ResourceDrive* drive, const char* folder) {
 	(void) drive;
 	(void) folder;
 
 	for (size_t i = 0; i < sizeof(files) / sizeof(File); ++ i) {
 		Log("  [ ] %s", files[i].name);
 	}
+}
+
+static ResourceFile* DriveList(ResourceDrive* drive, const char* folder, size_t* sz) {
+	*sz = sizeof(files) / sizeof(File);
+
+	ResourceFile* ret = SafeMalloc(*sz * sizeof(ResourceFile));
+
+	for (size_t i = 0; i < *sz; ++ i) {
+		ret[i].fullPath = SafeMalloc(
+			strlen(drive->name) + strlen(folder) + strlen(files[i].name) + 4
+		);
+
+		strcpy(ret[i].fullPath, ":");
+		strcat(ret[i].fullPath, drive->name);
+		strcat(ret[i].fullPath, folder);
+		strcat(ret[i].fullPath, "/");
+		strcat(ret[i].fullPath, files[i].name);
+
+		ret[i].dir = false;
+	}
+
+	return ret;
 }
 
 static void* DriveReadFile(ResourceDrive* drive, const char* path, size_t* size) {
@@ -58,6 +80,7 @@ ResourceDrive* BuiltIn_GetDrive(void) {
 	ret->free       = NULL;
 	ret->fileExists = &DriveFileExists;
 	ret->list       = &DriveList;
+	ret->printList  = &DrivePrintList;
 	ret->readFile   = &DriveReadFile;
 	return ret;
 }

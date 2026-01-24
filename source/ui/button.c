@@ -81,7 +81,7 @@ static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {
 
 UI_Element UI_NewButton(const char* label, bool fixed, UI_ButtonFunc onClick) {
 	UI_Element ret;
-	ret.fixedWidth      = fixed? strlen(label) * app.font.charWidth : 0;
+	ret.fixedWidth      = fixed? (strlen(label) * app.font.charWidth) + 8 : 0;
 	ret.data            = SafeMalloc(sizeof(UI_Button));
 	ret.preferredHeight = app.font.charHeight + 8;
 	ret.free            = &Free;

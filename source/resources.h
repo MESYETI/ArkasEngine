@@ -8,13 +8,21 @@
 
 typedef struct ResourceDrive ResourceDrive;
 
+typedef struct {
+	char* fullPath;
+	bool  dir;
+} ResourceFile;
+
 struct ResourceDrive {
 	char* name;
 
-	FUNCTION_POINTER(void,  free, ResourceDrive*);
-	FUNCTION_POINTER(bool,  fileExists, ResourceDrive*, const char* path);
-	FUNCTION_POINTER(void,  list, ResourceDrive*, const char* folder);
+	FUNCTION_POINTER(void,          free, ResourceDrive*);
+	FUNCTION_POINTER(bool,          fileExists, ResourceDrive*, const char* path);
+	FUNCTION_POINTER(void,          printList, ResourceDrive*, const char* folder);
+	FUNCTION_POINTER(ResourceFile*, list, ResourceDrive*, const char* folder, size_t* sz);
+
 	FUNCTION_POINTER(void*, readFile, ResourceDrive*, const char* path, size_t* size);
+
 };
 
 enum {
@@ -59,12 +67,14 @@ typedef struct {
 
 extern ResourceManager resources;
 
-void      Resources_Init(void);
-void      Resources_Free(void);
-bool      Resources_FileExists(const char* path);
-void      Resources_List(const char* path);
-void*     Resources_ReadFile(const char* path, size_t* size);
-Resource* Resources_GetRes(const char* path, uint32_t opt);
-void      Resources_FreeRes(Resource* resource);
+void          Resources_Init(void);
+void          Resources_Free(void);
+bool          Resources_FileExists(const char* path);
+ResourceFile* Resources_List(const char* path, size_t* sz);
+void          Resources_FreeFileList(ResourceFile* list, size_t sz);
+void          Resources_PrintList(const char* path);
+void*         Resources_ReadFile(const char* path, size_t* size);
+Resource*     Resources_GetRes(const char* path, uint32_t opt);
+void          Resources_FreeRes(Resource* resource);
 
 #endif

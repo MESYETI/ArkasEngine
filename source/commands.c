@@ -75,10 +75,10 @@ static void Command_DlMap(size_t argc, char** argv) {
 
 static void Command_Ls(size_t argc, char** argv) {
 	if (argc == 0) {
-		Resources_List(NULL);
+		Resources_PrintList(NULL);
 	}
 	else if (argc == 1) {
-		Resources_List(argv[0]);
+		Resources_PrintList(argv[0]);
 	}
 	else {
 		Log("ls must have either 0 or 1 parameters");

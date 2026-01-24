@@ -8,17 +8,101 @@
 #include "ui/button.h"
 #include "ui/spacer.h"
 #include "ui/listBox.h"
+#include "ui/dynLabel.h"
 #include "ui/textInput.h"
 #include "fileBrowser.h"
 
 static char fileName[128];
+static char cwd[1024];
 
 static const char* driveSelected;
 static const char* fileSelected;
 
 static UI_ListBoxItem* driveList;
+static UI_ListBoxItem* fileList;
+static UI_Element*     filesElem;
+
+static ResourceFile* files     = NULL;
+static size_t        filesSize = 0;
+
+static const char* CWDLabel() {
+	return cwd;
+}
+
+static void UpdateFiles(void) {
+	files    = Resources_List(cwd, &filesSize);
+	fileList = SafeMalloc(filesSize * sizeof(UI_ListBoxItem));
+
+	for (size_t i = 0; i < filesSize; ++ i) {
+		fileList[i] = (UI_ListBoxItem) {BaseName(files[i].fullPath)};
+	}
+
+	UI_UpdateListBox(filesElem, fileList, filesSize);
+}
+
+static void FileClick(void) {
+	for (size_t i = 0; i < filesSize; ++ i) {
+		if (strcmp(BaseName(files[i].fullPath), fileSelected) == 0) {
+			if (!files[i].dir) return;
+		}
+	}
+
+	strncat(cwd, "/", sizeof(cwd) - strlen(cwd) - 1);
+	strncat(cwd, fileSelected, sizeof(cwd) - strlen(cwd) - 1);
+
+	if (files) {
+		Resources_FreeFileList(files, filesSize);
+	}
+
+	if (fileList) {
+		free(fileList);
+	}
+
+	UpdateFiles();
+}
+
+static void DriveClick(void) {
+	if (files) {
+		Resources_FreeFileList(files, filesSize);
+		free(fileList);
+		fileList = NULL;
+	}
+
+	strcpy(cwd, ":");
+	strncat(cwd, driveSelected, sizeof(cwd) - 2);
+	UpdateFiles();
+}
+
+static void UpButton(UI_Button* this, uint8_t button) {
+	(void) this;
+
+	if (button != 0) return;
+
+	if (files) {
+		Resources_FreeFileList(files, filesSize);
+		free(fileList);
+		fileList  = NULL;
+		filesSize = 0;
+	}
+
+	char* end = strrchr(cwd, '/');
+
+	if (end) {
+		*end = 0;
+		UpdateFiles();
+	}
+	else {
+		cwd[0] = 0;
+		UI_UpdateListBox(filesElem, NULL, 0);
+	}
+}
 
 static void Init(Scene* scene) {
+	fileName[0] = 0;
+	cwd[0]      = 0;
+	files       = NULL;
+	filesSize   = 0;
+
 	UI_ManagerInit(&scene->ui, 1);
 
 	UI_Container* container = UI_ManagerAddContainer(&scene->ui, 640);
@@ -32,6 +116,12 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewTextInput(fileName, sizeof(fileName)));
 	UI_RowFinish(row, true);
 
+	row = UI_ContainerAddRow(container, 24);
+
+	UI_RowAddElement(row, UI_NewDynLabel(&app.font, &CWDLabel, 0));
+	UI_RowAddElement(row, UI_NewButton("Up", true, &UpButton));
+	UI_RowFinish(row, true);
+
 	// make drive list
 	driveList = SafeMalloc(resources.drivesNum * sizeof(UI_ListBoxItem));
 
@@ -39,17 +129,13 @@ static void Init(Scene* scene) {
 		driveList[i] = (UI_ListBoxItem) {resources.drives[i]->name};
 	}
 
-	static UI_ListBoxItem files[] = {
-		{"file1.txt"},
-		{"file2.txt"},
-		{"loves_labours_lost.txt"}
-	};
-
-	row = UI_ContainerAddRow(container, 412);
+	row = UI_ContainerAddRow(container, 391); // 412
 	UI_RowAddElement(row, UI_NewListBox(
-		driveList, resources.drivesNum, &driveSelected, 100
+		driveList, resources.drivesNum, &driveSelected, 100, DriveClick
 	));
-	UI_RowAddElement(row, UI_NewListBox(files, 3, &fileSelected, 0));
+	filesElem = UI_RowAddElement(
+		row, UI_NewListBox(NULL, 0, &fileSelected, 0, FileClick)
+	);
 	UI_RowFinish(row, false);
 
 	row = UI_ContainerAddRow(container, 24);

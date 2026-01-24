@@ -179,7 +179,7 @@ static bool DriveFileExists(ResourceDrive* p_drive, const char* path) {
 	return GetEntry(&drive->reader, path);
 }
 
-static void DriveList(ResourceDrive* p_drive, const char* folder) {
+static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
 	ArkDrive* drive = (ArkDrive*) p_drive;
 	ArkEntry* entry = GetEntry(&drive->reader, folder);
 
@@ -200,6 +200,42 @@ static void DriveList(ResourceDrive* p_drive, const char* folder) {
 			entry->folderContents[i].folder? 'D' : ' ', entry->folderContents[i].name
 		);
 	}
+}
+
+static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_t* sz) {
+	ArkDrive* drive = (ArkDrive*) p_drive;
+	ArkEntry* entry = GetEntry(&drive->reader, folder);
+
+	if (!entry) {
+		Log("Directory '%s' does not exist", folder);
+		return NULL;
+	}
+	else if (!entry->folder) {
+		Log("Path '%s' leads to a file, not a directory", folder);
+		return NULL;
+	}
+
+	*sz = entry->folderSize;
+
+	ResourceFile* ret = SafeMalloc(*sz * sizeof(ResourceFile));
+
+	for (size_t i = 0; i < entry->folderSize; ++ i) {
+		ResourceFile* file = &ret[i];
+		file->fullPath = SafeMalloc(
+			strlen(p_drive->name) + strlen(folder) +
+			strlen(entry->folderContents[i].name) + 4
+		);
+
+		strcpy(file->fullPath, ":");
+		strcat(file->fullPath, p_drive->name);
+		strcat(file->fullPath, folder);
+		strcat(file->fullPath, "/");
+		strcat(file->fullPath, entry->folderContents[i].name);
+
+		file->dir = entry->folderContents[i].folder;
+	}
+
+	return ret;
 }
 
 static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* size) {
@@ -231,6 +267,7 @@ ResourceDrive* Ark_CreateResourceDrive(const char* path) {
 
 	ret->parent.free       = &FreeDrive;
 	ret->parent.fileExists = &DriveFileExists;
+	ret->parent.printList  = &DrivePrintList;
 	ret->parent.list       = &DriveList;
 	ret->parent.readFile   = &DriveReadFile;
 

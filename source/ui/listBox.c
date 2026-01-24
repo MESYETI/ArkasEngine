@@ -1,5 +1,6 @@
 #include "../app.h"
 #include "../mem.h"
+#include "../util.h"
 #include "../text.h"
 #include "../input.h"
 #include "../theme.h"
@@ -10,6 +11,8 @@ typedef struct {
 	UI_ListBoxItem* list;
 	size_t          len;
 	const char**    selected;
+
+	UI_ListBoxOnClick onClick;
 } UI_ListBox;
 
 static void Render(UI_Container* container, UI_Element* e, bool focus) {
@@ -59,13 +62,18 @@ static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down
 
 		if (PointInRect(input.mousePos, rect)) {
 			*data->selected = data->list[i].label;
+
+			if (data->onClick) {
+				data->onClick();
+			}
 			break;
 		}
 	}
 }
 
 UI_Element UI_NewListBox(
-	UI_ListBoxItem* list, size_t len, const char** selected, int fixedW
+	UI_ListBoxItem* list, size_t len, const char** selected, int fixedW,
+	UI_ListBoxOnClick onClick
 ) {
 	UI_Element ret;
 	ret.fixedWidth      = fixedW;
@@ -80,6 +88,14 @@ UI_Element UI_NewListBox(
 	data->list       = list;
 	data->len        = len;
 	data->selected   = selected;
+	data->onClick    = onClick;
 	*selected        = NULL;
 	return ret;
+}
+
+void UI_UpdateListBox(UI_Element* elem, UI_ListBoxItem* list, size_t len) {
+	UI_ListBox* data = (UI_ListBox*) elem->data;
+	data->list       = list;
+	data->len        = len;
+	*data->selected  = NULL;
 }

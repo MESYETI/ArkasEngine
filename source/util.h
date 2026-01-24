@@ -39,4 +39,6 @@ void   FreeStrArray(char** array);
 void   Log(const char* format, ...);
 void   Error(const char* format, ...);
 
+const char* BaseName(const char* path);
+
 #endif

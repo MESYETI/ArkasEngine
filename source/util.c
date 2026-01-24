@@ -195,3 +195,15 @@ void Error(const char* format, ...) {
 	free(ret);
 	exit(1);
 }
+
+const char* BaseName(const char* path) {
+	char* ret = strrchr(path, '/');
+
+	if (ret) return ret + 1;
+
+	ret = strrchr(path, ':');
+
+	if (ret) return ret + 1;
+
+	return ret;
+}
