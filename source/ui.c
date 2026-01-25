@@ -162,9 +162,56 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 				if (!elemFocus) {
 					container->focus = NULL;
 				}
+
+				return true;
 			}
 
 			if (!focus) man->focus = NULL;
+			break;
+		}
+		case AE_EVENT_MOUSE_MOVE: {
+			int     x      = e->mouseMove.x;
+			int     y      = e->mouseMove.y;
+
+			Vec2 mouse = (Vec2) {x, y};
+
+			for (size_t i = 0; i < man->containerLen; ++ i) {
+				UI_Container* container = &man->containers[i];
+
+				if (!container->active) continue;
+
+				Rect rect = UI_ContainerGetRect(container);
+
+				if (!PointInRect(mouse, rect)) {
+					continue;
+				}
+
+				bool elemFocus = false;
+
+				for (size_t j = 0; j < container->rowAmount; ++ j) {
+					UI_Row* row = &container->rows[j];
+
+					for (size_t k = 0; k < row->elemAmount; ++ k) {
+						UI_Element* elem = &row->elems[k];
+
+						Rect elemRect = {
+							rect.x + elem->x, rect.y + elem->y, elem->w, elem->h
+						};
+
+						if (PointInRect((Vec2) {x, y}, elemRect)) {
+							if (elem->onEvent) {
+								elem->onEvent(
+									container, elem, e,
+									(man->focus == container) && (container->focus == elem)
+								);
+							}
+							return true;
+						}
+					}
+				}
+
+				return true;
+			}
 		}
 	}
 
