@@ -170,8 +170,8 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 			break;
 		}
 		case AE_EVENT_MOUSE_MOVE: {
-			int     x      = e->mouseMove.x;
-			int     y      = e->mouseMove.y;
+			int x = e->mouseMove.x;
+			int y = e->mouseMove.y;
 
 			Vec2 mouse = (Vec2) {x, y};
 

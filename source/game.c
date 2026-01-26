@@ -20,7 +20,7 @@ AudioEmitter emitters2d[1];
 AudioEmitter emitters3d[2];
 
 void Game_Init(void) {
-	Map_Init();
+	//Map_Init();
 	startAudio();
 	SDL_SetRelativeMouseMode(SDL_TRUE);
 

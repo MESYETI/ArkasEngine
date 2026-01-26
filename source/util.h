@@ -26,6 +26,7 @@ float  CosDeg(float deg);
 float  SinDeg(float deg);
 bool   FloatEqual(float a, float b, float margin);
 float  Distance(FVec2 a, FVec2 b);
+float  DistanceI(Vec2 a, Vec2 b);
 float  PointLineSide(FVec2 p, FVec2 a, FVec2 b);
 FVec2  LineIntersect(FVec2 a1, FVec2 a2, FVec2 b1, FVec2 b2);
 bool   PointInLine(FVec2 p, FVec2 a, FVec2 b);

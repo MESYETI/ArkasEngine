@@ -36,12 +36,15 @@ void Map_Free(void) {
 
 	if (map.points != NULL) {
 		free(map.points);
+		map.points = NULL;
 	}
 	if (map.walls != NULL) {
 		free(map.walls);
+		map.walls = NULL;
 	}
 	if (map.sectors != NULL) {
 		free(map.sectors);
+		map.sectors = NULL;
 	}
 
 	map.pointsLen  = 0;
@@ -50,6 +53,7 @@ void Map_Free(void) {
 
 	if (map.name != NULL) {
 		free(map.name);
+		map.name = NULL;
 	}
 }
 

@@ -38,6 +38,12 @@ float Distance(FVec2 a, FVec2 b) {
 	return sqrtf(x + y);
 }
 
+float DistanceI(Vec2 a, Vec2 b) {
+	return Distance(
+		(FVec2) {(float) a.x, (float) a.y}, (FVec2) {(float) b.x, (float) b.y}
+	);
+}
+
 #define CROSS_PRODUCT(X1, Y1, X2, Y2) ((X1) * (Y2) - (X2) * (Y1))
 
 static double PointCrossProduct(FVec2 a, FVec2 b) {

@@ -143,7 +143,10 @@ static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {
 	if (!data->open) return false;
 
 	if (
-		(ev->type == AE_EVENT_MOUSE_BUTTON_UP) &&
+		(
+			(ev->type == AE_EVENT_MOUSE_BUTTON_UP) ||
+			(ev->type == AE_EVENT_MOUSE_BUTTON_DOWN)
+		) &&
 		!PointInRect(input.mousePos, btnRect)
 	) {
 		data->pressed = false;
@@ -157,12 +160,13 @@ static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {
 			btnRect2.y    += yOff;
 
 			if (PointInRect(input.mousePos, btnRect2)) {
-				if (iButton->onClick) {
+				if (iButton->onClick && ev->type == AE_EVENT_MOUSE_BUTTON_UP) {
 					iButton->onClick(ev->mouseButton.button);
 					data->open = false;
+					cont->manager->priority = false;
 				}
 
-				break;
+				return true;
 			}
 		}
 	}

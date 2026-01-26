@@ -703,6 +703,16 @@ void Backend_RenderRect(Rect rect, Colour colour) {
 	GL(glEnable(GL_TEXTURE_2D));
 }
 
+void Backend_RenderLine(Vec2 a, Vec2 b, Colour colour) {
+	GL(glDisable(GL_TEXTURE_2D));
+	glBegin(GL_LINES);
+	glColor3ub(colour.r, colour.g, colour.b);
+	glVertex2i(a.x, a.y);
+	glVertex2i(b.x, b.y);
+	GL(glEnd());
+	GL(glEnable(GL_TEXTURE_2D));
+}
+
 void Backend_FinishRender(void) {
 	GL(glFinish());
 	SDL_GL_SwapWindow(video.window);
