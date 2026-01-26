@@ -109,8 +109,6 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 		}
 	}
 
-	printf("map.sectors before = %p\n", map.sectors);
-
 	SceneManager_Free();
 	SceneManager_AddScene((Scene) {
 		SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
@@ -119,8 +117,6 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 
 	camera.sector = &map.sectors[0];
 	player.sector = &map.sectors[0];
-	printf("player.sector = %p\n", player.sector);
-	printf("map.sectors after = %p\n", map.sectors);
 }
 
 static void Unimplemented(uint8_t button) {

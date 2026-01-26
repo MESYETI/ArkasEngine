@@ -188,8 +188,9 @@ UI_Element UI_NewDropDown(
 
 	UI_DropDown* data = (UI_DropDown*) ret.data;
 	data->label       = NewString(label);
-	data->pressed     = false;
 	data->buttons     = buttons;
 	data->numButtons  = numButtons;
+	data->open        = false;
+	data->pressed     = false;
 	return ret;
 }
