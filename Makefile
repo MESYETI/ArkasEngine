@@ -89,4 +89,4 @@ clean:
 distclean: clean
 	rm $(OUT)
 
-.PHONY: all run clean distclean
+.PHONY: all run clean distclean install

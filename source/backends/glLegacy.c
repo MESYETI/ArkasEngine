@@ -215,12 +215,12 @@ void Backend_Init(bool beforeWindow) {
 	glEnable(GL_TEXTURE_2D);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Model_Load(&state.model, "heavy.zkm");
+	// Model_Load(&state.model, "heavy.zkm");
 }
 
 void Backend_Free(void) {
 	SDL_GL_DeleteContext(state.ctx);
-	Model_Free(&state.model);
+	// Model_Free(&state.model);
 }
 
 Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch) {
@@ -579,7 +579,7 @@ void Backend_RenderScene(void) {
 	ModelRenderOpt opt;
 	opt.scale = 0.01;
 	opt.pos   = (FVec3) {0.0, -0.5, 0.0};
-	Backend_RenderModel(&state.model, &opt);
+	// Backend_RenderModel(&state.model, &opt);
 
 	// now do 2D stuff
 	Backend_Begin2D();
