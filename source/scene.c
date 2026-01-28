@@ -10,7 +10,7 @@ void SceneManager_Init(void) {
 void SceneManager_Free(void) {
 	for (size_t i = 0; i < sm.activeScenes; ++ i) {
 		if (sm.scenes[i].type == SCENE_TYPE_GAME) {
-			Game_Free();
+			GameBase_Free();
 		}
 
 		if (sm.scenes[i].free == NULL) continue;
@@ -42,7 +42,7 @@ void SceneManager_InitActive(void) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
-		Game_Init();
+		GameBase_Init();
 	}
 
 	if (sm.scenes[sm.activeScenes - 1].init == NULL) return;
@@ -54,7 +54,7 @@ void SceneManager_FreeActive(void) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
-		Game_Free();
+		GameBase_Free();
 	}
 
 	if (sm.scenes[sm.activeScenes - 1].free == NULL) return;
@@ -66,7 +66,7 @@ void SceneManager_UpdateActive(void) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
-		Game_Update(true);
+		GameBase_Update(true);
 	}
 
 	if (sm.scenes[sm.activeScenes - 1].update == NULL) return;
@@ -78,7 +78,7 @@ void SceneManager_HandleEvent(Event* e) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
-		Game_HandleEvent(e);
+		GameBase_HandleEvent(e);
 	}
 
 	for (size_t i = sm.activeScenes; i -- > 0;) {
@@ -93,7 +93,7 @@ void SceneManager_HandleEvent(Event* e) {
 void SceneManager_Update(void) {
 	for (size_t i = 0; i < sm.activeScenes; ++ i) {
 		if (sm.scenes[i].type == SCENE_TYPE_GAME) {
-			Game_Update(i == sm.activeScenes - 1);
+			GameBase_Update(i == sm.activeScenes - 1);
 		}
 
 		if (sm.scenes[i].update == NULL) continue;
@@ -104,7 +104,7 @@ void SceneManager_Update(void) {
 void SceneManager_Render(void) {
 	for (size_t i = 0; i < sm.activeScenes; ++ i) {
 		if (sm.scenes[i].type == SCENE_TYPE_GAME) {
-			Game_Render();
+			GameBase_Render();
 		}
 
 		if (sm.scenes[i].render == NULL) continue;

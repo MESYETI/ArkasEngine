@@ -17,7 +17,7 @@ typedef struct {
 
 extern Video video;
 
-void   Video_Init(void);
+void   Video_Init(const char* gameName);
 void   Video_Free(void);
 Colour Video_MultiplyColour(Colour colour, float by);
 

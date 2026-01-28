@@ -1,6 +1,5 @@
 SOURCES := $(wildcard source/*.c) $(wildcard source/**/*.c) lib/PlatinumSrc/audio.c
 OBJECTS := $(patsubst lib/PlatinumSrc/%.c,bin/PlatinumSrc_%.o,$(patsubst source/%.c,bin/%.o,$(SOURCES)))
-OUT     := arkas
 PLAT    := $(shell uname -s)
 
 ifeq ($(PLAT),NetBSD)
@@ -16,6 +15,13 @@ else
 	override LDLIBS += -lSDL2 -lGL
 endif
 LD := $(CC)
+
+ifeq ($(LIB),y)
+	OUT := libArkasEngine.a
+else
+	OUT := arkas
+	override CFLAGS += -DAE_STANDALONE
+endif
 
 ifeq ($(STATIC), y)
 	override CFLAGS += -static -static-libgcc -static-libstdc++
@@ -53,8 +59,11 @@ all: $(OUT)
 run: $(OUT)
 	'$(dir $<)$(notdir $<)' $(RUNFLAGS)
 
-$(OUT): $(OBJECTS)
+arkas: $(OBJECTS)
 	$(LD) $(LDFLAGS) $^ $(LDLIBS) -o $@
+
+libArkasEngine.a: $(OBJECTS)
+	ar rcs libArkasEngine.a $(OBJECTS)
 
 bin/:
 	mkdir -p bin

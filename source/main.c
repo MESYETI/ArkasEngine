@@ -1,9 +1,13 @@
-#include "app.h"
+#include "engine.h"
 
+#ifdef AE_STANDALONE
 int main(void) {
-	App_Init();
-	while (app.running) {
-		App_Update();
+	Engine_Init("Arkas Engine (standalone)");
+	engine.console = true;
+
+	while (engine.running) {
+		Engine_Update();
 	}
-	App_Free();
+	Engine_Free();
 }
+#endif

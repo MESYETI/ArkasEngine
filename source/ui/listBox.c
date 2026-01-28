@@ -1,4 +1,4 @@
-#include "../app.h"
+#include "../engine.h"
 #include "../mem.h"
 #include "../util.h"
 #include "../text.h"
@@ -28,15 +28,15 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 
 	for (size_t i = 0; i < data->len; ++ i) {
 		Rect rect = (Rect) {
-			eRect.x, eRect.y + (((int) i) * (app.font.charHeight + 8)),
-			eRect.w, app.font.charHeight + 8
+			eRect.x, eRect.y + (((int) i) * (engine.font.charHeight + 8)),
+			eRect.w, engine.font.charHeight + 8
 		};
 
 		if (*data->selected == data->list[i].label) {
 			Backend_RenderRect(rect, Video_MultiplyColour(theme.bg[1], 1.5));
 		}
 
-		Text_Render(&app.font, data->list[i].label, rect.x + 4, rect.y + 4);
+		Text_Render(&engine.font, data->list[i].label, rect.x + 4, rect.y + 4);
 	}
 
 	UI_RenderBorder(0, eRect, true);
@@ -56,8 +56,8 @@ static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down
 
 	for (size_t i = 0; i < data->len; ++ i) {
 		Rect rect = (Rect) {
-			eRect.x, eRect.y + (((int) i) * (app.font.charHeight + 8)),
-			eRect.w, app.font.charHeight + 8
+			eRect.x, eRect.y + (((int) i) * (engine.font.charHeight + 8)),
+			eRect.w, engine.font.charHeight + 8
 		};
 
 		if (PointInRect(input.mousePos, rect)) {
@@ -78,7 +78,7 @@ UI_Element UI_NewListBox(
 	UI_Element ret;
 	ret.fixedWidth      = fixedW;
 	ret.data            = SafeMalloc(sizeof(UI_ListBox));
-	ret.preferredHeight = app.font.charHeight + 8;
+	ret.preferredHeight = engine.font.charHeight + 8;
 	ret.free            = NULL;
 	ret.render          = &Render;
 	ret.onClick         = &OnClick;

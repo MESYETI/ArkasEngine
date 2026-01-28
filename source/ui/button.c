@@ -1,5 +1,5 @@
 #include "button.h"
-#include "../app.h"
+#include "../engine.h"
 #include "../mem.h"
 #include "../util.h"
 #include "../input.h"
@@ -28,11 +28,11 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	UI_RenderBorder(1, btnRect, data->pressed);
 
 	Vec2 textSize = {
-		app.font.charWidth  * strlen(data->label), app.font.charHeight
+		engine.font.charWidth  * strlen(data->label), engine.font.charHeight
 	};
 
 	Text_Render(
-		&app.font, data->label,
+		&engine.font, data->label,
 		rect.x + e->x + ((e->w / 2) - (textSize.x / 2)),
 		rect.y + e->y + ((e->h / 2) - (textSize.y / 2))
 	);
@@ -81,9 +81,9 @@ static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {
 
 UI_Element UI_NewButton(const char* label, bool fixed, UI_ButtonFunc onClick) {
 	UI_Element ret;
-	ret.fixedWidth      = fixed? (strlen(label) * app.font.charWidth) + 8 : 0;
+	ret.fixedWidth      = fixed? (strlen(label) * engine.font.charWidth) + 8 : 0;
 	ret.data            = SafeMalloc(sizeof(UI_Button));
-	ret.preferredHeight = app.font.charHeight + 8;
+	ret.preferredHeight = engine.font.charHeight + 8;
 	ret.free            = &Free;
 	ret.render          = &Render;
 	ret.onClick         = &OnClick;

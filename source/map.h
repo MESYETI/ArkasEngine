@@ -10,6 +10,7 @@ typedef struct {
 } MapPoint;
 
 typedef struct {
+	bool      blank;
 	bool      isPortal;
 	size_t    portalSector; // TODO: check this when loading a map
 	Resource* texture;
@@ -20,6 +21,10 @@ typedef struct {
 	size_t    length;
 	float     ceiling;
 	float     floor;
+	FVec2     floorTexOff;
+	FVec2     ceilingTexOff;
+	bool      floorBlank;
+	bool      ceilingBlank;
 
 	Resource* floorTexture;
 	Resource* ceilingTexture;

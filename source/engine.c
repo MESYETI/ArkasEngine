@@ -1,5 +1,5 @@
 #include "fs.h"
-#include "app.h"
+#include "engine.h"
 #include "map.h"
 #include "util.h"
 #include "event.h"
@@ -14,9 +14,9 @@
 #include "console.h"
 #include "resources.h"
 
-App app;
+Engine engine;
 
-void App_Init(void) {
+void Engine_Init(const char* gameName) {
 	// make game engine folders
 	MakeDir("game",        true);
 	MakeDir("game/extra",  true);
@@ -34,16 +34,15 @@ void App_Init(void) {
 		exit(1);
 	}
 
-	Video_Init();
+	Video_Init(gameName);
 	SceneManager_Init();
 	Audio_Init();
 	Theme_Init();
 
 	bool success;
-	app.running = true;
-	app.font    = Text_LoadFont(":builtin/font.png", &success);
-	app.console = true;
-	app.fps     = 0;
+	engine.running = true;
+	engine.font    = Text_LoadFont(":builtin/font.png", &success);
+	engine.fps     = 0;
 
 	if (!success) {
 		Error("Failed to load font");
@@ -71,34 +70,34 @@ void App_Init(void) {
 	}
 }
 
-void App_Free(void) {
+void Engine_Free(void) {
 	Log("Goodbye!");
 
 	Input_Free();
 	Audio_Free();
 	SceneManager_Free();
-	Text_FreeFont(&app.font);
+	Text_FreeFont(&engine.font);
 	Resources_Free();
 	Video_Free();
 	SDL_Quit();
 }
 
-void App_Update(void) {
+void Engine_Update(void) {
 	static uint64_t oldFrameTime = 0;
 
 	uint64_t newFrameTime  = SDL_GetTicks64();
 	uint64_t frameTimeDiff = newFrameTime - oldFrameTime;
-	app.delta              = frameTimeDiff / 1000.0f;
+	engine.delta           = frameTimeDiff / 1000.0f;
 
 	static float fpsTimer = 0.0;
 	static int   frames   = 0;
 
 	++ frames;
-	fpsTimer += app.delta;
+	fpsTimer += engine.delta;
 
 	if (fpsTimer >= 1.0) {
 		fpsTimer = 0.0;
-		app.fps  = frames;
+		engine.fps  = frames;
 		frames   = 0;
 	}
 
@@ -110,16 +109,16 @@ void App_Update(void) {
 			case AE_EVENT_KEY_DOWN: {
 				switch (e.key.key) {
 					case AE_KEY_GRAVE: {
-						if (!app.console) {
+						if (!engine.console) {
 							Console_Begin();
-							app.console = true;
+							engine.console = true;
 						}
 						break;
 					}
 					case AE_KEY_ESCAPE: {
-						if (app.console) {
+						if (engine.console) {
 							Console_End();
-							app.console = false;
+							engine.console = false;
 						}
 						break;
 					}
@@ -127,7 +126,7 @@ void App_Update(void) {
 				}
 				break;
 			}
-			case AE_EVENT_QUIT: app.running = false; break;
+			case AE_EVENT_QUIT: engine.running = false; break;
 			case AE_EVENT_WINDOW_RESIZE: {
 				video.width  = e.windowResize.width;
 				video.height = e.windowResize.height;
@@ -138,7 +137,7 @@ void App_Update(void) {
 
 		SceneManager_HandleEvent(&e);
 
-		if (app.console) {
+		if (engine.console) {
 			Console_HandleEvent(&e);
 		}
 	}
@@ -150,7 +149,7 @@ void App_Update(void) {
 	Backend_Begin();
 	SceneManager_Render();
 
-	if (app.console) {
+	if (engine.console) {
 		Console_Render();
 	}
 

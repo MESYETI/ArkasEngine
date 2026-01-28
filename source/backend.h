@@ -38,6 +38,7 @@ void Backend_Clear(uint8_t r, uint8_t g, uint8_t b);
 void Backend_Viewport(int x, int y, int w, int h);
 void Backend_RenderRect(Rect rect, Colour colour);
 void Backend_RenderLine(Vec2 a, Vec2 b, Colour colour);
+void Backend_InitSkybox(void);
 void Backend_FinishRender(void);
 
 // portable

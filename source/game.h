@@ -9,6 +9,7 @@
 typedef struct {
 	float sensitivity;
 	float musicVolume;
+	bool  skyboxFiltering;
 
 	Input_BindID forward;
 	Input_BindID left;
@@ -19,10 +20,10 @@ typedef struct {
 
 extern GameBaseConfig gameBaseConfig;
 
-void Game_Init(void);
-void Game_Free(void);
-void Game_Update(bool top);
-void Game_HandleEvent(Event* e);
-void Game_Render(void);
+void GameBase_Init(void);
+void GameBase_Free(void);
+void GameBase_Update(bool top);
+void GameBase_HandleEvent(Event* e);
+void GameBase_Render(void);
 
 #endif

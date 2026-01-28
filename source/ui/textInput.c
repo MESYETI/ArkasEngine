@@ -1,4 +1,4 @@
-#include "../app.h"
+#include "../engine.h"
 #include "../mem.h"
 #include "../text.h"
 #include "../theme.h"
@@ -24,19 +24,19 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	UI_RenderBorder(1, eRect, true);
 
 	Vec2 textSize = {
-		app.font.charWidth * strlen(data->dest), app.font.charHeight
+		engine.font.charWidth * strlen(data->dest), engine.font.charHeight
 	};
 
 	Vec2 textPos = {
 		rect.x + e->x + 4, rect.y + e->y + ((e->h / 2) - (textSize.y / 2))
 	};
 
-	Text_Render(&app.font, data->dest, textPos.x, textPos.y);
+	Text_Render(&engine.font, data->dest, textPos.x, textPos.y);
 
 	if (focus) {
 		Backend_VLine(
-			textPos.x + (app.font.charWidth * ((int) data->cursor)), textPos.y,
-			1, app.font.charHeight, (Colour) {255, 255, 255}
+			textPos.x + (engine.font.charWidth * ((int) data->cursor)), textPos.y,
+			1, engine.font.charHeight, (Colour) {255, 255, 255}
 		);
 	}
 }
@@ -79,7 +79,7 @@ UI_Element UI_NewTextInput(char* dest, size_t size) {
 	UI_Element ret;
 	ret.fixedWidth      = 0;
 	ret.data            = SafeMalloc(sizeof(UI_TextInput));
-	ret.preferredHeight = app.font.charHeight + 8;
+	ret.preferredHeight = engine.font.charHeight + 8;
 	ret.free            = &Free;
 	ret.onClick         = NULL;
 	ret.render          = &Render;

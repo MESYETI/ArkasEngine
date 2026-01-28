@@ -1,5 +1,5 @@
 #include "ui.h"
-#include "app.h"
+#include "engine.h"
 #include "mem.h"
 #include "video.h"
 #include "backend.h"
@@ -113,13 +113,13 @@ static void Init(Scene* scene) {
 
 	UI_Row* row = UI_ContainerAddRow(container, 24);
 
-	UI_RowAddElement(row, UI_NewLabel(&app.font, "File name:", UI_LABEL_FIXED));
+	UI_RowAddElement(row, UI_NewLabel(&engine.font, "File name:", UI_LABEL_FIXED));
 	UI_RowAddElement(row, UI_NewTextInput(fileName, sizeof(fileName)));
 	UI_RowFinish(row, true);
 
 	row = UI_ContainerAddRow(container, 24);
 
-	UI_RowAddElement(row, UI_NewDynLabel(&app.font, &CWDLabel, 0));
+	UI_RowAddElement(row, UI_NewDynLabel(&engine.font, &CWDLabel, 0));
 	UI_RowAddElement(row, UI_NewButton("Up", true, &UpButton));
 	UI_RowFinish(row, true);
 

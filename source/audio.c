@@ -1,4 +1,4 @@
-#include "app.h"
+#include "engine.h"
 #include "game.h"
 #include "audio.h"
 
@@ -14,7 +14,7 @@ void Audio_Free(void) {
 }
 
 void Audio_Update(void) {
-	updateAudio(app.delta);
+	updateAudio(engine.delta);
 }
 
 static int16_t* Callback(

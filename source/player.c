@@ -1,4 +1,4 @@
-#include "app.h"
+#include "engine.h"
 #include "player.h"
 #include "camera.h"
 
@@ -87,17 +87,17 @@ void Player_Physics(void) {
 		frictionValue = player.airFriction;
 	}
 
-	double friction = 1.0 / ((frictionValue * app.delta) + 1);
+	double friction = 1.0 / ((frictionValue * engine.delta) + 1);
 
 	if (!player.skipFriction) {
 		player.vel.x *= friction;
 		player.vel.z *= friction;
 	}
-	player.vel.y -= app.delta * player.gravity;
+	player.vel.y -= engine.delta * player.gravity;
 
-	player.pos.x += player.vel.x * app.delta;
-	player.pos.y += player.vel.y * app.delta;
-	player.pos.z += player.vel.z * app.delta;
+	player.pos.x += player.vel.x * engine.delta;
+	player.pos.y += player.vel.y * engine.delta;
+	player.pos.z += player.vel.z * engine.delta;
 
 	Zero(&player.vel.x);
 	Zero(&player.vel.z);

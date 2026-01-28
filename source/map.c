@@ -80,18 +80,18 @@ void Map_LoadTest(void) {
 
 	map.walls     = SafeMalloc(12 * sizeof(Wall));
 	map.wallsLen  = 12;
-	map.walls[0]  = (Wall) {false, 0, NULL};
-	map.walls[1]  = (Wall) {true,  1, NULL};
-	map.walls[2]  = (Wall) {false, 0, NULL};
-	map.walls[3]  = (Wall) {false, 0, NULL};
-	map.walls[4]  = (Wall) {false, 0, NULL};
-	map.walls[5]  = (Wall) {false, 0, NULL};
-	map.walls[6]  = (Wall) {false, 0, NULL};
-	map.walls[7]  = (Wall) {false, 0, NULL};
-	map.walls[8]  = (Wall) {false, 0, NULL};
-	map.walls[9]  = (Wall) {true,  0, NULL};
-	map.walls[10] = (Wall) {false, 0, NULL};
-	map.walls[11] = (Wall) {false, 0, NULL};
+	map.walls[0]  = (Wall) {false, false, 0, NULL};
+	map.walls[1]  = (Wall) {false, true,  1, NULL};
+	map.walls[2]  = (Wall) {false, false, 0, NULL};
+	map.walls[3]  = (Wall) {false, false, 0, NULL};
+	map.walls[4]  = (Wall) {false, false, 0, NULL};
+	map.walls[5]  = (Wall) {false, false, 0, NULL};
+	map.walls[6]  = (Wall) {false, false, 0, NULL};
+	map.walls[7]  = (Wall) {false, false, 0, NULL};
+	map.walls[8]  = (Wall) {false, false, 0, NULL};
+	map.walls[9]  = (Wall) {false, true,  0, NULL};
+	map.walls[10] = (Wall) {false, false, 0, NULL};
+	map.walls[11] = (Wall) {false, false, 0, NULL};
 
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
 		map.walls[i].texture = Resources_GetRes(":base/3p_textures/rock1.png", 0);
@@ -100,8 +100,12 @@ void Map_LoadTest(void) {
 	map.sectors    = SafeMalloc(2 * sizeof(Sector));
 	map.sectorsLen = 2;
 
-	map.sectors[0] = (Sector) {0, 6, 50, -0.5, NULL, NULL};
-	map.sectors[1] = (Sector) {6, 6, 10, -0.3, NULL, NULL};
+	map.sectors[0] = (Sector) {
+		0, 6, 50, -0.5, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL
+	};
+	map.sectors[1] = (Sector) {
+		6, 6, 10, -0.3, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL
+	};
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
 		map.sectors[i].floorTexture =
@@ -164,6 +168,7 @@ bool Map_LoadFile(const char* path) {
 
 	// read walls
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
+		map.walls[i].blank        = false;
 		map.walls[i].isPortal     = Stream_Read8(&file) != 0;
 		map.walls[i].portalSector = Stream_Read32(&file);
 
@@ -186,6 +191,11 @@ bool Map_LoadFile(const char* path) {
 		map.sectors[i].ceiling = Stream_ReadFloat(&file);
 		map.sectors[i].floor   = Stream_ReadFloat(&file);
 		// map.sectors[i].texture = texture;
+
+		map.sectors[i].floorTexOff   = (FVec2) {0.0, 0.0};
+		map.sectors[i].ceilingTexOff = (FVec2) {0.0, 0.0};
+		map.sectors[i].floorBlank    = false;
+		map.sectors[i].ceilingBlank  = false;
 
 		uint32_t floorTexture = Stream_Read32(&file);
 		uint32_t ceilTexture  = Stream_Read32(&file);

@@ -4,11 +4,11 @@
 
 Video video;
 
-void Video_Init(void) {
+void Video_Init(const char* gameName) {
 	video.width  = 640;
 	video.height = 480;
 	video.window = SDL_CreateWindow(
-		"Arkas Engine", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+		gameName, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		video.width, video.height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 	);
 

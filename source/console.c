@@ -1,4 +1,4 @@
-#include "app.h"
+#include "engine.h"
 #include "util.h"
 #include "text.h"
 #include "mem.h"
@@ -293,21 +293,21 @@ void Console_Render(void) {
 		console.editor[0] = 0;
 	}
 
-	int y = video.height - (app.font.charHeight * 2);
+	int y = video.height - (engine.font.charHeight * 2);
 
 	for (size_t i = 0; i < 100; ++ i) {
-		Text_Render(&app.font, console.lines[i], 1, y);
-		y -= app.font.charHeight;
+		Text_Render(&engine.font, console.lines[i], 1, y);
+		y -= engine.font.charHeight;
 
-		if (y < -app.font.charHeight) {
+		if (y < -engine.font.charHeight) {
 			break;
 		}
 	}
 
-	Text_Render(&app.font, "> ", 1, video.height - app.font.charHeight);
+	Text_Render(&engine.font, "> ", 1, video.height - engine.font.charHeight);
 
 	Text_Render(
-		&app.font, console.editor, 1 + (app.font.charWidth * 2),
-		video.height - app.font.charHeight
+		&engine.font, console.editor, 1 + (engine.font.charWidth * 2),
+		video.height - engine.font.charHeight
 	);
 }

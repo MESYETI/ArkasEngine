@@ -1,4 +1,4 @@
-#include "app.h"
+#include "engine.h"
 #include "text.h"
 #include "game.h"
 #include "util.h"
@@ -19,7 +19,7 @@ GameBaseConfig gameBaseConfig = {
 AudioEmitter emitters2d[1];
 AudioEmitter emitters3d[2];
 
-void Game_Init(void) {
+void GameBase_Init(void) {
 	//Map_Init();
 	startAudio();
 	SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -84,14 +84,14 @@ void Game_Init(void) {
 	Player_Init();
 }
 
-void Game_Free(void) {
+void GameBase_Free(void) {
 	SDL_SetRelativeMouseMode(SDL_FALSE);
 	stopAudio();
 	Map_Free();
 }
 
-void Game_Update(bool top) {
-	if (!top || app.console) return;
+void GameBase_Update(bool top) {
+	if (!top || engine.console) return;
 
 	const uint8_t* keys = SDL_GetKeyboardState(NULL);
 
@@ -106,23 +106,23 @@ void Game_Update(bool top) {
 	FVec3 oldPos = camera.pos;
 
 	if (Input_BindPressed(gameBaseConfig.forward)) {
-		player.acc.z += CosDeg(player.yaw) * speed * app.delta;
-		player.acc.x += SinDeg(player.yaw) * speed * app.delta;
+		player.acc.z += CosDeg(player.yaw) * speed * engine.delta;
+		player.acc.x += SinDeg(player.yaw) * speed * engine.delta;
 		moved         = true;
 	}
 	if (Input_BindPressed(gameBaseConfig.left)) {
-		player.acc.z += CosDeg(player.yaw - 90) * speed * app.delta;
-		player.acc.x += SinDeg(player.yaw - 90) * speed * app.delta;
+		player.acc.z += CosDeg(player.yaw - 90) * speed * engine.delta;
+		player.acc.x += SinDeg(player.yaw - 90) * speed * engine.delta;
 		moved         = true;
 	}
 	if (Input_BindPressed(gameBaseConfig.backward)) {
-		player.acc.z += CosDeg(player.yaw + 180) * speed * app.delta;
-		player.acc.x += SinDeg(player.yaw + 180) * speed * app.delta;
+		player.acc.z += CosDeg(player.yaw + 180) * speed * engine.delta;
+		player.acc.x += SinDeg(player.yaw + 180) * speed * engine.delta;
 		moved         = true;
 	}
 	if (Input_BindPressed(gameBaseConfig.right)) {
-		player.acc.z += CosDeg(player.yaw + 90) * speed * app.delta;
-		player.acc.x += SinDeg(player.yaw + 90) * speed * app.delta;
+		player.acc.z += CosDeg(player.yaw + 90) * speed * engine.delta;
+		player.acc.x += SinDeg(player.yaw + 90) * speed * engine.delta;
 		moved         = true;
 	}
 	if (Input_KeyPressed(AE_KEY_P)) {
@@ -198,7 +198,7 @@ void Game_Update(bool top) {
 	};
 }
 
-void Game_HandleEvent(Event* e) {
+void GameBase_HandleEvent(Event* e) {
 	switch (e->type) {
 		case AE_EVENT_KEY_DOWN: {
 			if (Input_MatchBind(gameBaseConfig.jump, e)) {
@@ -212,9 +212,9 @@ void Game_HandleEvent(Event* e) {
 		}
 		case AE_EVENT_MOUSE_MOVE: {
 			player.yaw +=
-				(float) e->mouseMove.xRel * gameBaseConfig.sensitivity * app.delta;
+				(float) e->mouseMove.xRel * gameBaseConfig.sensitivity * engine.delta;
 			player.pitch -=
-				(float) e->mouseMove.yRel * gameBaseConfig.sensitivity * app.delta;
+				(float) e->mouseMove.yRel * gameBaseConfig.sensitivity * engine.delta;
 
 			if (player.pitch >  90.0) player.pitch =  90.0;
 			if (player.pitch < -90.0) player.pitch = -90.0;
@@ -224,35 +224,35 @@ void Game_HandleEvent(Event* e) {
 	}
 }
 
-void Game_Render(void) {
+void GameBase_Render(void) {
 	Player_FPCamera();
 	Backend_RenderScene();
 
 	static char text[80];
-	snprintf(text, 80, "FPS: %d", app.fps);
-	Text_Render(&app.font, text, 8, 8);
+	snprintf(text, 80, "FPS: %d", engine.fps);
+	Text_Render(&engine.font, text, 8, 8);
 
 	snprintf(text, 80, "X: %.3f", player.pos.x);
-	Text_Render(&app.font, text, 8, 8 + 16);
+	Text_Render(&engine.font, text, 8, 8 + 16);
 	snprintf(text, 80, "Y: %.3f", player.pos.y);
-	Text_Render(&app.font, text, 8, 8 + (16 * 2));
+	Text_Render(&engine.font, text, 8, 8 + (16 * 2));
 	snprintf(text, 80, "Z: %.3f", player.pos.z);
-	Text_Render(&app.font, text, 8, 8 + (16 * 3));
+	Text_Render(&engine.font, text, 8, 8 + (16 * 3));
 	snprintf(text, 80, "Sector: %d", (int) (camera.sector - map.sectors));
-	Text_Render(&app.font, text, 8, 8 + (16 * 4));
+	Text_Render(&engine.font, text, 8, 8 + (16 * 4));
 	snprintf(text, 80, "Camera: %.3f %.3f %.3f", camera.pos.x, camera.pos.y, camera.pos.z);
-	Text_Render(&app.font, text, 8, 8 + (16 * 5));
+	Text_Render(&engine.font, text, 8, 8 + (16 * 5));
 	snprintf(text, 80, "Player rot: %.3f %.3f", player.yaw, player.pitch);
-	Text_Render(&app.font, text, 8, 8 + (16 * 6));
+	Text_Render(&engine.font, text, 8, 8 + (16 * 6));
 	snprintf(text, 80, "Sector floor: %.3f", camera.sector->floor);
-	Text_Render(&app.font, text, 8, 8 + (16 * 7));
+	Text_Render(&engine.font, text, 8, 8 + (16 * 7));
 	snprintf(text, 80, "Velocity: %.3f %.3f %.3f", player.vel.x, player.vel.y, player.vel.z);
-	Text_Render(&app.font, text, 8, 8 + (16 * 8));
-	snprintf(text, 80, "Delta time: %.3f", app.delta);
-	Text_Render(&app.font, text, 8, 8 + (16 * 9));
+	Text_Render(&engine.font, text, 8, 8 + (16 * 8));
+	snprintf(text, 80, "Delta time: %.3f", engine.delta);
+	Text_Render(&engine.font, text, 8, 8 + (16 * 9));
 	snprintf(
 		text, 80, "Grounded: %s",
 		FloatEqual(player.sector->floor, player.pos.y, 0.05)? "true" : "false"
 	);
-	Text_Render(&app.font, text, 8, 8 + (16 * 10));
+	Text_Render(&engine.font, text, 8, 8 + (16 * 10));
 }

@@ -3,7 +3,15 @@
 #include "backend.h"
 #include "texture.h"
 
-Skybox skybox;
+Skybox skybox = {
+	.east   = NULL,
+	.ground = NULL,
+	.north  = NULL,
+	.sky    = NULL,
+	.south  = NULL,
+	.west   = NULL,
+	.active = false
+};
 
 typedef struct {
 	const char* name;
@@ -21,6 +29,10 @@ bool Skybox_Load(const char* path) {
 	};
 
 	for (size_t i = 0; i < 6; ++ i) {
+		if (*parts[i].dest != NULL) {
+			Backend_FreeTexture(*parts[i].dest);
+		}
+
 		*parts[i].dest = NULL;
 	}
 	skybox.active = false;
@@ -45,5 +57,6 @@ bool Skybox_Load(const char* path) {
 	}
 
 	skybox.active = true;
+	Backend_InitSkybox();
 	return true;
 }

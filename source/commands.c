@@ -1,4 +1,4 @@
-#include "app.h"
+#include "engine.h"
 #include "map.h"
 #include "mem.h"
 #include "game.h"
@@ -33,7 +33,7 @@ static void Command_Test(size_t argc, char** argv) {
 		NULL, NULL
 	});
 	Map_LoadTest();
-	app.console = false;
+	engine.console = false;
 }
 
 static void Command_ClearScenes(size_t argc, char** argv) {
@@ -61,7 +61,7 @@ static void Command_Map(size_t argc, char** argv) {
 	}
 
 	free(path2);
-	app.console = false;
+	engine.console = false;
 }
 
 static void Command_DlMap(size_t argc, char** argv) {
@@ -143,15 +143,16 @@ typedef struct {
 
 static void Command_Set(size_t argc, char** argv) {
 	static const Variable vars[] = {
-		{VAR_FLOAT, "player.ground-friction", &player.groundFriction},
-		{VAR_FLOAT, "player.gravity",         &player.gravity},
-		{VAR_FLOAT, "player.speed",           &player.speed},
-		{VAR_FLOAT, "player.air-speed",       &player.airSpeed},
-		{VAR_FLOAT, "player.jump-speed",      &player.jumpSpeed},
-		{VAR_FLOAT, "game.sensitivity",       &gameBaseConfig.sensitivity},
-		{VAR_FLOAT, "game.music-volume",      &gameBaseConfig.musicVolume},
-		{VAR_BOOL,  "echo",                   &console.echo},
-		{VAR_INT,   "engine.scale-2D",        &globalConfig.scale2D}
+		{VAR_FLOAT, "player.ground-friction",  &player.groundFriction},
+		{VAR_FLOAT, "player.gravity",          &player.gravity},
+		{VAR_FLOAT, "player.speed",            &player.speed},
+		{VAR_FLOAT, "player.air-speed",        &player.airSpeed},
+		{VAR_FLOAT, "player.jump-speed",       &player.jumpSpeed},
+		{VAR_FLOAT, "game.sensitivity",        &gameBaseConfig.sensitivity},
+		{VAR_FLOAT, "game.music-volume",       &gameBaseConfig.musicVolume},
+		{VAR_BOOL,  "echo",                    &console.echo},
+		{VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D},
+		{VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering}
 	};
 
 	if (argc == 0) {
@@ -245,7 +246,7 @@ static void Command_Help(size_t argc, char** argv) {
 
 static void Command_Exit(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
-	app.running = false;
+	engine.running = false;
 }
 
 static void Command_Peak(size_t argc, char** argv) {
@@ -330,7 +331,7 @@ static void Command_TestScene(size_t argc, char** argv) {
 	Log("Starting test scene");
 
 	SceneManager_AddScene(TestScene());
-	app.console = false;
+	engine.console = false;
 }
 
 static void Command_Editor(size_t argc, char** argv) {
@@ -340,7 +341,7 @@ static void Command_Editor(size_t argc, char** argv) {
 	Log("Starting map editor");
 
 	SceneManager_AddScene(MapEditorScene());
-	app.console = false;
+	engine.console = false;
 }
 
 typedef struct {
@@ -422,14 +423,14 @@ static void Command_ImageViewer(size_t argc, char** argv) {
 	SceneManager_AddScene(ImageViewerScene(argv[0]));
 
 	Resources_FreeRes(res);
-	app.console = false;
+	engine.console = false;
 }
 
 static void Command_FPS(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
 	(void) argv;
 
-	Log("FPS: %d", app.fps);
+	Log("FPS: %d", engine.fps);
 }
 
 static void Command_Browser(size_t argc, char** argv) {
@@ -437,7 +438,7 @@ static void Command_Browser(size_t argc, char** argv) {
 	(void) argv;
 
 	SceneManager_AddScene(FileBrowserScene());
-	app.console = false;
+	engine.console = false;
 }
 
 static void Command_Skybox(size_t argc, char** argv) {

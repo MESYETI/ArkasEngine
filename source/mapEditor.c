@@ -1,5 +1,5 @@
 #include "ui.h"
-#include "app.h"
+#include "engine.h"
 #include "mem.h"
 #include "map.h"
 #include "video.h"
@@ -98,13 +98,14 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 	for (size_t i = 0; i < sectorsLen; ++ i) {
 		map.sectors[i] = (Sector) {
 			pointsNum, sectors[i].pointsLen, 0.5, -0.5,
+			(FVec2) {0, 0}, (FVec2) {0, 0}, false, false,
 			Resources_GetRes(":base/3p_textures/grass2.png", 0),
 			Resources_GetRes(":base/3p_textures/wood3.png", 0)
 		};
 		for (size_t j = 0; j < sectors[i].pointsLen; ++ j, ++ pointsNum) {
 			map.points[pointsNum] = (MapPoint) {sectors[i].points[j].pos};
 			map.walls[pointsNum]  = (Wall) {
-				false, 0, Resources_GetRes(":base/3p_textures/brick1.png", 0)
+				false, false, 0, Resources_GetRes(":base/3p_textures/brick1.png", 0)
 			};
 		}
 	}
@@ -152,7 +153,7 @@ static void Init(Scene* scene) {
 		{"Finish", &FinishSectorButton}
 	};
 
-	UI_RowAddElement(row, UI_NewLabel(&app.font, "Arkas Map Editor", 0));
+	UI_RowAddElement(row, UI_NewLabel(&engine.font, "Arkas Map Editor", 0));
 	UI_RowAddElement(row, UI_NewDropDown("File", fileButtons, 4, false));
 	UI_RowAddElement(row, UI_NewButton("Edit", false, NULL));
 	UI_RowAddElement(row, UI_NewDropDown("Sector", sectorButtons, 2, false));
@@ -166,8 +167,8 @@ static void Init(Scene* scene) {
 
 	row = UI_ContainerAddRow(bottomCont, 18);
 
-	UI_RowAddElement(row, UI_NewDynLabel(&app.font, &CoordLabel, 0));
-	UI_RowAddElement(row, UI_NewDynLabel(&app.font, &ModeLabel, UI_LABEL_CENTERED));
+	UI_RowAddElement(row, UI_NewDynLabel(&engine.font, &CoordLabel, 0));
+	UI_RowAddElement(row, UI_NewDynLabel(&engine.font, &ModeLabel, UI_LABEL_CENTERED));
 	UI_RowAddElement(row, UI_NewButton("Play", false, &PlayButton));
 	UI_RowFinish(row, false);
 

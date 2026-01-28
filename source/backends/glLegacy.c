@@ -2,6 +2,7 @@
 #include "../art.h"
 #include "../map.h"
 #include "../mem.h"
+#include "../game.h"
 #include "../util.h"
 #include "../video.h"
 #include "../skybox.h"
@@ -37,6 +38,12 @@ static void GL_Error(GLenum error, const char* file, int line) {
 } while(0)
 
 #define GL(CALL) GL_CALL(CALL, __FILE__, __LINE__)
+
+typedef struct {
+	bool edgeClamp;
+} Features;
+
+static Features features;
 
 typedef struct {
 	float nearPlane;
@@ -159,15 +166,24 @@ void Backend_Init(bool beforeWindow) {
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &intVal);
 	Log("Max texture size: %d", intVal);
 
-	if (
-		strstr((const char*) glGetString(GL_EXTENSIONS), "GL_ARB_multitexture")
-		!= NULL
-	) {
+	const char* ext = glGetString(GL_EXTENSIONS);
+
+	if (strstr(ext, "GL_ARB_multitexture") != NULL) {
 		Log("Multitexture available");
 	}
 	else {
 		Log("Multitexture not available");
 	}
+
+	if (strstr(ext, "SGIS_texture_edge_clamp") != NULL) {
+		Log("SGIS texture edge clamp extension available");
+		features.edgeClamp = true;
+	}
+	else {
+		Log("SGIS texture edge clamp extension not available");
+		features.edgeClamp = false;
+	}
+
 	Log("==================");
 
 	/*Log("Extensions:");
@@ -253,35 +269,35 @@ Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch) {
 	// return LoadTexture(data, newWidth, newHeight, ch);
 
 	GLuint tex;
-    GL(glGenTextures(1, &tex));
-    GL(glBindTexture(GL_TEXTURE_2D, tex));
+	GL(glGenTextures(1, &tex));
+	GL(glBindTexture(GL_TEXTURE_2D, tex));
 	GL(glTexImage2D(
 		GL_TEXTURE_2D, 0, ch, newWidth, newHeight, 0, (ch == 3) ? GL_RGB : GL_RGBA,
 		GL_UNSIGNED_BYTE, data
 	));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_REPEAT));
-    GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_REPEAT));
+	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_REPEAT));
+	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_REPEAT));
 
-    free(data);
-    GL(glBindTexture(GL_TEXTURE_2D, 0));
+	free(data);
+	GL(glBindTexture(GL_TEXTURE_2D, 0));
 
-    // now put this texture in the texture array
-    for (size_t i = 0; i < sizeof(state.textures) / sizeof(Texture); ++ i) {
-    	if (!state.textures[i].used) {
-    		state.textures[i].used         = true;
-    		state.textures[i].name         = tex;
-    		state.textures[i].width        = width;
-    		state.textures[i].height       = height;
-    		state.textures[i].actualWidth  = newWidth;
-    		state.textures[i].actualHeight = newHeight;
-    		return &state.textures[i];
-    	}
-    }
+	// now put this texture in the texture array
+	for (size_t i = 0; i < sizeof(state.textures) / sizeof(Texture); ++ i) {
+		if (!state.textures[i].used) {
+			state.textures[i].used         = true;
+			state.textures[i].name         = tex;
+			state.textures[i].width        = width;
+			state.textures[i].height       = height;
+			state.textures[i].actualWidth  = newWidth;
+			state.textures[i].actualHeight = newHeight;
+			return &state.textures[i];
+		}
+	}
 
-    Error("No more room for textures");
-    return NULL;
+	Error("No more room for textures");
+	return NULL;
 }
 
 // Texture* Backend_LoadTexture(const char* path) {
@@ -314,6 +330,8 @@ static void RenderSector(Sector* sector) {
 	state.sectorsRendered[sector - map.sectors] = true;
 
 	for (size_t i = 0; i < sector->length; ++ i) {
+		if (map.walls[i + sector->start].blank) continue;
+
 		const MapPoint* point1 = &map.points[i + sector->start];
 		const MapPoint* point2 = (i == sector->length - 1)?
 			&map.points[sector->start] : &map.points[i + sector->start + 1];
@@ -406,28 +424,38 @@ static void RenderSector(Sector* sector) {
 	}
 
 	// render floor
-	glBindTexture(GL_TEXTURE_2D, sector->floorTexture->v.texture->name);
-	glBegin(GL_TRIANGLE_FAN);
-	glColor3f(1.0, 1.0, 1.0);
+	if (!sector->floorBlank) {
+		glBindTexture(GL_TEXTURE_2D, sector->floorTexture->v.texture->name);
+		glBegin(GL_TRIANGLE_FAN);
+		glColor3f(1.0, 1.0, 1.0);
 
-	for (size_t i = sector->length - 1; true; -- i) {
-		size_t idx = i + sector->start;
-		glTexCoord2f(-map.points[idx].pos.x, map.points[idx].pos.y);
-		glVertex3f(map.points[idx].pos.x, sector->floor, map.points[idx].pos.y);
+		for (size_t i = sector->length - 1; true; -- i) {
+			size_t idx = i + sector->start;
+			glTexCoord2f(
+				-map.points[idx].pos.x + sector->floorTexOff.x,
+				map.points[idx].pos.y + sector->floorTexOff.y
+			);
+			glVertex3f(map.points[idx].pos.x, sector->floor, map.points[idx].pos.y);
 
-		if (i == 0) break;
+			if (i == 0) break;
+		}
+		GL(glEnd());
 	}
-	GL(glEnd());
 
 	// render ceiling
-	glBindTexture(GL_TEXTURE_2D, sector->ceilingTexture->v.texture->name);
-	glBegin(GL_TRIANGLE_FAN);
-	for (size_t i = 0; i < sector->length; ++ i) {
-		size_t idx = i + sector->start;
-		glTexCoord2f(map.points[idx].pos.x, map.points[idx].pos.y);
-		glVertex3f(map.points[idx].pos.x, sector->ceiling, map.points[idx].pos.y);
+	if (!sector->ceilingBlank) {
+		glBindTexture(GL_TEXTURE_2D, sector->ceilingTexture->v.texture->name);
+		glBegin(GL_TRIANGLE_FAN);
+		for (size_t i = 0; i < sector->length; ++ i) {
+			size_t idx = i + sector->start;
+			glTexCoord2f(
+				map.points[idx].pos.x + sector->ceilingTexOff.x,
+				map.points[idx].pos.y + sector->ceilingTexOff.y
+			);
+			glVertex3f(map.points[idx].pos.x, sector->ceiling, map.points[idx].pos.y);
+		}
+		GL(glEnd());
 	}
-	GL(glEnd());
 
 	for (size_t i = 0; i < sector->length; ++ i) {
 		const Wall* wall = &map.walls[i + sector->start];
@@ -711,6 +739,28 @@ void Backend_RenderLine(Vec2 a, Vec2 b, Colour colour) {
 	glVertex2i(b.x, b.y);
 	GL(glEnd());
 	GL(glEnable(GL_TEXTURE_2D));
+}
+
+void Backend_InitSkybox(void) {
+	if (!features.edgeClamp || !gameBaseConfig.skyboxFiltering) return;
+
+	Texture* textures[] = {
+		skybox.east,
+		skybox.ground,
+		skybox.north,
+		skybox.sky,
+		skybox.south,
+		skybox.west
+	};
+
+	for (size_t i = 0; i < 6; ++ i) {
+		GL(glBindTexture(GL_TEXTURE_2D, textures[i]->name));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE_SGIS));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE_SGIS));
+	}
 }
 
 void Backend_FinishRender(void) {
