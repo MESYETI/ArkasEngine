@@ -27,11 +27,17 @@ void Map_Init(void) {
 
 void Map_Free(void) {
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
-		Resources_FreeRes(map.sectors[i].floorTexture);
-		Resources_FreeRes(map.sectors[i].ceilingTexture);
+		if (map.sectors[i].floorTexture) {
+			Resources_FreeRes(map.sectors[i].floorTexture);
+		}
+		if (map.sectors[i].ceilingTexture) {
+			Resources_FreeRes(map.sectors[i].ceilingTexture);
+		}
 	}
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		Resources_FreeRes(map.walls[i].texture);
+		if (map.walls[i].texture) {
+			Resources_FreeRes(map.walls[i].texture);
+		}
 	}
 
 	if (map.points != NULL) {
