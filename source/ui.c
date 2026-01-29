@@ -317,7 +317,11 @@ UI_Row* UI_ContainerAddRow(UI_Container* container, int height) {
 	int  y    = rect.h;
 
 	++ container->rowAmount;
-	container->rows[container->rowAmount - 1] = (UI_Row) {0, height, y, NULL, container};
+
+	container->rows[container->rowAmount - 1] = (UI_Row) {
+		0, height, y, NULL, container, height == 0
+	};
+
 	return &container->rows[container->rowAmount - 1];
 }
 
@@ -378,10 +382,10 @@ UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element) {
 	return &row->elems[row->elemAmount - 1];
 }
 
-void UI_RowFinish(UI_Row* row, bool autoHeight) {
+void UI_RowUpdate(UI_Row* row) {
 	int usableSpace = row->container->w - row->container->padRight;
 
-	if (autoHeight) {
+	if (row->autoHeight) {
 		int preferredHeight = 0;
 
 		for (size_t i = 0; i < row->elemAmount; ++ i) {

@@ -158,7 +158,7 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewButton("Edit", false, NULL));
 	UI_RowAddElement(row, UI_NewDropDown("Sector", sectorButtons, 2, false));
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));
-	UI_RowFinish(row, false);
+	UI_RowUpdate(row);
 
 	bottomCont = UI_ManagerAddContainer(&scene->ui, video.width);
 	UI_ContainerAlignLeft(bottomCont, 0);
@@ -170,7 +170,7 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewDynLabel(&engine.font, &CoordLabel, 0));
 	UI_RowAddElement(row, UI_NewDynLabel(&engine.font, &ModeLabel, UI_LABEL_CENTERED));
 	UI_RowAddElement(row, UI_NewButton("Play", false, &PlayButton));
-	UI_RowFinish(row, false);
+	UI_RowUpdate(row);
 
 	mCamera = (FVec2) {0, 0};
 }

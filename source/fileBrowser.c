@@ -111,17 +111,17 @@ static void Init(Scene* scene) {
 	UI_ContainerCenterY(container);
 	UI_ContainerSetPadding(container, 5, 5, 5, 5);
 
-	UI_Row* row = UI_ContainerAddRow(container, 24);
+	UI_Row* row = UI_ContainerAddRow(container, 0);
 
 	UI_RowAddElement(row, UI_NewLabel(&engine.font, "File name:", UI_LABEL_FIXED));
 	UI_RowAddElement(row, UI_NewTextInput(fileName, sizeof(fileName)));
-	UI_RowFinish(row, true);
+	UI_RowUpdate(row);
 
-	row = UI_ContainerAddRow(container, 24);
+	row = UI_ContainerAddRow(container, 0);
 
 	UI_RowAddElement(row, UI_NewDynLabel(&engine.font, &CWDLabel, 0));
 	UI_RowAddElement(row, UI_NewButton("Up", true, &UpButton));
-	UI_RowFinish(row, true);
+	UI_RowUpdate(row);
 
 	// make drive list
 	driveList = SafeMalloc(resources.drivesNum * sizeof(UI_ListBoxItem));
@@ -137,14 +137,14 @@ static void Init(Scene* scene) {
 	filesElem = UI_RowAddElement(
 		row, UI_NewListBox(NULL, 0, &fileSelected, 0, FileClick)
 	);
-	UI_RowFinish(row, false);
+	UI_RowUpdate(row);
 
-	row = UI_ContainerAddRow(container, 24);
+	row = UI_ContainerAddRow(container, 0);
 	UI_RowAddElement(row, UI_NewSpacer(0));
 	UI_RowAddElement(row, UI_NewSpacer(0));
 	UI_RowAddElement(row, UI_NewButton("Save", false, NULL));
 	UI_RowAddElement(row, UI_NewButton("Cancel", false, NULL));
-	UI_RowFinish(row, true);
+	UI_RowUpdate(row);
 }
 
 static void Free(Scene* scene) {

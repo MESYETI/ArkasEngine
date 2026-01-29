@@ -30,6 +30,7 @@ typedef struct {
 	int           y;
 	UI_Element*   elems;
 	UI_Container* container;
+	bool          autoHeight;
 } UI_Row;
 
 enum {
@@ -94,6 +95,6 @@ void    UI_ContainerRender(UI_Container* container, bool focus);
 Rect    UI_ContainerGetRect(UI_Container* container);
 
 UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element);
-void        UI_RowFinish(UI_Row* row, bool autoHeight);
+void        UI_RowUpdate(UI_Row* row);
 
 #endif

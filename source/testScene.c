@@ -23,16 +23,16 @@ static void Init(Scene* scene) {
 	UI_ContainerAlignTop(container, 10);
 	UI_ContainerSetPadding(container, 5, 5, 5, 5);
 
-	UI_Row* row = UI_ContainerAddRow(container, 24);
+	UI_Row* row = UI_ContainerAddRow(container, 0);
 
 	UI_RowAddElement(row, UI_NewLabel(&engine.font, "hello!", 0));
 	UI_RowAddElement(row, UI_NewButton("manul button", false, &ManulButton));
-	UI_RowFinish(row, true);
+	UI_RowUpdate(row);
 
-	row = UI_ContainerAddRow(container, 24);
+	row = UI_ContainerAddRow(container, 0);
 
 	UI_RowAddElement(row, UI_NewTextInput(input, sizeof(input)));
-	UI_RowFinish(row, true);
+	UI_RowUpdate(row);
 
 	input[0] = 0;
 }
