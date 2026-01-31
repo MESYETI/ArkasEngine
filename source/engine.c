@@ -34,20 +34,6 @@ void Engine_Init(const char* gameName) {
 		exit(1);
 	}
 
-	Video_Init(gameName);
-	SceneManager_Init();
-	Audio_Init();
-	Theme_Init();
-
-	bool success;
-	engine.running = true;
-	engine.font    = Text_LoadFont(":builtin/font.png", &success);
-	engine.fps     = 0;
-
-	if (!success) {
-		Error("Failed to load font");
-	}
-
 	if (!FileExists("startup.cmd")) {
 		Log("Generating startup.cmd");
 
@@ -67,6 +53,20 @@ void Engine_Init(const char* gameName) {
 	Log("Running startup...");
 	if (!Console_RunFile("startup.cmd")) {
 		Log("Failed to run startup");
+	}
+
+	Video_Init(gameName);
+	SceneManager_Init();
+	Audio_Init();
+	Theme_Init();
+
+	bool success;
+	engine.running = true;
+	engine.font    = Text_LoadFont(":builtin/font.png", &success);
+	engine.fps     = 0;
+
+	if (!success) {
+		Error("Failed to load font");
 	}
 }
 

@@ -132,36 +132,40 @@ static void Command_Resources(size_t argc, char** argv) {
 enum {
 	VAR_INT,
 	VAR_FLOAT,
-	VAR_BOOL
+	VAR_BOOL,
+	VAR_STR
 };
 
 typedef struct {
 	int         type;
 	const char* name;
 	void*       ptr;
+	size_t      size;
 } Variable;
 
 static void Command_Set(size_t argc, char** argv) {
 	static const Variable vars[] = {
-		{VAR_FLOAT, "player.ground-friction",  &player.groundFriction},
-		{VAR_FLOAT, "player.gravity",          &player.gravity},
-		{VAR_FLOAT, "player.speed",            &player.speed},
-		{VAR_FLOAT, "player.air-speed",        &player.airSpeed},
-		{VAR_FLOAT, "player.jump-speed",       &player.jumpSpeed},
-		{VAR_FLOAT, "game.sensitivity",        &gameBaseConfig.sensitivity},
-		{VAR_FLOAT, "game.music-volume",       &gameBaseConfig.musicVolume},
-		{VAR_BOOL,  "echo",                    &console.echo},
-		{VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D},
-		{VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering}
+		{VAR_FLOAT, "player.ground-friction",  &player.groundFriction, 0},
+		{VAR_FLOAT, "player.gravity",          &player.gravity, 0},
+		{VAR_FLOAT, "player.speed",            &player.speed, 0},
+		{VAR_FLOAT, "player.air-speed",        &player.airSpeed, 0},
+		{VAR_FLOAT, "player.jump-speed",       &player.jumpSpeed, 0},
+		{VAR_FLOAT, "game.sensitivity",        &gameBaseConfig.sensitivity, 0},
+		{VAR_FLOAT, "game.music-volume",       &gameBaseConfig.musicVolume, 0},
+		{VAR_BOOL,  "echo",                    &console.echo, 0},
+		{VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D, 0},
+		{VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering, 0},
+		{VAR_STR,   "engine.backend",          &backendOptions.name, 20}
 	};
 
 	if (argc == 0) {
 		for (size_t i = 0; i < sizeof(vars) / sizeof(Variable); ++ i) {
 			switch (vars[i].type) {
-				case VAR_INT:   Log("int:   %s", vars[i].name); break;
-				case VAR_FLOAT: Log("float: %s", vars[i].name); break;
-				case VAR_BOOL:  Log("bool:  %s", vars[i].name); break;
-				default:        Log("???:   %s", vars[i].name); break;
+				case VAR_INT:   Log("int:    %s", vars[i].name); break;
+				case VAR_FLOAT: Log("float:  %s", vars[i].name); break;
+				case VAR_BOOL:  Log("bool:   %s", vars[i].name); break;
+				case VAR_STR:   Log("string: %s[%d]", vars[i].name, vars[i].size); break;
+				default:        Log("???:    %s", vars[i].name); break;
 			}
 		}
 	}
@@ -182,6 +186,10 @@ static void Command_Set(size_t argc, char** argv) {
 							"%s = %s", argv[0],
 							(*((bool*) vars[i].ptr))? "true" : "false"
 						);
+						break;
+					}
+					case VAR_STR: {
+						Log("%s = %s", argv[0], vars[i].ptr);
 						break;
 					}
 					default: assert(0);
@@ -217,6 +225,10 @@ static void Command_Set(size_t argc, char** argv) {
 							return;
 						}
 
+						break;
+					}
+					case VAR_STR: {
+						strncpy(vars[i].ptr, argv[1], vars[i].size);
 						break;
 					}
 					default: assert(0);

@@ -11,7 +11,7 @@
 #include "../backend.h"
 #include "glLegacy.h"
 
-#ifdef AE_BACKEND_LEGACY_GL
+#ifdef AE_BACKEND_GL_LEGACY
 
 static void GL_Error(GLenum error, const char* file, int line) {
 	const char* errorStr;
@@ -41,9 +41,15 @@ static void GL_Error(GLenum error, const char* file, int line) {
 
 typedef struct {
 	bool edgeClamp;
+	bool multiTexture;
+	bool gl2;
 } Features;
 
-static Features features;
+static Features features = {
+	.edgeClamp    = false,
+	.multiTexture = false,
+	.gl2          = false
+};
 
 typedef struct {
 	float nearPlane;
@@ -120,14 +126,26 @@ static void CalcViewMatrix(void) {
 
 void Backend_Init(bool beforeWindow) {
 	if (beforeWindow) {
+		int major = 1;
+		int minor = 1;
+
+		if (strcmp(backendOptions.name, "gl1") == 0) {
+			major = 1;
+			minor = 1;
+		}
+		else if (strcmp(backendOptions.name, "gl2") == 0) {
+			major = 2;
+			minor = 0;
+		}
+
 		assert(SDL_GL_SetAttribute(
 			SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY
 		) == 0);
 		assert(SDL_GL_SetAttribute(
-			SDL_GL_CONTEXT_MAJOR_VERSION, 1
+			SDL_GL_CONTEXT_MAJOR_VERSION, major
 		) == 0);
 		assert(SDL_GL_SetAttribute(
-			SDL_GL_CONTEXT_MINOR_VERSION, 0
+			SDL_GL_CONTEXT_MINOR_VERSION, minor
 		) == 0);
 		//#if USE_KHR_DEBUG
 		//    assert(SDL_GL_SetAttribute(
@@ -141,23 +159,26 @@ void Backend_Init(bool beforeWindow) {
 	state.ctx = SDL_GL_CreateContext(video.window);
 	assert(SDL_GL_MakeCurrent(video.window, state.ctx) == 0);
 
-	if (SDL_GL_SetSwapInterval(-1) == -1) {
-		SDL_GL_SetSwapInterval(1);
+	int ver = gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress);
+
+	Log("GLAD loaded GL %d.%d", GLAD_VERSION_MAJOR(ver), GLAD_VERSION_MINOR(ver));
+
+	if (backendOptions.vsync) {
+		if (SDL_GL_SetSwapInterval(-1) == -1) {
+			SDL_GL_SetSwapInterval(1);
+		}
 	}
-	// SDL_GL_SetSwapInterval(0);
+	else {
+		SDL_GL_SetSwapInterval(0);
+	}
 
 	Log("Backend info: GL Legacy");
-
-	#ifdef AE_BACKEND_GL11
-		Log("Using OpenGL 1.1");
-	#else
-		Log("ERROR! Cannot log GL version");
-	#endif
 
 	Log("==================");
 	Log("Vendor:           %s", (const char*) glGetString(GL_VENDOR));
 	Log("Renderer:         %s", (const char*) glGetString(GL_RENDERER));
 	Log("Version:          %s", (const char*) glGetString(GL_VERSION));
+	Log("GLSL:             %s", (const char*) glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	int intVal;
 	glGetIntegerv(GL_MAX_LIGHTS, &intVal);
@@ -169,10 +190,12 @@ void Backend_Init(bool beforeWindow) {
 	const char* ext = glGetString(GL_EXTENSIONS);
 
 	if (strstr(ext, "GL_ARB_multitexture") != NULL) {
-		Log("Multitexture available");
+		Log("ARB multitexture extension available");
+		features.multiTexture = true;
 	}
 	else {
-		Log("Multitexture not available");
+		Log("ARB multitexture extension not available");
+		features.multiTexture = false;
 	}
 
 	if (strstr(ext, "SGIS_texture_edge_clamp") != NULL) {
@@ -185,6 +208,27 @@ void Backend_Init(bool beforeWindow) {
 	}
 
 	Log("==================");
+
+	int major, minor;
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
+	SDL_GL_GetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, &minor);
+
+	if (strcmp(backendOptions.name, "gl2") == 0) {
+		if (major == 2) {
+			Log("Using OpenGL 2.%d", minor);
+			features.gl2 = true;
+		}
+		else {
+			Log("OpenGL 2.x selected, but not available. Falling back to OpenGL 1.1");
+			features.gl2 = false;
+		}
+	}
+	else if ((major == 1) && (minor >= 1)) {
+		Log("Using OpenGL 1.%d", minor);
+	}
+	else {
+		Error("OpenGL version %d.%d unsupported", major, minor);
+	}
 
 	/*Log("Extensions:");
 	printf("    ");

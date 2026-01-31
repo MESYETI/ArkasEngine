@@ -1,5 +1,10 @@
 #include "backend.h"
 
+BackendOptions backendOptions = {
+	.vsync = true,
+	.name  = "gl1"
+};
+
 void Backend_VLine(int x, int y, int thick, int len, Colour colour) {
 	Backend_RenderRect((Rect) {x, y, thick, len}, colour);
 }

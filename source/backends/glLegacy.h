@@ -1,8 +1,11 @@
 #ifndef AE_BACKENDS_GL_LEGACY_H
 #define AE_BACKENDS_GL_LEGACY_H
 
+#include "../glad.h"
+
+/*
 #define GL_GLEXT_PROTOTYPES
-#ifdef AE_BACKEND_GL11
+#ifdef AE_BACKEND_GL_LEGACY
 	#ifdef PLATFORM_OSX
 		#include <OpenGL/gl.h>
 		#include <OpenGL/glext.h>
@@ -19,6 +22,7 @@
         #define USE_KHR_DEBUG 0
     #endif
 #endif
+*/
 
 typedef struct {
 	bool   used;

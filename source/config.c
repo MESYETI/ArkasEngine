@@ -1,6 +1,7 @@
 #include "util.h"
 #include "game.h"
 #include "config.h"
+#include "backend.h"
 
 GlobalConfig globalConfig = {.scale2D = 1};
 ConfigExt    configExt;
@@ -19,6 +20,8 @@ void SaveConfig(void) {
 		file, "set engine.skybox-filtering %s\n",
 		gameBaseConfig.skyboxFiltering? "true" : "false"
 	);
+	fprintf(file, "set engine.backend %s\n", backendOptions.name);
+	// fprintf(file, "set engine.vsync %s\n", backendOptions.vsync? "true" : "false");
 	fprintf(file, "bind game.forward W\n");
 	fprintf(file, "bind game.left A\n");
 	fprintf(file, "bind game.backward S\n");

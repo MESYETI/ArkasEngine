@@ -6,12 +6,18 @@
 
 // defined:
 //   (struct) Texture
-#if defined(AE_BACKEND_GL11)
-	#define AE_BACKEND_LEGACY_GL
+#if defined(AE_BACKEND_GL_LEGACY)
 	#include "backends/glLegacy.h"
 #else
 	#error "No backend"
 #endif
+
+typedef struct {
+	bool vsync;
+	char name[20];
+} BackendOptions;
+
+extern BackendOptions backendOptions;
 
 typedef struct {
 	bool   doTint;

@@ -30,7 +30,7 @@ endif
 override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib -Werror=return-type
 override LDLIBS += -lm
 
-override CPPFLAGS += -DAE_BACKEND_GL11 -DAE_AUDIO_PSRC -DAE_USE_SDL2
+override CPPFLAGS += -DAE_BACKEND_GL_LEGACY -DAE_AUDIO_PSRC -DAE_USE_SDL2
 override CPPFLAGS += -DSDL_MAIN_HANDLED
 
 ifeq ($(BUILD),release)

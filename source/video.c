@@ -5,6 +5,8 @@
 Video video;
 
 void Video_Init(const char* gameName) {
+	Backend_Init(true);
+
 	video.width  = 640;
 	video.height = 480;
 	video.window = SDL_CreateWindow(
