@@ -48,3 +48,6 @@ these commands:
 ### Todo
 - OpenGL 1.5 (for VBO)
 - OpenGL 2.0 (for shaders)
+
+## Community
+Arkas Engine is discussed in the non-bloat collective: <https://discord.gg/zPf8RS2a4r>
