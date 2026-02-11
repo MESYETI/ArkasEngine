@@ -13,6 +13,8 @@
 
 void Audio_Init(void);
 void Audio_Free(void);
+void Audio_StartAudio(void);
+void Audio_StopAudio(void);
 void Audio_Update(void);
 bool Audio_Play2DSound(
 	AudioEmitter, Resource*, int prio, unsigned int flags, unsigned int fxMask,

@@ -6,11 +6,23 @@ AudioEmitter musicEmitter;
 bool         playingMusic = false;
 
 void Audio_Init(void) {
-	initAudio();
+	if (!initAudio()) {
+		Log("Failed to initialise audio");
+	}
 }
 
 void Audio_Free(void) {
 	quitAudio(true);
+}
+
+void Audio_StartAudio(void) {
+	if (!startAudio()) {
+		Log("Failed to start audio");
+	}
+}
+
+void Audio_StopAudio(void) {
+	stopAudio();
 }
 
 void Audio_Update(void) {
