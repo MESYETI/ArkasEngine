@@ -117,3 +117,16 @@ void Audio_StopMusic(void) {
 	delete2DAudioEmitter(musicEmitter);
 	playingMusic = false;
 }
+
+void Audio_DefaultState(void) {
+	struct audioplayerdata* playerAudio = &audiostate.playerdata.data[0];
+	playerAudio->pos[0]    = 0;
+	playerAudio->pos[1]    = 0;
+	playerAudio->pos[2]    = 0;
+	playerAudio->rotsin[0] = SinDeg(0);
+	playerAudio->rotsin[1] = SinDeg(0);
+	playerAudio->rotsin[2] = SinDeg(0);
+	playerAudio->rotcos[0] = CosDeg(0);
+	playerAudio->rotcos[1] = CosDeg(0);
+	playerAudio->rotcos[2] = CosDeg(0);
+}

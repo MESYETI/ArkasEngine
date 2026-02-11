@@ -27,5 +27,6 @@ bool Audio_Play3DSound(
 bool Audio_MusicPlaying(void);
 bool Audio_PlayMusic(const char* path, bool loop);
 void Audio_StopMusic(void);
+void Audio_DefaultState(void);
 
 #endif
