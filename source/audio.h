@@ -23,7 +23,7 @@ bool Audio_Play3DSound(
 	const struct audiofx* fx
 );
 bool Audio_MusicPlaying(void);
-bool Audio_PlayMusic(const char* path);
+bool Audio_PlayMusic(const char* path, bool loop);
 void Audio_StopMusic(void);
 
 #endif

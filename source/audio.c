@@ -75,7 +75,7 @@ bool Audio_MusicPlaying(void) {
 	return playingMusic;
 }
 
-bool Audio_PlayMusic(const char* path) {
+bool Audio_PlayMusic(const char* path, bool loop) {
 	Resource* res = Resources_GetRes(path, 0);
 
 	if (!res) return false;
@@ -88,7 +88,7 @@ bool Audio_PlayMusic(const char* path) {
 
 	Audio_Play2DSound(
 		musicEmitter, res,
-		AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
+		AUDIOPRIO_DEFAULT, (loop? SOUNDFLAG_LOOP : 0) | SOUNDFLAG_WRAP,
 		AUDIOFXMASK_VOL,
 		&(struct audiofx) {.vol = {
 			gameBaseConfig.musicVolume, gameBaseConfig.musicVolume

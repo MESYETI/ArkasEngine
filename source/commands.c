@@ -327,7 +327,7 @@ static void Command_Music(size_t argc, char** argv) {
 		Audio_StopMusic();
 	}
 	else if (argc == 1) {
-		if (!Audio_PlayMusic(argv[0])) {
+		if (!Audio_PlayMusic(argv[0], true)) {
 			Log("Failed to play music");
 		}
 	}
