@@ -98,6 +98,11 @@ bool Audio_PlayMusic(const char* path, bool loop) {
 
 	musicEmitter = new2DAudioEmitter(AUDIOPRIO_DEFAULT, 1, 0, 0, NULL);
 
+	if (!musicEmitter) {
+		Log("Failed to create audio emitter");
+		return false;
+	}
+
 	Audio_Play2DSound(
 		musicEmitter, res,
 		AUDIOPRIO_DEFAULT, (loop? SOUNDFLAG_LOOP : 0) | SOUNDFLAG_WRAP,
