@@ -21,6 +21,7 @@ void SaveConfig(void) {
 		gameBaseConfig.skyboxFiltering? "true" : "false"
 	);
 	fprintf(file, "set engine.backend %s\n", backendOptions.name);
+	fprintf(file, "set game.music-volume 1\n");
 	// fprintf(file, "set engine.vsync %s\n", backendOptions.vsync? "true" : "false");
 	fprintf(file, "bind game.forward W\n");
 	fprintf(file, "bind game.left A\n");
