@@ -96,11 +96,7 @@ bool Audio_PlayMusic(const char* path, bool loop) {
 		Audio_StopMusic();
 	}
 
-	printf("len: %d\n", audiostate.emitters2d.len);
-	printf("before: %d\n", audiostate.valid);
 	musicEmitter = new2DAudioEmitter(AUDIOPRIO_DEFAULT, 1, 0, 0, NULL);
-	printf("after: %d\n", audiostate.valid);
-	printf("len: %d\n", audiostate.emitters2d.len);
 
 	if (musicEmitter == -1) {
 		Log("Failed to create audio emitter");
