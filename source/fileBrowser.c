@@ -4,13 +4,14 @@
 #include "video.h"
 #include "backend.h"
 #include "resources.h"
+#include "fileBrowser.h"
 #include "ui/label.h"
 #include "ui/button.h"
 #include "ui/spacer.h"
 #include "ui/listBox.h"
 #include "ui/dynLabel.h"
 #include "ui/textInput.h"
-#include "fileBrowser.h"
+#include "ui/scrollbar.h"
 
 static char fileName[128];
 static char cwd[1024];
@@ -137,6 +138,7 @@ static void Init(Scene* scene) {
 	filesElem = UI_RowAddElement(
 		row, UI_NewListBox(NULL, 0, &fileSelected, 0, FileClick)
 	);
+	UI_RowAddElement(row, UI_NewScrollBar(40));
 	UI_RowUpdate(row);
 
 	row = UI_ContainerAddRow(container, 0);
