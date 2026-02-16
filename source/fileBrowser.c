@@ -135,11 +135,12 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewListBox(
 		driveList, resources.drivesNum, &driveSelected, 100, DriveClick
 	));
-	filesElem = UI_RowAddElement(
+	UI_RowAddElement(
 		row, UI_NewListBox(NULL, 0, &fileSelected, 0, FileClick)
 	);
 	UI_RowAddElement(row, UI_NewScrollBar(40));
 	UI_RowUpdate(row);
+	filesElem = &row->elems[1];
 
 	row = UI_ContainerAddRow(container, 0);
 	UI_RowAddElement(row, UI_NewSpacer(0));
