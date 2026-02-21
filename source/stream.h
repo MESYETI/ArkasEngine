@@ -29,6 +29,8 @@ bool   Stream_Advance(Stream* stream, size_t bytes);
 // different types of stream
 Stream Stream_File(FILE* file, bool close);
 Stream Stream_Memory(void* addr, size_t size, bool free);
+Stream Stream_SubStream(Stream* stream, size_t start, size_t size);
+Stream Stream_Blank(void);
 
 // stream utils
 uint8_t  Stream_Read8(Stream* stream);
@@ -42,5 +44,6 @@ void     Stream_Write16(Stream* stream, uint16_t value);
 void     Stream_Write32(Stream* stream, uint32_t value);
 void     Stream_WriteFloat(Stream* stream, float value);
 void     Stream_WriteString(Stream* stream, const char* string);
+Stream*  Stream_ToHeap(Stream stream);
 
 #endif

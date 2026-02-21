@@ -45,8 +45,8 @@ extern Map map;
 void Map_Init(void);
 void Map_Free(void);
 void Map_LoadTest(void);
-bool Map_LoadFile(const char* path);
-bool Map_SaveFile(const char* path);
+bool Map_LoadFile(Stream* file, const char* path);
+bool Map_SaveFile(Stream* file);
 bool Map_PointInMap(FVec2 pos);
 
 #endif

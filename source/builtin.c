@@ -57,6 +57,20 @@ static ResourceFile* DriveList(ResourceDrive* drive, const char* folder, size_t*
 	return ret;
 }
 
+static Stream DriveOpen(ResourceDrive* drive, const char* path, bool* success) {
+	(void) drive;
+	*success = false;
+
+	for (size_t i = 0; i < sizeof(files) / sizeof(File); ++ i) {
+		if (strcmp(files[i].name, path) == 0) {
+			*success = true;
+			return Stream_Memory(files[i].data, files[i].len, false);
+		}
+	}
+
+	return Stream_Blank();
+}
+
 static void* DriveReadFile(ResourceDrive* drive, const char* path, size_t* size) {
 	(void) drive;
 
@@ -70,7 +84,7 @@ static void* DriveReadFile(ResourceDrive* drive, const char* path, size_t* size)
 		}
 	}
 
-	assert(0);
+	return NULL;
 }
 
 ResourceDrive* BuiltIn_GetDrive(void) {
@@ -79,8 +93,9 @@ ResourceDrive* BuiltIn_GetDrive(void) {
 
 	ret->free       = NULL;
 	ret->fileExists = &DriveFileExists;
-	ret->list       = &DriveList;
 	ret->printList  = &DrivePrintList;
+	ret->list       = &DriveList;
+	ret->open       = &DriveOpen;
 	ret->readFile   = &DriveReadFile;
 	return ret;
 }

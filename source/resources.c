@@ -18,12 +18,16 @@ void Resources_Init(void) {
 		Error("Failed to open directory 'game'");
 	}
 
-	resources.drives          = SafeMalloc(sizeof(ResourceDrive*) * 2);
-	resources.drivesNum       = 2;
+	resources.drives          = SafeMalloc(sizeof(ResourceDrive*) * 4);
+	resources.drivesNum       = 4;
 	resources.drives[0]       = BuiltIn_GetDrive();
 	resources.drives[0]->name = NewString("builtin");
 	resources.drives[1]       = NewFolderDrive("game/extra");
 	resources.drives[1]->name = NewString("extra");
+	resources.drives[2]       = NewFolderDrive("maps");
+	resources.drives[2]->name = NewString("maps");
+	resources.drives[3]       = NewFolderDrive("screenshots");
+	resources.drives[3]->name = NewString("screenshots");
 
 	struct dirent* entry;
 	while ((entry = readdir(dir)) != NULL) {
@@ -35,7 +39,11 @@ void Resources_Init(void) {
 		}
 
 		char* concatPath = ConcatString("game/", entry->d_name);
-		ResourceDrive* drive = Ark_CreateResourceDrive(concatPath);
+		FILE* file       = fopen(concatPath, "rb");
+
+		ResourceDrive* drive = Ark_CreateResourceDrive(
+			Stream_ToHeap(Stream_File(file, true)), true
+		);
 		free(concatPath);
 
 		if (drive == NULL) {
@@ -89,18 +97,16 @@ void Resources_Free(void) {
 }
 
 static ResourceDrive* GetDrive(const char* path) {
-	if (path[0] != ':') return NULL;
-
-	const char* name = &path[1];
+	const char* name = path;
 	size_t      nameLen;
 
-	const char* slash = strchr(path, '/');
+	const char* colon = strchr(path, ':');
 
-	if (slash) {
-		nameLen = slash - name;
+	if (colon) {
+		nameLen = colon - name;
 	}
 	else {
-		nameLen = strlen(name);
+		return NULL;
 	}
 
 	// find drive
@@ -124,7 +130,7 @@ bool Resources_FileExists(const char* path) {
 		return false;
 	}
 
-	const char* drivePath = strchr(path, '/');
+	const char* drivePath = strchr(path, ':');
 
 	if (!drivePath) {
 		Log("Invalid file path: '%s'", path);
@@ -142,10 +148,11 @@ ResourceFile* Resources_List(const char* path, size_t* sz) {
 		return NULL;
 	}
 
-	const char* drivePath = strchr(path, '/');
+	const char* drivePath = strchr(path, ':');
 
 	if (drivePath == NULL) {
-		drivePath = "";
+		Log("Invalid file path: '%s'", path);
+		return NULL;
 	}
 	else {
 		++ drivePath;
@@ -178,10 +185,11 @@ void Resources_PrintList(const char* path) {
 			return;
 		}
 
-		const char* drivePath = strchr(path, '/');
+		const char* drivePath = strchr(path, ':');
 
 		if (drivePath == NULL) {
-			drivePath = "";
+			Log("Invalid file path: '%s'", path);
+			return;
 		}
 		else {
 			++ drivePath;
@@ -199,10 +207,11 @@ void* Resources_ReadFile(const char* path, size_t* size) {
 		return NULL;
 	}
 
-	const char* drivePath = strchr(path, '/');
+	const char* drivePath = strchr(path, ':');
 
 	if (drivePath == NULL) {
-		drivePath = "";
+		Log("Invalid file path: '%s'", path);
+		return NULL;
 	}
 	else {
 		++ drivePath;
@@ -308,6 +317,15 @@ Resource* Resources_GetRes(const char* path, uint32_t opt) {
 		}
 
 		ret->v.audio.len = res;
+	}
+	else if (strcmp(ext, ".zkm") == 0) {
+		ret->type = RESOURCE_TYPE_MODEL;
+		
+		size_t   size;
+		uint8_t* data   = (uint8_t*) Resources_ReadFile(path, &size);
+		Stream   stream = Stream_Memory(data, size, true);
+
+		Model_Load(&ret->v.model, &stream, path);
 	}
 	else {
 		Log("Unknown resource type '%s'", ext);

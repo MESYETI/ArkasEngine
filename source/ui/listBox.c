@@ -11,6 +11,7 @@ typedef struct {
 	UI_ListBoxItem* list;
 	size_t          len;
 	const char**    selected;
+	UI_Element*     scrollbar;
 
 	UI_ListBoxOnClick onClick;
 } UI_ListBox;
@@ -24,19 +25,29 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 		cRect.x + e->x, cRect.y + e->y, e->w, e->h
 	};
 
+	size_t start = 0;
+
+	if (data->scrollbar) {
+		float scroll = UI_GetScrollBarPercent(data->scrollbar);
+
+		start = (size_t) (scroll * ((float) data->len));
+	}
+
 	Backend_RenderRect(eRect, theme.bg[1]);
 
-	for (size_t i = 0; i < data->len; ++ i) {
+	for (size_t i = 0; i < data->len - start; ++ i) {
+		size_t idx = start + i;
+
 		Rect rect = (Rect) {
 			eRect.x, eRect.y + (((int) i) * (engine.font.charHeight + 8)),
 			eRect.w, engine.font.charHeight + 8
 		};
 
-		if (*data->selected == data->list[i].label) {
+		if (*data->selected == data->list[idx].label) {
 			Backend_RenderRect(rect, Video_MultiplyColour(theme.bg[1], 1.5));
 		}
 
-		Text_Render(&engine.font, data->list[i].label, rect.x + 4, rect.y + 4);
+		Text_Render(&engine.font, data->list[idx].label, rect.x + 4, rect.y + 4);
 	}
 
 	UI_RenderBorder(0, eRect, true);
@@ -88,6 +99,7 @@ UI_Element UI_NewListBox(
 	data->list       = list;
 	data->len        = len;
 	data->selected   = selected;
+	data->scrollbar  = NULL;
 	data->onClick    = onClick;
 	*selected        = NULL;
 	return ret;
@@ -98,4 +110,13 @@ void UI_UpdateListBox(UI_Element* elem, UI_ListBoxItem* list, size_t len) {
 	data->list       = list;
 	data->len        = len;
 	*data->selected  = NULL;
+
+	if (data->scrollbar) {
+		UI_SetScrollBarPercent(data->scrollbar, 0.0);
+	}
+}
+
+void UI_ScrollListBox(UI_Element* elem, UI_Element* scrollbar) {
+	UI_ListBox* data = (UI_ListBox*) elem->data;
+	data->scrollbar  = scrollbar;
 }

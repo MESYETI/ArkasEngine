@@ -119,6 +119,31 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	return ret;
 }
 
+static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success) {
+	FolderDrive* drive = (FolderDrive*) p_drive;
+
+	*success = true;
+
+	if (strstr(path, "..")) {
+		Error("Insecure path: %s", path);
+	}
+
+	char pathAdd[4096];
+	strncpy(pathAdd, drive->path, 4096);
+	strncat(pathAdd, "/", 4096 - strlen(pathAdd));
+	strncat(pathAdd, path, 4096 - strlen(pathAdd));
+
+	FILE* file = fopen(pathAdd, "rb+");
+
+	if (file) {
+		return Stream_File(file, true);
+	}
+	else {
+		*success = false;
+		return Stream_Blank();
+	}
+}
+
 static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* size) {
 	FolderDrive* drive = (FolderDrive*) p_drive;
 
@@ -141,6 +166,7 @@ ResourceDrive* NewFolderDrive(const char* path) {
 	ret->parent.fileExists = &DriveFileExists;
 	ret->parent.printList  = &DrivePrintList;
 	ret->parent.list       = &DriveList;
+	ret->parent.open       = &DriveOpen;
 	ret->parent.readFile   = &DriveReadFile;
 	ret->path              = path;
 

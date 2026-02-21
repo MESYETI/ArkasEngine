@@ -100,10 +100,10 @@ void Map_LoadTest(void) {
 	map.walls[11] = (Wall) {false, false, 0, NULL};
 
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		map.walls[i].texture = Resources_GetRes(":base/3p_textures/rock1.png", 0);
+		map.walls[i].texture = Resources_GetRes("base:3p_textures/rock1.png", 0);
 
 		if (!map.walls[i].texture) {
-			map.walls[i].texture = Resources_GetRes(":builtin/no_texture.png", 0);
+			map.walls[i].texture = Resources_GetRes("builtin:no_texture.png", 0);
 		}
 	}
 
@@ -119,15 +119,15 @@ void Map_LoadTest(void) {
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
 		map.sectors[i].floorTexture =
-			Resources_GetRes(":base/3p_textures/grass3.png", 0);
+			Resources_GetRes("base:3p_textures/grass3.png", 0);
 		map.sectors[i].ceilingTexture =
-			Resources_GetRes(":base/3p_textures/rock2.png", 0);
+			Resources_GetRes("base:3p_textures/rock2.png", 0);
 
 		if (!map.sectors[i].floorTexture) {
-			map.sectors[i].floorTexture = Resources_GetRes(":builtin/no_texture.png", 0);
+			map.sectors[i].floorTexture = Resources_GetRes("builtin:no_texture.png", 0);
 		}
 		if (!map.sectors[i].ceilingTexture) {
-			map.sectors[i].ceilingTexture = Resources_GetRes(":builtin/no_texture.png", 0);
+			map.sectors[i].ceilingTexture = Resources_GetRes("builtin:no_texture.png", 0);
 		}
 	}
 
@@ -135,11 +135,7 @@ void Map_LoadTest(void) {
 	player.sector = &map.sectors[0];
 }
 
-bool Map_LoadFile(const char* path) {
-	FILE* fd = fopen(path, "rb+");
-
-	Stream file = Stream_File(fd, true);
-
+bool Map_LoadFile(Stream* file, const char* path) {
 	Map_Free();
 
 	char* baseName = strrchr(path, '/');
@@ -158,42 +154,41 @@ bool Map_LoadFile(const char* path) {
 
 	Log("Loading '%s'", map.name);
 
-	if (fd == NULL) return false;
-	map.pointsLen  = Stream_Read32(&file);
-	map.wallsLen   = Stream_Read32(&file);
-	map.sectorsLen = Stream_Read32(&file);
+	map.pointsLen  = Stream_Read32(file);
+	map.wallsLen   = Stream_Read32(file);
+	map.sectorsLen = Stream_Read32(file);
 
 	map.points  = SafeMalloc(map.pointsLen  * sizeof(MapPoint));
 	map.walls   = SafeMalloc(map.wallsLen   * sizeof(Wall));
 	map.sectors = SafeMalloc(map.sectorsLen * sizeof(Sector));
 
-	size_t stringsLen  = Stream_Read32(&file);
+	size_t stringsLen  = Stream_Read32(file);
 	char** stringTable = SafeMalloc((stringsLen + 1) * sizeof(char*));
 
 	stringTable[stringsLen] = NULL;
 
 	// read strings
 	for (size_t i = 0; i < stringsLen; ++ i) {
-		stringTable[i] = Stream_ReadString(&file);
+		stringTable[i] = Stream_ReadString(file);
 	}
 
 	// read points
 	for (size_t i = 0; i < map.pointsLen; ++ i) {
-		map.points[i].pos.x = Stream_ReadFloat(&file);
-		map.points[i].pos.y = Stream_ReadFloat(&file);
+		map.points[i].pos.x = Stream_ReadFloat(file);
+		map.points[i].pos.y = Stream_ReadFloat(file);
 	}
 
 	// read walls
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
 		map.walls[i].blank        = false;
-		map.walls[i].isPortal     = Stream_Read8(&file) != 0;
-		map.walls[i].portalSector = Stream_Read32(&file);
+		map.walls[i].isPortal     = Stream_Read8(file) != 0;
+		map.walls[i].portalSector = Stream_Read32(file);
 
 		if (map.walls[i].portalSector >= map.sectorsLen) {
 			Error("Out of bounds wall portal offset");
 		}
 
-		size_t texture = Stream_Read32(&file);
+		size_t texture = Stream_Read32(file);
 		if (texture >= stringsLen) {
 			Error("Out of bounds string table offset");
 		}
@@ -201,16 +196,16 @@ bool Map_LoadFile(const char* path) {
 		map.walls[i].texture = Resources_GetRes(stringTable[texture], 0);
 
 		if (!map.walls[i].texture) {
-			map.walls[i].texture = Resources_GetRes(":builtin/no_texture.png", 0);
+			map.walls[i].texture = Resources_GetRes("builtin:no_texture.png", 0);
 		}
 	}
 
 	// read sectors
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
-		map.sectors[i].start   = Stream_Read32(&file);
-		map.sectors[i].length  = Stream_Read32(&file);
-		map.sectors[i].ceiling = Stream_ReadFloat(&file);
-		map.sectors[i].floor   = Stream_ReadFloat(&file);
+		map.sectors[i].start   = Stream_Read32(file);
+		map.sectors[i].length  = Stream_Read32(file);
+		map.sectors[i].ceiling = Stream_ReadFloat(file);
+		map.sectors[i].floor   = Stream_ReadFloat(file);
 		// map.sectors[i].texture = texture;
 
 		map.sectors[i].floorTexOff   = (FVec2) {0.0, 0.0};
@@ -218,8 +213,8 @@ bool Map_LoadFile(const char* path) {
 		map.sectors[i].floorBlank    = false;
 		map.sectors[i].ceilingBlank  = false;
 
-		uint32_t floorTexture = Stream_Read32(&file);
-		uint32_t ceilTexture  = Stream_Read32(&file);
+		uint32_t floorTexture = Stream_Read32(file);
+		uint32_t ceilTexture  = Stream_Read32(file);
 
 		if ((floorTexture >= stringsLen) || (ceilTexture >= stringsLen)) {
 			Error("Out of bounds string table offset");
@@ -228,14 +223,14 @@ bool Map_LoadFile(const char* path) {
 		map.sectors[i].ceilingTexture = Resources_GetRes(stringTable[ceilTexture], 0);
 
 		if (!map.sectors[i].floorTexture) {
-			map.sectors[i].floorTexture = Resources_GetRes(":builtin/no_texture.png", 0);
+			map.sectors[i].floorTexture = Resources_GetRes("builtin:no_texture.png", 0);
 		}
 		if (!map.sectors[i].ceilingTexture) {
-			map.sectors[i].ceilingTexture = Resources_GetRes(":builtin/no_texure.png", 0);
+			map.sectors[i].ceilingTexture = Resources_GetRes("builtin:no_texure.png", 0);
 		}
 	}
 
-	Stream_Close(&file);
+	Stream_Close(file);
 
 	Log("Loaded map");
 	camera.sector = &map.sectors[0];
@@ -244,13 +239,7 @@ bool Map_LoadFile(const char* path) {
 	return true;
 }
 
-bool Map_SaveFile(const char* path) {
-	FILE* fd = fopen(path, "wb");
-
-	if (fd == NULL) return false;
-
-	Stream file = Stream_File(fd, true);
-
+bool Map_SaveFile(Stream* file) {
 	char** stringTable = SafeMalloc(sizeof(char*));
 	*stringTable       = NULL;
 
@@ -271,50 +260,50 @@ bool Map_SaveFile(const char* path) {
 		}
 	}
 
-	Stream_Write32(&file, (uint32_t) map.pointsLen);
-	Stream_Write32(&file, (uint32_t) map.wallsLen);
-	Stream_Write32(&file, (uint32_t) map.sectorsLen);
-	Stream_Write32(&file, StrArrayLength(stringTable));
+	Stream_Write32(file, (uint32_t) map.pointsLen);
+	Stream_Write32(file, (uint32_t) map.wallsLen);
+	Stream_Write32(file, (uint32_t) map.sectorsLen);
+	Stream_Write32(file, StrArrayLength(stringTable));
 
 	// write strings
 	for (size_t i = 0; stringTable[i]; ++ i) {
-		Stream_WriteString(&file, stringTable[i]);
+		Stream_WriteString(file, stringTable[i]);
 	}
 
 	// write points
 	for (size_t i = 0; i < map.pointsLen; ++ i) {
-		Stream_WriteFloat(&file, map.points[i].pos.x);
-		Stream_WriteFloat(&file, map.points[i].pos.y);
+		Stream_WriteFloat(file, map.points[i].pos.x);
+		Stream_WriteFloat(file, map.points[i].pos.y);
 	}
 
 	// write walls
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		Stream_Write8(&file, map.walls[i].isPortal? 1 : 0);
-		Stream_Write32(&file, map.walls[i].portalSector);
+		Stream_Write8(file, map.walls[i].isPortal? 1 : 0);
+		Stream_Write32(file, map.walls[i].portalSector);
 		Stream_Write32(
-			&file, (uint32_t) StrArrayFind(stringTable, map.walls[i].texture->name)
+			file, (uint32_t) StrArrayFind(stringTable, map.walls[i].texture->name)
 		);
 	}
 
 	// write sectors
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
-		Stream_Write32(&file, map.sectors[i].start);
-		Stream_Write32(&file, map.sectors[i].length);
-		Stream_WriteFloat(&file, map.sectors[i].ceiling);
-		Stream_WriteFloat(&file, map.sectors[i].floor);
+		Stream_Write32(file, map.sectors[i].start);
+		Stream_Write32(file, map.sectors[i].length);
+		Stream_WriteFloat(file, map.sectors[i].ceiling);
+		Stream_WriteFloat(file, map.sectors[i].floor);
 		Stream_Write32(
-			&file,
+			file,
 			(uint32_t) StrArrayFind(stringTable, map.sectors[i].floorTexture->name)
 		);
 		Stream_Write32(
-			&file,
+			file,
 			(uint32_t) StrArrayFind(stringTable, map.sectors[i].ceilingTexture->name)
 		);
 	}
 
 	FreeStrArray(stringTable);
 
-	Stream_Close(&file);
+	Stream_Close(file);
 
 	Log("Saved map '%s'", map.name);
 

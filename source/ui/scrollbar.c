@@ -114,3 +114,13 @@ UI_Element UI_NewScrollBar(int buttonHeight) {
 		.onEvent         = &OnEvent
 	};
 }
+
+float UI_GetScrollBarPercent(UI_Element* scrollbar) {
+	UI_ScrollBar* data = (UI_ScrollBar*) scrollbar->data;
+	return data->percent;
+}
+
+void UI_SetScrollBarPercent(UI_Element* scrollbar, float percent) {
+	UI_ScrollBar* data = (UI_ScrollBar*) scrollbar->data;
+	data->percent = percent;
+}

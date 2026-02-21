@@ -2,6 +2,7 @@
 #define AE_UI_LIST_BOX_H
 
 #include "../ui.h"
+#include "scrollbar.h"
 
 typedef void (*UI_ListBoxOnClick)(void);
 
@@ -14,5 +15,6 @@ UI_Element UI_NewListBox(
 	UI_ListBoxOnClick onClick
 );
 void UI_UpdateListBox(UI_Element* elem, UI_ListBoxItem* list, size_t len);
+void UI_ScrollListBox(UI_Element* elem, UI_Element* scrollbar);
 
 #endif

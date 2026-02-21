@@ -23,6 +23,12 @@ typedef struct {
 	float x, y, z;
 } FVec3;
 
+typedef struct {
+	float pitch;
+	float yaw;
+	float roll;
+} Direction;
+
 bool PointInRect(Vec2 point, Rect rect);
 
 #endif

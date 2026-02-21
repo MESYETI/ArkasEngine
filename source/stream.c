@@ -54,7 +54,7 @@ static size_t Size(Stream* stream) {
 */
 
 typedef struct {
-	FILE* file;
+	FILE*  file;
 } FileStream;
 
 static void FileClose(Stream* stream) {
@@ -99,7 +99,7 @@ static size_t FileSize(Stream* stream) {
 }
 
 Stream Stream_File(FILE* file, bool close) {
-	FileStream* data = SafeMalloc(sizeof(data));
+	FileStream* data = SafeMalloc(sizeof(FileStream));
 
 	data->file = file;
 
@@ -113,7 +113,6 @@ Stream Stream_File(FILE* file, bool close) {
 		.size  = &FileSize
 	};
 }
-
 
 typedef struct {
 	uint8_t* data;
@@ -153,9 +152,12 @@ static size_t MemPeek(Stream* stream) {
 static bool MemSeek(Stream* stream, size_t where) {
 	MemStream* data = (MemStream*) stream->data;
 
-	data->offset = where;
+	if (where > data->size) {
+		return false;
+	}
 
-	return data->offset <= data->size;
+	data->offset = where;
+	return true;
 }
 
 static size_t MemSize(Stream* stream) {
@@ -165,7 +167,7 @@ static size_t MemSize(Stream* stream) {
 }
 
 Stream Stream_Memory(void* addr, size_t size, bool free) {
-	MemStream* data = SafeMalloc(sizeof(data));
+	MemStream* data = SafeMalloc(sizeof(MemStream));
 
 	data->data   = addr;
 	data->offset = 0;
@@ -180,6 +182,76 @@ Stream Stream_Memory(void* addr, size_t size, bool free) {
 		.seek  = &MemSeek,
 		.size  = &MemSize
 	};
+}
+
+typedef struct {
+	Stream* stream;
+	size_t  offset;
+	size_t  start;
+	size_t  size;
+} SubStream;
+
+static size_t SubRead(Stream* stream, size_t size, void* dest) {
+	SubStream* data = (SubStream*) stream->data;
+
+	if (data->offset + size > data->size) {
+		size = data->size - data->offset;
+	}
+	if (data->offset >= data->size) {
+		return 0;
+	}
+
+	Stream_Seek(data->stream, data->start + data->offset);
+	size_t ret = Stream_Read(data->stream, size, dest);
+
+	data->offset += size;
+
+	return ret;
+}
+
+static size_t SubPeek(Stream* stream) {
+	SubStream* data = (SubStream*) stream->data;
+	return data->offset;
+}
+
+static bool SubSeek(Stream* stream, size_t where) {
+	SubStream* data = (SubStream*) stream->data;
+
+	if (where > data->size) {
+		return false;
+	}
+
+	data->offset = where;
+	return true;
+}
+
+static size_t SubSize(Stream* stream) {
+	SubStream* data = (SubStream*) stream->data;
+
+	return data->size;
+}
+
+Stream Stream_SubStream(Stream* stream, size_t start, size_t size) {
+	SubStream* data = SafeMalloc(sizeof(SubStream));
+
+	data->stream = stream;
+	data->offset = 0;
+	data->start  = start;
+	data->size   = size;
+
+	return (Stream) {
+		.data = data,
+		.close = free? &MemClose : NULL,
+		.write = NULL,
+		.read  = &SubRead,
+		.peek  = &SubPeek,
+		.seek  = &SubSeek,
+		.size  = &SubSize
+	};
+}
+
+Stream Stream_Blank(void) {
+	return (Stream) {0};
 }
 
 uint8_t Stream_Read8(Stream* stream) {
@@ -294,3 +366,8 @@ void Stream_WriteString(Stream* stream, const char* string) {
 	assert(Stream_Write(stream, len, (void*) string) == len);
 }
 
+Stream* Stream_ToHeap(Stream stream) {
+	Stream* ret = SafeMalloc(sizeof(Stream));
+	*ret        = stream;
+	return ret;
+}

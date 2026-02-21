@@ -140,7 +140,9 @@ static void Init(Scene* scene) {
 	);
 	UI_RowAddElement(row, UI_NewScrollBar(40));
 	UI_RowUpdate(row);
+
 	filesElem = &row->elems[1];
+	UI_ScrollListBox(filesElem, &row->elems[2]);
 
 	row = UI_ContainerAddRow(container, 0);
 	UI_RowAddElement(row, UI_NewSpacer(0));

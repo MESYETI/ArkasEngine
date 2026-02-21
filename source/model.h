@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "video.h"
+#include "stream.h"
 
 typedef struct {
 	uint32_t indices[3];
@@ -21,7 +22,7 @@ typedef struct {
 	FVec3 pos;
 } ModelRenderOpt;
 
-void Model_Load(Model* model, const char* path);
+void Model_Load(Model* model, Stream* file, const char* path);
 void Model_Free(Model* model);
 
 #endif

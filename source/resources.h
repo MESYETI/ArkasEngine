@@ -4,6 +4,7 @@
 #include "text.h"
 #include "util.h"
 #include "common.h"
+#include "stream.h"
 #include "backend.h"
 
 typedef struct ResourceDrive ResourceDrive;
@@ -20,6 +21,7 @@ struct ResourceDrive {
 	FUNCTION_POINTER(bool,          fileExists, ResourceDrive*, const char* path);
 	FUNCTION_POINTER(void,          printList, ResourceDrive*, const char* folder);
 	FUNCTION_POINTER(ResourceFile*, list, ResourceDrive*, const char* folder, size_t* sz);
+	FUNCTION_POINTER(Stream,        open, ResourceDrive*, const char* path, bool* success);
 
 	FUNCTION_POINTER(void*, readFile, ResourceDrive*, const char* path, size_t* size);
 
@@ -28,7 +30,8 @@ struct ResourceDrive {
 enum {
 	RESOURCE_TYPE_TEXTURE = 0,
 	RESOURCE_TYPE_AUDIO,
-	RESOURCE_TYPE_FONT
+	RESOURCE_TYPE_FONT,
+	RESOURCE_TYPE_MODEL
 };
 
 enum {
@@ -46,6 +49,7 @@ typedef union {
 	Texture*      texture;
 	AudioResource audio;
 	Font          font;
+	Model         model;
 } ResourceContents; // C99 moment
 
 typedef struct {

@@ -46,7 +46,7 @@ static void Command_ClearScenes(size_t argc, char** argv) {
 static void Command_Map(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
-	char* path1 = ConcatString("maps/", argv[0]);
+	char* path1 = ConcatString("maps:", argv[0]);
 	char* path2 = ConcatString(path1,   ".arm");
 	free(path1);
 
@@ -55,7 +55,17 @@ static void Command_Map(size_t argc, char** argv) {
 		NULL, NULL
 	});
 
-	if (!Map_LoadFile(path2)) {
+	size_t size;
+	void*  res = Resources_ReadFile(path2, &size);
+
+	if (!res) {
+		Log("Failed to load map");
+		SceneManager_PopScene();
+	}
+
+	Stream stream = Stream_Memory(res, size, true);
+
+	if (!Map_LoadFile(&stream, path2)) {
 		Log("Failed to load map");
 		SceneManager_PopScene();
 	}
@@ -67,11 +77,15 @@ static void Command_Map(size_t argc, char** argv) {
 static void Command_DlMap(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
+	Log("Unimplemented for now");
+
+	/*
 	char* path1 = ConcatString("maps/", argv[0]);
 	char* path2 = ConcatString(path1,   ".arm");
 	free(path1);
 	Map_SaveFile(path2);
 	free(path2);
+	*/
 }
 
 static void Command_Ls(size_t argc, char** argv) {

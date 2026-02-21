@@ -20,18 +20,19 @@ struct ArkEntry {
 };
 
 typedef struct {
-	Stream   file;
+	Stream*  file;
 	uint16_t ver;
 	char*    strings;
 	size_t   stringsLen;
 	ArkEntry root;
+	bool     free;
 } ArchiveReader;
 
-ErrorRet Ark_InitReader(ArchiveReader* reader, const char* path);
+ErrorRet Ark_InitReader(ArchiveReader* reader, Stream* stream, bool free);
 void     Ark_FreeReader(ArchiveReader* reader);
 ErrorRet Ark_Read(ArchiveReader* reader);
 void*    Ark_ReadFile(ArchiveReader* reader, ArkEntry* entry);
 
-ResourceDrive* Ark_CreateResourceDrive(const char* path);
+ResourceDrive* Ark_CreateResourceDrive(Stream* stream, bool free);
 
 #endif

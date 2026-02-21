@@ -62,7 +62,7 @@ void Engine_Init(const char* gameName) {
 
 	bool success;
 	engine.running = true;
-	engine.font    = Text_LoadFont(":builtin/font.png", &success);
+	engine.font    = Text_LoadFont("builtin:font.png", &success);
 	engine.fps     = 0;
 
 	if (!success) {
