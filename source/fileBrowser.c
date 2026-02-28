@@ -42,13 +42,18 @@ static void UpdateFiles(void) {
 }
 
 static void FileClick(void) {
+	if (cwd[0] == 0) return;
+
 	for (size_t i = 0; i < filesSize; ++ i) {
 		if (strcmp(BaseName(files[i].fullPath), fileSelected) == 0) {
 			if (!files[i].dir) return;
 		}
 	}
 
-	strncat(cwd, "/", sizeof(cwd) - strlen(cwd) - 1);
+	if (cwd[strlen(cwd) - 1] != ':') {
+		strncat(cwd, "/", sizeof(cwd) - strlen(cwd) - 1);
+	}
+
 	strncat(cwd, fileSelected, sizeof(cwd) - strlen(cwd) - 1);
 
 	if (files) {
@@ -69,8 +74,8 @@ static void DriveClick(void) {
 		fileList = NULL;
 	}
 
-	strcpy(cwd, ":");
-	strncat(cwd, driveSelected, sizeof(cwd) - 2);
+	strncpy(cwd, driveSelected, sizeof(cwd) - 2);
+	strcat(cwd, ":");
 	UpdateFiles();
 }
 

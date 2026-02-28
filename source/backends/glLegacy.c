@@ -60,6 +60,8 @@ typedef struct {
 	float aspect;
 	Model model;
 
+	BackendViewport viewport;
+
 	SDL_GLContext ctx;
 	Texture       textures[64];
 
@@ -152,6 +154,9 @@ void Backend_Init(bool beforeWindow) {
 		//	    SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG
 		//    ) == 0);
 		//#endif
+
+		state.viewport.enabled = false;
+		state.viewport.rect    = (Rect) {0, 0, 0, 0};
 
 		return;
 	}
@@ -759,8 +764,20 @@ void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Backend_Viewport(int x, int y, int w, int h) {
-	glViewport(x, y, w, h);
+void Backend_SetViewport(int x, int y, int w, int h) {
+	state.viewport.rect = (Rect) {x, y, w, h};
+	GL(glScissor(x, video.height - 1 - (y + h), w, h));
+}
+
+void Backend_EnableViewport(bool enable) {
+	state.viewport.enabled = enable;
+
+	if (enable) {
+		GL(glEnable(GL_SCISSOR_TEST));
+	}
+	else {
+		GL(glDisable(GL_SCISSOR_TEST));
+	}
 }
 
 void Backend_RenderRect(Rect rect, Colour colour) {
@@ -810,6 +827,20 @@ void Backend_InitSkybox(void) {
 void Backend_FinishRender(void) {
 	GL(glFinish());
 	SDL_GL_SwapWindow(video.window);
+}
+
+BackendViewport Backend_SaveViewport(void) {
+	return state.viewport;
+}
+
+void Backend_RestoreViewport(BackendViewport viewport) {
+	state.viewport = viewport;
+
+	Backend_SetViewport(
+		state.viewport.rect.x, state.viewport.rect.y,
+		state.viewport.rect.w, state.viewport.rect.h
+	);
+	Backend_EnableViewport(state.viewport.enabled);
 }
 
 #endif

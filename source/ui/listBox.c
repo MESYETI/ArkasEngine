@@ -35,12 +35,18 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 
 	Backend_RenderRect(eRect, theme.bg[1]);
 
+	BackendViewport oldViewport = Backend_SaveViewport();
+	Backend_SetViewport(eRect.x, eRect.y, eRect.w, eRect.h);
+	Backend_EnableViewport(true);
+
 	for (size_t i = 0; i < data->len - start; ++ i) {
-		size_t idx = start + i;
+		size_t idx  = start + i;
+		int    yOff = ((int) i) * (engine.font.charHeight + 8);
+
+		if (yOff + engine.font.charHeight + 8 > eRect.h) break;
 
 		Rect rect = (Rect) {
-			eRect.x, eRect.y + (((int) i) * (engine.font.charHeight + 8)),
-			eRect.w, engine.font.charHeight + 8
+			eRect.x, eRect.y + yOff, eRect.w, engine.font.charHeight + 8
 		};
 
 		if (*data->selected == data->list[idx].label) {
@@ -49,6 +55,8 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 
 		Text_Render(&engine.font, data->list[idx].label, rect.x + 4, rect.y + 4);
 	}
+
+	Backend_RestoreViewport(oldViewport);
 
 	UI_RenderBorder(0, eRect, true);
 }

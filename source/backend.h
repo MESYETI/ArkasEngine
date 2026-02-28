@@ -13,6 +13,11 @@
 #endif
 
 typedef struct {
+	Rect rect;
+	bool enabled;
+} BackendViewport;
+
+typedef struct {
 	bool vsync;
 	char name[20];
 } BackendOptions;
@@ -41,11 +46,15 @@ void Backend_DrawTexture(
 void Backend_Begin(void);
 void Backend_Begin2D(void);
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b);
-void Backend_Viewport(int x, int y, int w, int h);
+void Backend_SetViewport(int x, int y, int w, int h);
+void Backend_EnableViewport(bool enable);
 void Backend_RenderRect(Rect rect, Colour colour);
 void Backend_RenderLine(Vec2 a, Vec2 b, Colour colour);
 void Backend_InitSkybox(void);
 void Backend_FinishRender(void);
+
+BackendViewport Backend_SaveViewport(void);
+void            Backend_RestoreViewport(BackendViewport viewport);
 
 // portable
 void Backend_HLine(int x, int y, int thick, int len, Colour colour);
