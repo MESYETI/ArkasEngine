@@ -107,6 +107,10 @@ void SceneManager_Render(void) {
 			GameBase_Render();
 		}
 
+		if (i == sm.activeScenes - 1) {
+			Video_SetRelativeMouseMode(sm.scenes[i].type == SCENE_TYPE_GAME);
+		}
+
 		if (sm.scenes[i].render == NULL) continue;
 		sm.scenes[i].render(&sm.scenes[i]);
 	}

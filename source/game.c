@@ -22,7 +22,6 @@ AudioEmitter emitters3d[2];
 void GameBase_Init(void) {
 	//Map_Init();
 	startAudio();
-	SDL_SetRelativeMouseMode(SDL_TRUE);
 
 	camera.pos.x = 0.0;
 	camera.pos.y = 0.0;
@@ -85,7 +84,6 @@ void GameBase_Init(void) {
 }
 
 void GameBase_Free(void) {
-	SDL_SetRelativeMouseMode(SDL_FALSE);
 	stopAudio();
 	Map_Free();
 }
@@ -125,12 +123,12 @@ void GameBase_Update(bool top) {
 		player.acc.x += SinDeg(player.yaw + 90) * speed * engine.delta;
 		moved         = true;
 	}
-	if (Input_KeyPressed(AE_KEY_P)) {
-		SDL_SetRelativeMouseMode(SDL_TRUE);
-	}
-	if (Input_KeyPressed(AE_KEY_O)) {
-		SDL_SetRelativeMouseMode(SDL_FALSE);
-	}
+	// if (Input_KeyPressed(AE_KEY_P)) {
+	// 	SDL_SetRelativeMouseMode(SDL_TRUE);
+	// }
+	// if (Input_KeyPressed(AE_KEY_O)) {
+	// 	SDL_SetRelativeMouseMode(SDL_FALSE);
+	// }
 
 	if (Input_BindPressed(gameBaseConfig.left)) {
 		camera.roll = -2.0;

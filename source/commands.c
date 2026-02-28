@@ -426,7 +426,7 @@ static void Command_Bind(size_t argc, char** argv) {
 	char bindStr[32];
 	Input_PrintBind(bindStr, sizeof(bindStr), *bind);
 
-	Log("Binded '%s' to %s", bindName, bindStr);
+	Log("Bound '%s' to %s", bindName, bindStr);
 }
 
 static void Command_ImageViewer(size_t argc, char** argv) {

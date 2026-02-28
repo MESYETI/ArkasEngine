@@ -13,6 +13,8 @@ void Video_Init(const char* gameName) {
 		gameName, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 		video.width, video.height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 	);
+	video.cursorVisible     = true;
+	video.relativeMouseMode = false;
 
 	if (video.window == NULL) {
 		fprintf(stderr, "Failed to create window: %s\n", SDL_GetError());
@@ -51,4 +53,20 @@ Colour Video_MultiplyColour(Colour colour, float by) {
 		(uint8_t) (g * 255.0),
 		(uint8_t) (b * 255.0)
 	};
+}
+
+void Video_ShowCursor(bool show) {
+	if (video.cursorVisible != show) {
+		SDL_ShowCursor(show? SDL_ENABLE : SDL_DISABLE);
+	}
+
+	video.cursorVisible = show;
+}
+
+void Video_SetRelativeMouseMode(bool enable) {
+	if (video.relativeMouseMode != enable) {
+		SDL_SetRelativeMouseMode(enable? SDL_TRUE : SDL_FALSE);
+	}
+
+	video.relativeMouseMode = enable;
 }
