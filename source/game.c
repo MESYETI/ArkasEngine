@@ -253,4 +253,10 @@ void GameBase_Render(void) {
 		FloatEqual(player.sector->floor, player.pos.y, 0.05)? "true" : "false"
 	);
 	Text_Render(&engine.font, text, 8, 8 + (16 * 10));
+
+    int    csLen = (int) ceil(((float) video.height) / 48);
+    Colour csCol = (Colour) {255, 255, 255};
+
+    Backend_VLine((video.width / 2) - 1, (video.height / 2) - (csLen / 2), 2, csLen, csCol);
+    Backend_HLine((video.width / 2) - (csLen / 2), (video.height / 2) - 1, 2, csLen, csCol);
 }

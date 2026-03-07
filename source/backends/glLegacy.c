@@ -5,6 +5,7 @@
 #include "../game.h"
 #include "../util.h"
 #include "../video.h"
+#include "../config.h"
 #include "../skybox.h"
 #include "../camera.h"
 #include "../stream.h"
@@ -754,7 +755,8 @@ void Backend_Begin2D(void) {
 	GL(glMatrixMode(GL_PROJECTION));
 	GL(glLoadIdentity());
 	GL(glOrtho(
-		0.0, (float) video.width, (float) video.height,
+		0.0, ((float) video.width) / ((float) globalConfig.scale2D),
+		((float) video.height) / ((float) globalConfig.scale2D),
 		0.0, -1.0, 1.0
 	));
 }

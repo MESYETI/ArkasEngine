@@ -1,5 +1,6 @@
 #include "game.h"
 #include "scene.h"
+#include "engine.h"
 
 static SceneManager sm;
 
@@ -107,7 +108,11 @@ void SceneManager_Render(void) {
 			GameBase_Render();
 		}
 
-		if (i == sm.activeScenes - 1) {
+		if (engine.console) {
+			Video_SetRelativeMouseMode(false);
+			Video_ShowCursor(true);
+		}
+		else if (i == sm.activeScenes - 1) {
 			Video_SetRelativeMouseMode(sm.scenes[i].type == SCENE_TYPE_GAME);
 		}
 
