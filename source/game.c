@@ -254,9 +254,9 @@ void GameBase_Render(void) {
 	);
 	Text_Render(&engine.font, text, 8, 8 + (16 * 10));
 
-    int    csLen = (int) ceil(((float) video.height) / 48);
+    int    csLen = (int) (((float) video.height) / 96);
     Colour csCol = (Colour) {255, 255, 255};
 
-    Backend_VLine((video.width / 2) - 1, (video.height / 2) - (csLen / 2), 2, csLen, csCol);
-    Backend_HLine((video.width / 2) - (csLen / 2), (video.height / 2) - 1, 2, csLen, csCol);
+    Backend_VLine((video.width / 2) - 1, (video.height / 2) - csLen, 2, csLen * 2, csCol);
+    Backend_HLine((video.width / 2) - csLen, (video.height / 2) - 1, 2, csLen * 2, csCol);
 }
