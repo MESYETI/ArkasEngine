@@ -1,11 +1,13 @@
-#include "engine.h"
 #include "map.h"
 #include "mem.h"
 #include "game.h"
 #include "util.h"
 #include "audio.h"
 #include "scene.h"
+#include "client.h"
 #include "config.h"
+#include "engine.h"
+#include "server.h"
 #include "skybox.h"
 #include "player.h"
 #include "console.h"
@@ -169,7 +171,10 @@ static void Command_Set(size_t argc, char** argv) {
 		{VAR_BOOL,  "echo",                    &console.echo, 0},
 		{VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D, 0},
 		{VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering, 0},
-		{VAR_STR,   "engine.backend",          &backendOptions.name, 20}
+		{VAR_STR,   "engine.backend",          &backendOptions.name, 20},
+		{VAR_BOOL,  "server.inet",             &serverConf.inet, 0},
+		{VAR_INT,   "server.inet-port",        &serverConf.inetPort, 0},
+		{VAR_BOOL,  "server.local",            &serverConf.local, 0}
 	};
 
 	if (argc == 0) {
@@ -472,6 +477,28 @@ static void Command_Skybox(size_t argc, char** argv) {
 	Skybox_Load(argv[0]);
 }
 
+static void Command_StartServer(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	if (!Server_Start()) {
+		Log("ERROR! Failed to start server");
+	}
+}
+
+static void Command_StartLocalClient(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	if (!Client_StartLocal()) {
+		Log("ERROR! Failed to start client");
+	}
+}
+
+static void Command_StartNetClient(size_t argc, char** argv) {
+	ASSERT_ARGC(2);
+
+	if (!Client_StartINet(argv[0], (uint16_t) atoi(argv[1]))) {
+		Log("ERROR! Failed to start client");
+	}
+}
+
 void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
 	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
@@ -497,4 +524,8 @@ void Commands_Init(void) {
 	Console_AddCommand((ConsoleCommand) {true,  "fps",          &Command_FPS});
 	Console_AddCommand((ConsoleCommand) {false, "browser",      &Command_Browser});
 	Console_AddCommand((ConsoleCommand) {true,  "skybox",       &Command_Skybox});
+	Console_AddCommand((ConsoleCommand) {true,  "start-server", &Command_StartServer});
+
+	Console_AddCommand((ConsoleCommand) {true,  "start-local-client", &Command_StartLocalClient});
+	Console_AddCommand((ConsoleCommand) {true,  "start-net-client",   &Command_StartNetClient});
 }

@@ -10,13 +10,20 @@
 #include "audio.h"
 #include "config.h"
 #include "camera.h"
+#include "server.h"
 #include "backend.h"
 #include "console.h"
 #include "resources.h"
 
 Engine engine;
 
-void Engine_Init(const char* gameName) {
+void Engine_Init(const char* gameName, int argc, const char** argv) {
+	for (int i = 1; i < argc; ++ i) {
+		if (strcmp(argv[i], "--server") == 0) {
+			engine.server = true;
+		}
+	}
+
 	// make game engine folders
 	MakeDir("game",        true);
 	MakeDir("game/extra",  true);
@@ -50,9 +57,25 @@ void Engine_Init(const char* gameName) {
 	}
 
 	// run script
-	Log("Running startup...");
-	if (!Console_RunFile("startup.cmd")) {
-		Log("Failed to run startup");
+
+	Log("Arkas Engine is now running as a server");
+
+	engine.running = true;
+
+	if (engine.server) {
+		Log("Running server startup...");
+
+		if (!Console_RunFile("server.cmd")) {
+			Log("Failed to run server startup");
+		}
+		return;
+	}
+	else {
+		Log("Running game startup...");
+
+		if (!Console_RunFile("startup.cmd")) {
+			Log("Failed to run startup");
+		}
 	}
 
 	Video_Init(gameName);
@@ -61,7 +84,6 @@ void Engine_Init(const char* gameName) {
 	Theme_Init();
 
 	bool success;
-	engine.running = true;
 	engine.font    = Text_LoadFont("builtin:font.png", &success);
 	engine.fps     = 0;
 
@@ -73,13 +95,16 @@ void Engine_Init(const char* gameName) {
 void Engine_Free(void) {
 	Log("Goodbye!");
 
+	SDL_Quit();
+
+	if (engine.server) return;
+
 	Input_Free();
 	Audio_Free();
 	SceneManager_Free();
 	Text_FreeFont(&engine.font);
 	Resources_Free();
 	Video_Free();
-	SDL_Quit();
 }
 
 void Engine_Update(void) {
@@ -135,12 +160,20 @@ void Engine_Update(void) {
 			}
 		}
 
+		if (engine.server) continue;
+
 		SceneManager_HandleEvent(&e);
 
 		if (engine.console) {
 			Console_HandleEvent(&e);
 		}
 	}
+
+	if (server.running) {
+		Server_Update();
+	}
+
+	if (engine.server) return;
 
 	SceneManager_Update();
 
