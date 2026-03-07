@@ -64,7 +64,7 @@ static Stream DriveOpen(ResourceDrive* drive, const char* path, bool* success) {
 	for (size_t i = 0; i < sizeof(files) / sizeof(File); ++ i) {
 		if (strcmp(files[i].name, path) == 0) {
 			*success = true;
-			return Stream_Memory(files[i].data, files[i].len, false);
+			return Stream_Memory((void*) files[i].data, files[i].len, false);
 		}
 	}
 
@@ -97,5 +97,8 @@ ResourceDrive* BuiltIn_GetDrive(void) {
 	ret->list       = &DriveList;
 	ret->open       = &DriveOpen;
 	ret->readFile   = &DriveReadFile;
+	ret->makeDir    = NULL;
+	ret->writeFile  = NULL;
+	ret->delete     = NULL;
 	return ret;
 }

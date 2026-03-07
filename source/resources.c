@@ -68,8 +68,8 @@ void Resources_Init(void) {
 	Log("%d resource drives mounted", resources.drivesNum);
 
 	// init resource pool
-	resources.resources = SafeMalloc(64 * sizeof(*resources.resources));
-	resources.capacity  = 64;
+	resources.resources = SafeMalloc(256 * sizeof(*resources.resources));
+	resources.capacity  = 256;
 
 	for (size_t i = 0; i < resources.capacity; ++ i) {
 		resources.resources[i].active = false;
@@ -120,6 +120,10 @@ static ResourceDrive* GetDrive(const char* path) {
 	}
 
 	return NULL;
+}
+
+bool Resources_DriveExists(const char* name) {
+	return GetDrive(name)? true : false;
 }
 
 bool Resources_FileExists(const char* path) {
@@ -174,7 +178,7 @@ void Resources_PrintList(const char* path) {
 		Log("Mounted resource drives:");
 
 		for (size_t i = 0; i < resources.drivesNum; ++ i) {
-			Log("  :%s", resources.drives[i]->name);
+			Log("  %s:", resources.drives[i]->name);
 		}
 	}
 	else {
@@ -218,6 +222,77 @@ void* Resources_ReadFile(const char* path, size_t* size) {
 	}
 
 	return drive->readFile(drive, drivePath, size);
+}
+
+bool Resources_MakeDir(const char* path) {
+	ResourceDrive* drive = GetDrive(path);
+
+	if (!drive) {
+		Log("Invalid drive");
+		return NULL;
+	}
+
+	if (!drive->makeDir) {
+		Log("Operation not available");
+	}
+
+	const char* drivePath = strchr(path, ':');
+
+	if (drivePath == NULL) {
+		Log("Invalid file path: '%s'", path);
+		return NULL;
+	}
+	else {
+		++ drivePath;
+	}
+
+	return drive->makeDir(drive, drivePath);
+}
+
+bool Resources_Delete(const char* path) {
+	ResourceDrive* drive = GetDrive(path);
+
+	if (!drive) {
+		Log("Invalid drive");
+		return NULL;
+	}
+
+	const char* drivePath = strchr(path, ':');
+
+	if (drivePath == NULL) {
+		Log("Invalid file path: '%s'", path);
+		return NULL;
+	}
+	else {
+		++ drivePath;
+	}
+
+	return drive->delete(drive, drivePath);
+}
+
+bool Resources_WriteFile(const char* path, void* contents, size_t size) {
+	ResourceDrive* drive = GetDrive(path);
+
+	if (!drive) {
+		Log("Invalid drive");
+		return NULL;
+	}
+
+	if (!drive->writeFile) {
+		Log("Operation not available");
+	}
+
+	const char* drivePath = strchr(path, ':');
+
+	if (drivePath == NULL) {
+		Log("Invalid file path: '%s'", path);
+		return NULL;
+	}
+	else {
+		++ drivePath;
+	}
+
+	return drive->writeFile(drive, drivePath, contents, size);
 }
 
 static Resource* AllocResource(void) {

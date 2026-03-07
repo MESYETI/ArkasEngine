@@ -226,13 +226,17 @@ static void RunCommand(void) {
 	free(parts);
 }
 
-void Console_AddCommand(ConsoleCommand cmd) {
+void Console_AddAdvCommand(ConsoleCommand cmd) {
 	console.cmds = SafeRealloc(
 		console.cmds, (console.cmdsLen + 1) * sizeof(ConsoleCommand)
 	);
 
 	console.cmds[console.cmdsLen] = cmd;
 	++ console.cmdsLen;
+}
+
+void Console_AddCommand(bool help, const char* name, ConsoleCommandFunc func) {
+	Console_AddAdvCommand((ConsoleCommand) {help, name, func});
 }
 
 bool Console_RunFile(const char* path) {

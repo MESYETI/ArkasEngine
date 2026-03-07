@@ -12,6 +12,7 @@
 #include "player.h"
 #include "console.h"
 #include "commands.h"
+#include "ramDrive.h"
 #include "resources.h"
 #include "testScene.h"
 #include "mapEditor.h"
@@ -499,33 +500,79 @@ static void Command_StartNetClient(size_t argc, char** argv) {
 	}
 }
 
-void Commands_Init(void) {
-	Console_AddCommand((ConsoleCommand) {true,  "test-map",     &Command_Test});
-	Console_AddCommand((ConsoleCommand) {true,  "clear-scenes", &Command_ClearScenes});
-	Console_AddCommand((ConsoleCommand) {true,  "map",          &Command_Map});
-	Console_AddCommand((ConsoleCommand) {true,  "dl-map",       &Command_DlMap});
-	Console_AddCommand((ConsoleCommand) {true,  "ls",           &Command_Ls});
-	Console_AddCommand((ConsoleCommand) {true,  "cat",          &Command_Cat});
-	Console_AddCommand((ConsoleCommand) {true,  "echo",         &Command_Echo});
-	Console_AddCommand((ConsoleCommand) {true,  "resources",    &Command_Resources});
-	Console_AddCommand((ConsoleCommand) {true,  "set",          &Command_Set});
-	Console_AddCommand((ConsoleCommand) {true,  "help",         &Command_Help});
-	Console_AddCommand((ConsoleCommand) {true,  "exit",         &Command_Exit});
-	Console_AddCommand((ConsoleCommand) {true,  "peak",         &Command_Peak});
-	Console_AddCommand((ConsoleCommand) {true,  "run",          &Command_Run});
-	Console_AddCommand((ConsoleCommand) {true,  "#",            &Command_Comment});
-	Console_AddCommand((ConsoleCommand) {false, "parse-test",   &Command_ParseTest});
-	Console_AddCommand((ConsoleCommand) {true,  "hex-dump",     &Command_HexDump});
-	Console_AddCommand((ConsoleCommand) {true,  "music",        &Command_Music});
-	Console_AddCommand((ConsoleCommand) {true,  "test-scene",   &Command_TestScene});
-	Console_AddCommand((ConsoleCommand) {true,  "editor",       &Command_Editor});
-	Console_AddCommand((ConsoleCommand) {true,  "bind",         &Command_Bind});
-	Console_AddCommand((ConsoleCommand) {true,  "image-viewer", &Command_ImageViewer});
-	Console_AddCommand((ConsoleCommand) {true,  "fps",          &Command_FPS});
-	Console_AddCommand((ConsoleCommand) {false, "browser",      &Command_Browser});
-	Console_AddCommand((ConsoleCommand) {true,  "skybox",       &Command_Skybox});
-	Console_AddCommand((ConsoleCommand) {true,  "start-server", &Command_StartServer});
+static void Command_RamDrive(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
 
-	Console_AddCommand((ConsoleCommand) {true,  "start-local-client", &Command_StartLocalClient});
-	Console_AddCommand((ConsoleCommand) {true,  "start-net-client",   &Command_StartNetClient});
+	if (Resources_DriveExists(argv[0])) {
+		Log("Error: Drive already exists");
+		return;
+	}
+
+	resources.drives = SafeRealloc(
+		resources.drives, (resources.drivesNum + 1) * sizeof(void*)
+	);
+	++ resources.drivesNum;
+
+	ResourceDrive** drive = &resources.drives[resources.drivesNum - 1];
+
+	*drive       = NewRamDrive();
+	(*drive)->name = NewString(argv[0]);
+	Log("Mounted ram drive at %s:", argv[0]);
+}
+
+static void Command_MakeDir(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+	if (!Resources_MakeDir(argv[0])) {
+		Log("Failed to make directory");
+	}
+}
+
+static void Command_Touch(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	if (!Resources_WriteFile(argv[0], NULL, 0)) {
+		Log("Failed to create file");
+	}
+}
+
+static void Command_Delete(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	if (!Resources_Delete(argv[0])) {
+		Log("Failed to delete file/folder");
+	}
+}
+
+void Commands_Init(void) {
+	Console_AddCommand(true,  "test-map",           &Command_Test);
+	Console_AddCommand(true,  "clear-scenes",       &Command_ClearScenes);
+	Console_AddCommand(true,  "map",                &Command_Map);
+	Console_AddCommand(true,  "dl-map",             &Command_DlMap);
+	Console_AddCommand(true,  "ls",                 &Command_Ls);
+	Console_AddCommand(true,  "cat",                &Command_Cat);
+	Console_AddCommand(true,  "echo",               &Command_Echo);
+	Console_AddCommand(true,  "resources",          &Command_Resources);
+	Console_AddCommand(true,  "set",                &Command_Set);
+	Console_AddCommand(true,  "help",               &Command_Help);
+	Console_AddCommand(true,  "exit",               &Command_Exit);
+	Console_AddCommand(true,  "peak",               &Command_Peak);
+	Console_AddCommand(true,  "run",                &Command_Run);
+	Console_AddCommand(true,  "#",                  &Command_Comment);
+	Console_AddCommand(false, "parse-test",         &Command_ParseTest);
+	Console_AddCommand(true,  "hex-dump",           &Command_HexDump);
+	Console_AddCommand(true,  "music",              &Command_Music);
+	Console_AddCommand(true,  "test-scene",         &Command_TestScene);
+	Console_AddCommand(true,  "editor",             &Command_Editor);
+	Console_AddCommand(true,  "bind",               &Command_Bind);
+	Console_AddCommand(true,  "image-viewer",       &Command_ImageViewer);
+	Console_AddCommand(true,  "fps",                &Command_FPS);
+	Console_AddCommand(false, "browser",            &Command_Browser);
+	Console_AddCommand(true,  "skybox",             &Command_Skybox);
+	Console_AddCommand(true,  "start-server",       &Command_StartServer);
+	Console_AddCommand(true,  "start-local-client", &Command_StartLocalClient);
+	Console_AddCommand(true,  "start-net-client",   &Command_StartNetClient);
+	Console_AddCommand(true,  "ram-drive",          &Command_RamDrive);
+	Console_AddCommand(true,  "make-dir",           &Command_MakeDir);
+	Console_AddCommand(true,  "touch",              &Command_Touch);
+	Console_AddCommand(true,  "delete",             &Command_Delete);
 }

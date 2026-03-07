@@ -168,6 +168,9 @@ ResourceDrive* NewFolderDrive(const char* path) {
 	ret->parent.list       = &DriveList;
 	ret->parent.open       = &DriveOpen;
 	ret->parent.readFile   = &DriveReadFile;
+	ret->parent.makeDir    = NULL;
+	ret->parent.writeFile  = NULL;
+	ret->parent.delete     = NULL;
 	ret->path              = path;
 
 	return (ResourceDrive*) ret;

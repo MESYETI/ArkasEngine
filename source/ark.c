@@ -288,6 +288,9 @@ ResourceDrive* Ark_CreateResourceDrive(Stream* stream, bool free) {
 	ret->parent.list       = &DriveList;
 	ret->parent.open       = &DriveOpen;
 	ret->parent.readFile   = &DriveReadFile;
+	ret->parent.makeDir    = NULL;
+	ret->parent.writeFile  = NULL;
+	ret->parent.delete     = NULL;
 
 	if (Ark_Read(&ret->reader).success) {
 		return (ResourceDrive*) ret;

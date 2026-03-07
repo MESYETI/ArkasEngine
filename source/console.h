@@ -5,11 +5,14 @@
 #include "event.h"
 #include "video.h"
 
+typedef void (*ConsoleCommandFunc)(size_t argc, char** argv);
+
 typedef struct {
 	bool        show; // shown in help menu?
 	const char* name;
 
-	FUNCTION_POINTER(void, func, size_t argc, char** argv);
+	// FUNCTION_POINTER(void, func, size_t argc, char** argv);
+	ConsoleCommandFunc func;
 } ConsoleCommand;
 
 typedef struct {
@@ -28,7 +31,8 @@ void Console_Free(void);
 void Console_WriteLine(char* text);
 void Console_Begin(void);
 void Console_End(void);
-void Console_AddCommand(ConsoleCommand cmd);
+void Console_AddAdvCommand(ConsoleCommand cmd);
+void Console_AddCommand(bool help, const char* name, ConsoleCommandFunc func);
 bool Console_RunFile(const char* path);
 void Console_HandleEvent(Event* e);
 void Console_Render(void);

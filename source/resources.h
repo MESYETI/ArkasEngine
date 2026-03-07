@@ -25,6 +25,13 @@ struct ResourceDrive {
 
 	FUNCTION_POINTER(void*, readFile, ResourceDrive*, const char* path, size_t* size);
 
+	// write functions
+	FUNCTION_POINTER(bool, makeDir, ResourceDrive*, const char* path);
+	FUNCTION_POINTER(
+		bool, writeFile, ResourceDrive*, const char* path, void* contents,
+		size_t size
+	);
+	FUNCTION_POINTER(bool, delete, ResourceDrive*, const char* path);
 };
 
 enum {
@@ -73,11 +80,15 @@ extern ResourceManager resources;
 
 void          Resources_Init(void);
 void          Resources_Free(void);
+bool          Resources_DriveExists(const char* name);
 bool          Resources_FileExists(const char* path);
 ResourceFile* Resources_List(const char* path, size_t* sz);
 void          Resources_FreeFileList(ResourceFile* list, size_t sz);
 void          Resources_PrintList(const char* path);
 void*         Resources_ReadFile(const char* path, size_t* size);
+bool          Resources_MakeDir(const char* path);
+bool          Resources_Delete(const char* path);
+bool          Resources_WriteFile(const char* path, void* contents, size_t size);
 Resource*     Resources_GetRes(const char* path, uint32_t opt);
 void          Resources_FreeRes(Resource* resource);
 
