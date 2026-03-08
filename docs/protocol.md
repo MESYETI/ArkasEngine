@@ -19,15 +19,13 @@ This WILL change in a future version of the protocol
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
 | 2    | Integer - protocol version                    |
-| 1    | Username length                               |
-| ?    | Username                                      |
+| 32   | Username - null terminated string             |
 
 ### Server to client
 #### 0x00 - Identification
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
-| 1    | Length of server name                         |
-| ?    | Server name                                   |
+| 32   | Server name - null terminated string          |
 
 #### 0x01 - Map
 | Size | Description                                   |

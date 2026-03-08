@@ -10,6 +10,7 @@
 #include "audio.h"
 #include "config.h"
 #include "camera.h"
+#include "client.h"
 #include "server.h"
 #include "backend.h"
 #include "console.h"
@@ -98,6 +99,10 @@ void Engine_Free(void) {
 
 	SDL_Quit();
 
+	if (server.running) {
+		Server_Free();
+	}
+
 	if (engine.server) return;
 
 	Input_Free();
@@ -172,6 +177,9 @@ void Engine_Update(void) {
 
 	if (server.running) {
 		Server_Update();
+	}
+	if (client.running) {
+		Client_Update();
 	}
 
 	if (engine.server) return;

@@ -4,12 +4,18 @@
 #include "socket.h"
 
 typedef struct {
-	Socket* relSocket;
+	bool    running;
+	int     state;
+	Socket* relSock;
+
+	// state stuff
+	uint16_t packetID;
 } Client;
 
 extern Client client;
 
 bool Client_StartLocal(void);
 bool Client_StartINet(const char* ip, uint16_t port);
+void Client_Update(void);
 
 #endif

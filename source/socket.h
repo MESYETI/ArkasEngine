@@ -65,8 +65,11 @@ bool    Socket_Listen(Socket* sock, int backlog);
 Socket* Socket_Accept(Socket* sock);
 bool    Socket_ConnectNet(Socket* sock, const char* ip, uint16_t port);
 bool    Socket_ConnectLocal(Socket* sock, Socket* to);
+size_t  Socket_DataAvailable(Socket* sock);
 size_t  Socket_Receive(Socket* sock, void* buf, size_t size);
 size_t  Socket_Send(Socket* sock, void* buf, size_t size);
 void    Socket_Close(Socket* sock);
+void    Socket_StringAddr(Socket* sock, char* dest, size_t size);
+bool    Socket_Connected(Socket* sock);
 
 #endif

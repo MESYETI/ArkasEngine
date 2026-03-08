@@ -1,3 +1,5 @@
+#include <string.h>
+#include "mem.h"
 #include "util.h"
 #include "server.h"
 
@@ -67,9 +69,80 @@ bool Server_Start(void) {
 			Log("Failed to listen on local socket");
 			return false;
 		}
+
+		Log("Server socket: %p", server.localSock);
 	}
 
 	Log("Server running");
+	return true;
+}
+
+void Server_Free(void) {
+	if (server.netSock)   Socket_Close(server.netSock);
+	if (server.localSock) Socket_Close(server.localSock);
+
+	for (size_t i = 0; i < server.clientNum; ++ i) {
+		Socket_Close(server.clients[i].relSock);
+	}
+	free(server.clients);
+}
+
+enum {
+	SC_WAITING = 0, // waiting for a new packet
+	SC_PACKET       // waiting for the current packet to be finished
+};
+
+static bool ClientWorker(ServerClient* this) {
+	switch (this->relState) {
+		case SC_WAITING: {
+			if (Socket_DataAvailable(this->relSock) < 2) break;
+
+			Socket_Receive(this->relSock, &this->packetID, 2);
+			this->relState = SC_PACKET;
+			break;
+		}
+		case SC_PACKET: {
+			size_t available = Socket_DataAvailable(this->relSock);
+
+			switch (this->packetID) {
+				case 0x00: {
+					size_t size = 32 + 2;
+
+					if (size != available) break;
+
+					uint16_t version;
+					Socket_Receive(this->relSock, &version, 2);
+
+					if (version != 0) {
+						Log("server: Client is on incompatible version");
+						return false;
+					}
+
+					char username[33];
+					username[32] = 0;
+					Socket_Receive(this->relSock, &username, 32);
+					Log("server: %s has joined the server", username);
+
+					strcpy(this->username, username);
+
+					// now send response
+					uint16_t id             = 0;
+					char     serverName[32] = "Arkas Engine Server";
+
+					Socket_Send(this->relSock, &id, sizeof(id));
+					Socket_Send(this->relSock, serverName, sizeof(serverName));
+
+					this->relState = SC_WAITING;
+					break;
+				}
+				default: {
+					Log("server: Client sent invalid packet ID: %.4x", this->packetID);
+					return false;
+				}
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -84,7 +157,23 @@ void Server_Update(void) {
 	}
 
 	if (newClient) {
-		Log("Client connected");
-		Socket_Close(newClient);
+		char addr[64];
+		Socket_StringAddr(newClient, addr, sizeof(addr));
+		Log("server: Client connected (%s)", addr);
+
+		++ server.clientNum;
+		server.clients = SafeRealloc(
+			server.clients, server.clientNum * sizeof(ServerClient)
+		);
+
+		ServerClient* client = &server.clients[server.clientNum - 1];
+
+		client->relState = SC_WAITING;
+		client->relSock  = newClient;
+	}
+
+	for (size_t i = 0; i < server.clientNum; ++ i) {
+		ServerClient* client = &server.clients[i];
+		ClientWorker(client);
 	}
 }

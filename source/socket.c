@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/ioctl.h>
 #include <netinet/in.h>
 #include "mem.h"
 #include "util.h"
@@ -32,10 +33,13 @@ Socket* Socket_New(int type, int protocol) {
 
 	switch (type) {
 		case SOCKET_TYPE_LOCAL: {
-			ret.local.buf    = NULL;
-			ret.local.cap    = 0;
-			ret.local.len    = 0;
-			ret.local.server = false;
+			ret.local.other          = NULL;
+			ret.local.buf            = NULL;
+			ret.local.cap            = 0;
+			ret.local.len            = 0;
+			ret.local.server         = false;
+			ret.local.connections    = NULL;
+			ret.local.connectionsLen = 0;
 			break;
 		}
 		case SOCKET_TYPE_NET: {
@@ -50,6 +54,15 @@ Socket* Socket_New(int type, int protocol) {
 			if (ret.net.fd == -1) {
 				Log("Failed to create socket: %s", strerror(errno));
 				return NULL;
+			}
+
+			int reuse = 1;
+			int res = setsockopt(
+				ret.net.fd, SOL_SOCKET, SO_REUSEADDR, (void*) &reuse, sizeof(reuse)
+			);
+
+			if (res < 0) {
+				Log("warning: Failed to set reuse address option");
 			}
 			break;
 		}
@@ -113,13 +126,19 @@ Socket* Socket_Accept(Socket* sock) {
 				return NULL;
 			}
 
-			Socket* ret = sock->value.local.connections[0];
+			Socket* other            = sock->value.local.connections[0];
+			Socket* ret              = Socket_New(SOCKET_TYPE_LOCAL, 0);
+			ret->value.local.other   = &other->value.local;
+			other->value.local.other = &ret->value.local;
+
 			-- sock->value.local.connectionsLen;
 			memmove(
 				&sock->value.local.connections[0],
 				&sock->value.local.connections[1],
 				sock->value.local.connectionsLen * sizeof(Socket*)
 			);
+
+			Log("New connection: %p", &ret->value.local);
 
 			sock->value.local.connections = SafeRealloc(
 				sock->value.local.connections,
@@ -135,10 +154,14 @@ Socket* Socket_Accept(Socket* sock) {
 
 			if (fd < 0) return NULL; // TODO: check for actual errors
 
-			Socket* ret            = AllocSocket();
-			ret->value.type        = sock->value.type;
-			ret->value.net.addr    = addr;
-			ret->value.net.addrLen = (size_t) len;
+			Socket* ret             = AllocSocket();
+			ret->value.type         = sock->value.type;
+			ret->value.net.fd       = fd;
+			ret->value.net.protocol = sock->value.net.protocol;
+			ret->value.net.addr     = addr;
+			ret->value.net.addrLen  = (size_t) len;
+
+			fcntl(fd, F_SETFL, O_NONBLOCK);
 			return ret;
 		}
 	}
@@ -186,11 +209,27 @@ bool Socket_ConnectLocal(Socket* sock, Socket* to) {
 
 	++ to->value.local.connectionsLen;
 	to->value.local.connections = SafeRealloc(
-		to->value.local.connections, to->value.local.connectionsLen
+		to->value.local.connections, to->value.local.connectionsLen * sizeof(Socket)
 	);
 
 	to->value.local.connections[to->value.local.connectionsLen - 1] = sock;
 	return true;
+}
+
+size_t Socket_DataAvailable(Socket* sock) {
+	switch (sock->value.type) {
+		case SOCKET_TYPE_LOCAL: {
+			return sock->value.local.len;
+		}
+		case SOCKET_TYPE_NET: {
+			int count;
+			ioctl(sock->value.net.fd, FIONREAD, &count);
+
+			return (size_t) count;
+		}
+	}
+
+	assert(0);
 }
 
 size_t Socket_Receive(Socket* sock, void* buf, size_t size) {
@@ -203,7 +242,7 @@ size_t Socket_Receive(Socket* sock, void* buf, size_t size) {
 			}
 			if (ret == 0) return 0;
 
-			size_t remaining = ret - sock->value.local.len;
+			size_t remaining = sock->value.local.len - ret;
 			memcpy(buf, sock->value.local.buf, ret);
 			memmove(sock->value.local.buf, &sock->value.local.buf[ret], remaining);
 
@@ -239,6 +278,10 @@ size_t Socket_Send(Socket* sock, void* buf, size_t size) {
 			size_t       newLen = other->len + size;
 			size_t       newCap = other->cap;
 
+			if (newCap == 0) {
+				++ newCap;
+			}
+
 			while (newLen > newCap) {
 				newCap *= 2;
 			}
@@ -269,7 +312,9 @@ void Socket_Close(Socket* sock) {
 
 	switch (sock->value.type) {
 		case SOCKET_TYPE_LOCAL: {
-			sock->value.local.other->other = NULL;
+			if (sock->value.local.other) {
+				sock->value.local.other->other = NULL;
+			}
 			break;
 		}
 		case SOCKET_TYPE_NET: {
@@ -285,4 +330,29 @@ void Socket_Close(Socket* sock) {
 		sock->next->prev = sock->prev;
 	}
 	free(sock);
+}
+
+void Socket_StringAddr(Socket* sock, char* dest, size_t size) {
+	switch (sock->value.type) {
+		case SOCKET_TYPE_LOCAL: {
+			snprintf(dest, size, "%p", sock);
+			break;
+		}
+		case SOCKET_TYPE_NET: {
+			inet_ntop(
+				AF_INET, &(((struct sockaddr_in *) &sock->value.net.addr)->sin_addr),
+				dest, size
+			);
+			break;
+		}
+	}
+}
+
+bool Socket_Connected(Socket* sock) {
+	switch (sock->value.type) {
+		case SOCKET_TYPE_LOCAL: return sock->value.local.other? true : false;
+		case SOCKET_TYPE_NET:   return true;
+	}
+
+	assert(0);
 }

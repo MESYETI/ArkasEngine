@@ -5,7 +5,14 @@
 #include "socket.h"
 
 typedef struct {
-	Socket* relSocket;
+	int     relState;
+	Socket* relSock;
+
+	// state stuff
+	uint16_t packetID;
+
+	// info
+	char username[17];
 } ServerClient;
 
 typedef struct {
@@ -30,6 +37,7 @@ extern Server       server;
 extern ServerConfig serverConf;
 
 bool Server_Start(void);
+void Server_Free(void);
 void Server_Update(void);
 
 #endif
