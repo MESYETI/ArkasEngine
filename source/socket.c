@@ -138,8 +138,6 @@ Socket* Socket_Accept(Socket* sock) {
 				sock->value.local.connectionsLen * sizeof(Socket*)
 			);
 
-			Log("New connection: %p", &ret->value.local);
-
 			sock->value.local.connections = SafeRealloc(
 				sock->value.local.connections,
 				sock->value.local.connectionsLen * sizeof(Socket*)

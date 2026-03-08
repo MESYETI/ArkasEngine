@@ -69,8 +69,6 @@ bool Server_Start(void) {
 			Log("Failed to listen on local socket");
 			return false;
 		}
-
-		Log("Server socket: %p", server.localSock);
 	}
 
 	Log("Server running");
