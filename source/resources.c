@@ -126,6 +126,25 @@ bool Resources_DriveExists(const char* name) {
 	return GetDrive(name)? true : false;
 }
 
+bool Resources_AddDrive(ResourceDrive* drive, const char* name) {
+	if (Resources_DriveExists(name)) {
+		Log("Error: Drive '%s' already exists", name);
+		return false;
+	}
+
+	++ resources.drivesNum;
+	resources.drives = SafeRealloc(
+		resources.drives, resources.drivesNum * sizeof(void*)
+	);
+
+	ResourceDrive** newDrive = &resources.drives[resources.drivesNum - 1];
+
+	*newDrive         = drive;
+	(*newDrive)->name = NewString(name);
+	Log("New drive: %s:", name);
+	return true;
+}
+
 bool Resources_FileExists(const char* path) {
 	ResourceDrive* drive = GetDrive(path);
 

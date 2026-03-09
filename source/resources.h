@@ -81,6 +81,7 @@ extern ResourceManager resources;
 void          Resources_Init(void);
 void          Resources_Free(void);
 bool          Resources_DriveExists(const char* name);
+bool          Resources_AddDrive(ResourceDrive* drive, const char* name);
 bool          Resources_FileExists(const char* path);
 ResourceFile* Resources_List(const char* path, size_t* sz);
 void          Resources_FreeFileList(ResourceFile* list, size_t sz);

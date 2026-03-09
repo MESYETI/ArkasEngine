@@ -503,21 +503,9 @@ static void Command_StartNetClient(size_t argc, char** argv) {
 static void Command_RamDrive(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
-	if (Resources_DriveExists(argv[0])) {
-		Log("Error: Drive already exists");
-		return;
+	if (!Resources_AddDrive(NewRamDrive(), argv[0])) {
+		Log("Failed to add RAM drive");
 	}
-
-	resources.drives = SafeRealloc(
-		resources.drives, (resources.drivesNum + 1) * sizeof(void*)
-	);
-	++ resources.drivesNum;
-
-	ResourceDrive** drive = &resources.drives[resources.drivesNum - 1];
-
-	*drive       = NewRamDrive();
-	(*drive)->name = NewString(argv[0]);
-	Log("Mounted ram drive at %s:", argv[0]);
 }
 
 static void Command_MakeDir(size_t argc, char** argv) {
