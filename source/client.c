@@ -1,6 +1,8 @@
 #include "util.h"
 #include "client.h"
 #include "server.h"
+#include "ramDrive.h"
+#include "resources.h"
 
 enum {
 	C_IDENT = 0, // about to identify
@@ -13,6 +15,13 @@ Client client = {
 	.relSock = NULL,
 	.state   = C_WAITING
 };
+
+static void StartClient(void) {
+	if (Resources_DriveExists("net")) {
+		Resources_DeleteDrive("net");
+	}
+	Resources_AddDrive(NewRamDrive(), "net");
+}
 
 bool Client_StartLocal(void) {
 	if (!server.running || !server.localSock) {
@@ -37,6 +46,7 @@ bool Client_StartLocal(void) {
 
 	Log("client: Client connected to local server");
 	client.running = true;
+	StartClient();
 	return true;
 }
 
@@ -58,6 +68,7 @@ bool Client_StartINet(const char* ip, uint16_t port) {
 
 	Log("client: Client connected to internet server");
 	client.running = true;
+	StartClient();
 	return true;
 }
 

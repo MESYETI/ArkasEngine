@@ -64,6 +64,7 @@ static void Command_Map(size_t argc, char** argv) {
 	if (!res) {
 		Log("Failed to load map");
 		SceneManager_PopScene();
+		return;
 	}
 
 	Stream stream = Stream_Memory(res, size, true);
@@ -71,6 +72,7 @@ static void Command_Map(size_t argc, char** argv) {
 	if (!Map_LoadFile(&stream, path2)) {
 		Log("Failed to load map");
 		SceneManager_PopScene();
+		return;
 	}
 
 	free(path2);
@@ -80,15 +82,22 @@ static void Command_Map(size_t argc, char** argv) {
 static void Command_DlMap(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
-	Log("Unimplemented for now");
-
-	/*
 	char* path1 = ConcatString("maps/", argv[0]);
 	char* path2 = ConcatString(path1,   ".arm");
 	free(path1);
-	Map_SaveFile(path2);
+
+	FILE* file = fopen(path2, "wb+");
 	free(path2);
-	*/
+
+	if (!file) {
+		Log("Failed to save map");
+		return;
+	}
+
+	Stream stream = Stream_File(file, true);
+	if (!Map_SaveFile(&stream)) {
+		Log("Failed to save map");
+	}
 }
 
 static void Command_Ls(size_t argc, char** argv) {

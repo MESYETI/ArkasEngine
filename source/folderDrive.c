@@ -173,5 +173,7 @@ ResourceDrive* NewFolderDrive(const char* path) {
 	ret->parent.delete     = NULL;
 	ret->path              = path;
 
+	MakeDir(path, true);
+
 	return (ResourceDrive*) ret;
 }

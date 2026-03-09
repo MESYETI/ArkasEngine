@@ -234,6 +234,7 @@ bool Map_LoadFile(Stream* file, const char* path) {
 
 	Log("Loaded map");
 	camera.sector = &map.sectors[0];
+	player.sector = &map.sectors[0];
 
 	FreeStrArray(stringTable);
 	return true;
