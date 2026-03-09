@@ -145,6 +145,28 @@ bool Resources_AddDrive(ResourceDrive* drive, const char* name) {
 	return true;
 }
 
+bool Resources_DeleteDrive(const char* name) {
+	for (size_t i = 0; i < resources.drivesNum; ++ i) {
+		ResourceDrive* drive = resources.drives[i];
+
+		if (strcmp(drive->name, name) == 0) {
+			if (drive->free) {
+				drive->free(drive);
+			}
+			free(drive);
+
+			memmove(
+				&resources.drives[i], &resources.drives[i + 1],
+				(resources.drivesNum - 1) * sizeof(void*)
+			);
+			-- resources.drivesNum;
+			return true;
+		}
+	}
+
+	return false;
+}
+
 bool Resources_FileExists(const char* path) {
 	ResourceDrive* drive = GetDrive(path);
 

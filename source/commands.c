@@ -531,6 +531,14 @@ static void Command_Delete(size_t argc, char** argv) {
 	}
 }
 
+static void Command_Unmount(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	if (!Resources_DeleteDrive(argv[0])) {
+		Log("Failed to unmount drive");
+	}
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "clear-scenes",       &Command_ClearScenes);
@@ -563,4 +571,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "make-dir",           &Command_MakeDir);
 	Console_AddCommand(true,  "touch",              &Command_Touch);
 	Console_AddCommand(true,  "delete",             &Command_Delete);
+	Console_AddCommand(true,  "unmount",            &Command_Unmount);
 }
