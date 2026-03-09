@@ -27,16 +27,18 @@ This WILL change in a future version of the protocol
 | ---- | --------------------------------------------- |
 | 32   | Server name - null terminated string          |
 
-#### 0x01 - Map
+#### 0x01 - Send file
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
-| 1    | Length of map name                            |
-| ?    | Map name                                      |
-| 4    | Size of map                                   |
-| ?    | Map data (ARM file)                           |
+| 64   | File name                                     |
+| 4    | Size of file                                  |
+| ?    | File contents                                 |
 
-On the client, the map data is stored in the `net_map:` RAM drive. The client may
-have a map size limit
+Notes:
+- File name does not include the drive
+- The client may have a file size limit
+- The file will be stored in the `net:` drive
+- If the server sends `map.arm`, the client will load that map
 
 #### 0x02 - Game packet
 | Size | Description                                   |

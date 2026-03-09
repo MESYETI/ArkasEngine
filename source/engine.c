@@ -111,6 +111,7 @@ void Engine_Free(void) {
 	Text_FreeFont(&engine.font);
 	Resources_Free();
 	Video_Free();
+	Event_Free();
 }
 
 void Engine_Update(void) {

@@ -1,16 +1,31 @@
 #include <string.h>
 #include <SDL2/SDL.h>
-#include "input/sdl.h"
-#include "event.h"
+#include "mem.h"
 #include "util.h"
+#include "event.h"
+#include "input/sdl.h"
 
 #define EVENTS_AMOUNT 32
 
-Event events[EVENTS_AMOUNT];
+static Event events[EVENTS_AMOUNT];
+
+typedef struct {
+	Event_Type    type;
+	Event_Handler func;
+} Handler;
+
+static Handler* handlers   = NULL;
+static size_t   handlerNum = 0;
 
 void Event_Init(void) {
 	for (size_t i = 0; i < EVENTS_AMOUNT; ++ i) {
 		events[i].type = AE_EVENT_NONE;
+	}
+}
+
+void Event_Free(void) {
+	if (handlers) {
+		free(handlers);
 	}
 }
 
@@ -33,9 +48,11 @@ void Event_Update(void) {
 	SDL_Event e;
 
 	while (SDL_PollEvent(&e)) {
+		int idx = FindFree();
+
 		switch (e.type) {
 			case SDL_MOUSEMOTION: {
-				events[FindFree()].mouseMove = (Event_MouseMove) {
+				events[idx].mouseMove = (Event_MouseMove) {
 					.type = AE_EVENT_MOUSE_MOVE,
 					.x    = e.motion.x,
 					.y    = e.motion.y,
@@ -55,7 +72,7 @@ void Event_Update(void) {
 					default:                button = 0;
 				}
 
-				events[FindFree()].mouseButton = (Event_MouseButton) {
+				events[idx].mouseButton = (Event_MouseButton) {
 					.type   = e.type == SDL_MOUSEBUTTONDOWN?
 						AE_EVENT_MOUSE_BUTTON_DOWN : AE_EVENT_MOUSE_BUTTON_UP,
 					.button = button,
@@ -66,7 +83,7 @@ void Event_Update(void) {
 			}
 			case SDL_KEYUP:
 			case SDL_KEYDOWN: {
-				events[FindFree()].key = (Event_Key) {
+				events[idx].key = (Event_Key) {
 					.type = e.type == SDL_KEYDOWN?
 						AE_EVENT_KEY_DOWN : AE_EVENT_KEY_UP,
 					.key  = Input_SDLScancodeToKey(e.key.keysym.scancode)
@@ -74,12 +91,12 @@ void Event_Update(void) {
 				break;
 			}
 			case SDL_QUIT: {
-				events[FindFree()].type = AE_EVENT_QUIT;
+				events[idx].type = AE_EVENT_QUIT;
 				break;
 			}
 			case SDL_WINDOWEVENT: {
 				if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
-					events[FindFree()].windowResize = (Event_WindowResize) {
+					events[idx].windowResize = (Event_WindowResize) {
 						.type   = AE_EVENT_WINDOW_RESIZE,
 						.width  = e.window.data1,
 						.height = e.window.data2
@@ -92,10 +109,18 @@ void Event_Update(void) {
 				textInput.type = AE_EVENT_TEXT_INPUT;
 				strcpy(textInput.input, e.text.text);
 
-				events[FindFree()].textInput = textInput;
+				events[idx].textInput = textInput;
 				break;
 			}
 			default: break;
+		}
+
+		if ((idx != -1) && (events[idx].type != AE_EVENT_NONE)) {
+			for (size_t i = 0; i < handlerNum; ++ i) {
+				if (handlers[i].type == events[idx].type) {
+					handlers[i].func(&events[idx]);
+				}
+			}
 		}
 	}
 }
@@ -132,4 +157,13 @@ void Event_StartTextInput(void) {
 
 void Event_StopTextInput(void) {
 	SDL_StopTextInput();
+}
+
+void Event_AddHandler(Event_Type type, Event_Handler func) {
+	Handler handler = (Handler) {type, func};
+
+	++ handlerNum;
+	handlers = SafeRealloc(handlers, handlerNum * sizeof(Handler));
+
+	handlers[handlerNum - 1] = handler;
 }

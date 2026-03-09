@@ -10,6 +10,11 @@ typedef struct {
 
 	// state stuff
 	uint16_t packetID;
+	char     fileName[65];
+	uint32_t fileSize;
+	uint8_t* fileContents;
+	size_t   fileRead;
+	bool     downloading;
 } Client;
 
 extern Client client;

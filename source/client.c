@@ -1,3 +1,5 @@
+#include "mem.h"
+#include "map.h"
 #include "util.h"
 #include "client.h"
 #include "server.h"
@@ -7,13 +9,15 @@
 enum {
 	C_IDENT = 0, // about to identify
 	C_WAITING,   // waiting for a packet
-	C_PACKET     // waiting for packet to finish sending
+	C_PACKET,    // waiting for packet to finish sending
+	C_FILE       // receiving a file
 };
 
 Client client = {
-	.running = false,
-	.relSock = NULL,
-	.state   = C_WAITING
+	.running     = false,
+	.relSock     = NULL,
+	.state       = C_WAITING,
+	.downloading = false
 };
 
 static void StartClient(void) {
@@ -117,10 +121,65 @@ void Client_Update(void) {
 					client.state = C_WAITING;
 					break;
 				}
+				case 0x01: {
+					size_t size = 64 + 4;
+
+					if (size != available) break;
+
+					client.fileName[64] = 0;
+					Socket_Receive(client.relSock, &client.fileName, 64);
+					Socket_Receive(client.relSock, &client.fileSize, 4);
+
+					if (client.fileSize > 16777216) {
+						client.running = false;
+						Error("Server attempted to send %d byte file", client.fileSize);
+					}
+					client.fileContents = SafeMalloc(client.fileSize);
+					client.fileRead     = 0;
+					client.state        = C_FILE;
+					break;
+				}
 				default: {
 					Log("client: Server sent invalid packet ID: %.4x", client.packetID);
 				}
 			}
+
+			break;
+		}
+		case C_FILE: {
+			size_t remaining = ((size_t) client.fileSize) - client.fileRead;
+			size_t chunk     = (remaining > 1024)? 1024 : remaining;
+
+			if (Socket_DataAvailable(client.relSock) == 0) break;
+
+			Socket_Receive(
+				client.relSock, &client.fileContents[client.fileRead], chunk
+			);
+			client.fileRead += chunk;
+
+			if (client.fileRead == client.fileSize) {
+				char* path = ConcatString("net:", client.fileName);
+
+				if (!Resources_WriteFile(path, client.fileContents, client.fileSize)) {
+					Error("Failed to write net file");
+					break;
+				}
+				Log("Downloaded %s", client.fileName);
+				free(path);
+
+				if (strcmp(client.fileName, "map.arm") == 0) {
+					bool   success;
+					Stream file = Resources_Open("net:map.arm", &success);
+
+					if (!success) {
+						Error("Failed to open server map");
+						break;
+					}
+
+					Map_LoadFile(&file, "net:map.arm");
+				}
+			}
+			break;
 		}
 	}
 }

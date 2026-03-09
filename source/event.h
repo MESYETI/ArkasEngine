@@ -57,12 +57,16 @@ typedef union {
 	Event_TextInput    textInput;
 } Event;
 
+typedef void (*Event_Handler)(Event* event);
+
 void Event_Init(void);
+void Event_Free(void);
 void Event_Add(Event e);
 void Event_Update(void);
 bool Event_Available(void);
 bool Event_Poll(Event* e);
 void Event_StartTextInput(void);
 void Event_StopTextInput(void);
+void Event_AddHandler(Event_Type type, Event_Handler func);
 
 #endif

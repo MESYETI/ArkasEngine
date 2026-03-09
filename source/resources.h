@@ -91,6 +91,7 @@ void*         Resources_ReadFile(const char* path, size_t* size);
 bool          Resources_MakeDir(const char* path);
 bool          Resources_Delete(const char* path);
 bool          Resources_WriteFile(const char* path, void* contents, size_t size);
+Stream        Resources_Open(const char* path, bool* success);
 Resource*     Resources_GetRes(const char* path, uint32_t opt);
 void          Resources_FreeRes(Resource* resource);
 

@@ -295,14 +295,19 @@ bool Resources_Delete(const char* path) {
 
 	if (!drive) {
 		Log("Invalid drive");
-		return NULL;
+		return false;
+	}
+
+	if (!drive->delete) {
+		Log("Operation not available");
+		return false;
 	}
 
 	const char* drivePath = strchr(path, ':');
 
 	if (drivePath == NULL) {
 		Log("Invalid file path: '%s'", path);
-		return NULL;
+		return false;
 	}
 	else {
 		++ drivePath;
@@ -316,24 +321,38 @@ bool Resources_WriteFile(const char* path, void* contents, size_t size) {
 
 	if (!drive) {
 		Log("Invalid drive");
-		return NULL;
+		return false;
 	}
 
 	if (!drive->writeFile) {
 		Log("Operation not available");
+		return false;
 	}
 
 	const char* drivePath = strchr(path, ':');
 
 	if (drivePath == NULL) {
 		Log("Invalid file path: '%s'", path);
-		return NULL;
+		return false;
 	}
 	else {
 		++ drivePath;
 	}
 
 	return drive->writeFile(drive, drivePath, contents, size);
+}
+
+Stream Resources_Open(const char* path, bool* success) {
+	ResourceDrive* drive = GetDrive(path);
+
+	if (!drive) {
+		Log("Invalid drive");
+		*success = false;
+
+		return Stream_Blank();
+	}
+
+	return drive->open(drive, path, success);
 }
 
 static Resource* AllocResource(void) {
