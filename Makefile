@@ -12,6 +12,7 @@ ifeq ($(PLAT),windows)
 	override LDLIBS += -lkernel32 -l:libSDL2.a -lole32 -loleaut32 -limm32
 	override LDLIBS += -lsetupapi -lversion -lgdi32 -lwinmm -lopengl32
 else
+	override CFLAGS += -DAE_NET_SOCKET
 	override LDLIBS += -lSDL2 -lGL
 endif
 LD := $(CC)

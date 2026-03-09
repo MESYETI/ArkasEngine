@@ -33,17 +33,19 @@ struct LocalSocket {
 typedef struct {
 	int type;
 
-	int fd;
-	int protocol;
+	#ifdef AE_NET_SOCKET
+		int fd;
+		int protocol;
 
-	struct sockaddr addr;
-	size_t          addrLen;
+		struct sockaddr addr;
+		size_t          addrLen;
 
-	// only for UDP sockets
-	uint8_t recvData[506];
-	size_t  recvLen;
-	uint8_t sendData[506];
-	size_t  sendLen;
+		// only for UDP sockets
+		uint8_t recvData[506];
+		size_t  recvLen;
+		uint8_t sendData[506];
+		size_t  sendLen;
+	#endif
 } NetSocket;
 
 typedef union {
