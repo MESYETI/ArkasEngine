@@ -111,7 +111,8 @@ void Client_Update(void) {
 				case 0x00: {
 					size_t size = 32;
 
-					if (size != available) break;
+					if (available < size) break;
+					Log("client: 0x00 - %d bytes", available);
 
 					char name[33];
 					name[32] = 0;
@@ -124,7 +125,8 @@ void Client_Update(void) {
 				case 0x01: {
 					size_t size = 64 + 4;
 
-					if (size != available) break;
+					if (available < size) break;
+					Log("client: 0x01 - %d bytes", available);
 
 					client.fileName[64] = 0;
 					Socket_Receive(client.relSock, &client.fileName, 64);
@@ -134,6 +136,7 @@ void Client_Update(void) {
 						client.running = false;
 						Error("Server attempted to send %d byte file", client.fileSize);
 					}
+
 					client.fileContents = SafeMalloc(client.fileSize);
 					client.fileRead     = 0;
 					client.state        = C_FILE;
@@ -179,6 +182,7 @@ void Client_Update(void) {
 					}
 
 					Map_LoadFile(&file, "net:map.arm");
+					Log("Loaded map 'net:map.arm'");
 					client.state = C_WAITING;
 				}
 			}

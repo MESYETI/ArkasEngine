@@ -249,6 +249,7 @@ static bool DriveWriteFile(ResourceDrive* p_drive, const char* path, void* conte
 		*slash = 0;
 		entry = GetFile(&drive->fs, path);
 		*slash = '/';
+		++ slash;
 	}
 	else {
 		if (path[0] == 0) {
@@ -257,6 +258,7 @@ static bool DriveWriteFile(ResourceDrive* p_drive, const char* path, void* conte
 		}
 
 		entry = &drive->fs;
+		slash = path;
 	}
 
 	if (!entry->folder) {
@@ -274,7 +276,7 @@ static bool DriveWriteFile(ResourceDrive* p_drive, const char* path, void* conte
 		.size     = size,
 		.children = NULL
 	};
-	strncpy(entry->children[entry->size - 1].name, &slash[1], sizeof(entry->name));
+	strncpy(entry->children[entry->size - 1].name, slash, sizeof(entry->name));
 	return true;
 }
 

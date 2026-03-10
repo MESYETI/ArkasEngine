@@ -14,7 +14,7 @@ typedef struct {
 	Stream   mapStream;
 
 	// info
-	char username[17];
+	char username[33];
 } ServerClient;
 
 typedef struct {

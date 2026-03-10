@@ -41,8 +41,8 @@ else
 	override CFLAGS += -O0 -ggdb -fno-omit-frame-pointer
 	override LDFLAGS += -O0 -ggdb -fno-omit-frame-pointer
 	ifeq ($(ASAN),y)
-		override CFLAGS += -fsanitize=address
-		override LDFLAGS += -fsanitize=address
+		override CFLAGS += -fsanitize=address,undefined
+		override LDFLAGS += -fsanitize=address,undefined
 	endif
 endif
 

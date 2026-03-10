@@ -97,8 +97,7 @@ static bool ClientSendMap(ServerClient* this) {
 	uint16_t id = 0x01;
 	Socket_Send(this->relSock, &id, sizeof(id));
 
-	char mapName[64];
-	strncpy(mapName, server.mapPath, 64);
+	char mapName[64] = "map.arm";
 	Socket_Send(this->relSock, mapName, sizeof(mapName));
 
 	bool success;
@@ -132,7 +131,9 @@ static bool ClientWorker(ServerClient* this) {
 				case 0x00: {
 					size_t size = 32 + 2;
 
-					if (size != available) break;
+					if (available < size) break;
+
+					Log("server: 0x00 - %d bytes", available);
 
 					uint16_t version;
 					Socket_Receive(this->relSock, &version, 2);
@@ -150,7 +151,7 @@ static bool ClientWorker(ServerClient* this) {
 					strcpy(this->username, username);
 
 					// now send response
-					uint16_t id             = 3;
+					uint16_t id             = 0;
 					char     serverName[32] = "Arkas Engine Server";
 
 					Socket_Send(this->relSock, &id, sizeof(id));

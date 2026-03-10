@@ -553,6 +553,15 @@ static void Command_Unmount(size_t argc, char** argv) {
 	}
 }
 
+static void Command_ViewMap(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	SceneManager_AddScene((Scene) {
+		SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
+		NULL, NULL
+	});
+	engine.console = false;
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "clear-scenes",       &Command_ClearScenes);
@@ -586,4 +595,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "touch",              &Command_Touch);
 	Console_AddCommand(true,  "delete",             &Command_Delete);
 	Console_AddCommand(true,  "unmount",            &Command_Unmount);
+	Console_AddCommand(true,  "view-map",           &Command_ViewMap);
 }
