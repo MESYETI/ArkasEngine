@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <dirent.h>
 #include "fs.h"
 #include "mem.h"
@@ -139,6 +140,7 @@ static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success)
 		return Stream_File(file, true);
 	}
 	else {
+		Log("Failed to open '%s': %s", pathAdd, strerror(errno));
 		*success = false;
 		return Stream_Blank();
 	}

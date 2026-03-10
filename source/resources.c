@@ -352,7 +352,18 @@ Stream Resources_Open(const char* path, bool* success) {
 		return Stream_Blank();
 	}
 
-	return drive->open(drive, path, success);
+	const char* drivePath = strchr(path, ':');
+
+	if (drivePath == NULL) {
+		Log("Invalid file path: '%s'", path);
+		*success = false;
+		return Stream_Blank();
+	}
+	else {
+		++ drivePath;
+	}
+
+	return drive->open(drive, drivePath, success);
 }
 
 static Resource* AllocResource(void) {

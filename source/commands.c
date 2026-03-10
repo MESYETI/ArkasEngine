@@ -49,34 +49,39 @@ static void Command_ClearScenes(size_t argc, char** argv) {
 static void Command_Map(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
-	char* path1 = ConcatString("maps:", argv[0]);
-	char* path2 = ConcatString(path1,   ".arm");
-	free(path1);
-
-	SceneManager_AddScene((Scene) {
-		SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
-		NULL, NULL
-	});
-
-	size_t size;
-	void*  res = Resources_ReadFile(path2, &size);
-
-	if (!res) {
-		Log("Failed to load map");
-		SceneManager_PopScene();
-		return;
+	if (server.running) {
+		Server_SetMap(argv[0]);
 	}
+	else {
+		char* path1 = ConcatString("maps:", argv[0]);
+		char* path2 = ConcatString(path1,   ".arm");
+		free(path1);
 
-	Stream stream = Stream_Memory(res, size, true);
+		SceneManager_AddScene((Scene) {
+			SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
+			NULL, NULL
+		});
 
-	if (!Map_LoadFile(&stream, path2)) {
-		Log("Failed to load map");
-		SceneManager_PopScene();
-		return;
+		size_t size;
+		void*  res = Resources_ReadFile(path2, &size);
+
+		if (!res) {
+			Log("Failed to load map");
+			SceneManager_PopScene();
+			return;
+		}
+
+		Stream stream = Stream_Memory(res, size, true);
+
+		if (!Map_LoadFile(&stream, path2)) {
+			Log("Failed to load map");
+			SceneManager_PopScene();
+			return;
+		}
+
+		free(path2);
+		engine.console = false;
 	}
-
-	free(path2);
-	engine.console = false;
 }
 
 static void Command_DlMap(size_t argc, char** argv) {

@@ -3,6 +3,7 @@
 
 #include "common.h"
 #include "socket.h"
+#include "stream.h"
 
 typedef struct {
 	int     relState;
@@ -10,6 +11,7 @@ typedef struct {
 
 	// state stuff
 	uint16_t packetID;
+	Stream   mapStream;
 
 	// info
 	char username[17];
@@ -22,7 +24,8 @@ typedef struct {
 } ServerConfig;
 
 typedef struct {
-	bool running;
+	bool  running;
+	char* mapPath;
 
 	// server sockets
 	Socket* netSock;
@@ -39,5 +42,6 @@ extern ServerConfig serverConf;
 bool Server_Start(void);
 void Server_Free(void);
 void Server_Update(void);
+void Server_SetMap(const char* name);
 
 #endif

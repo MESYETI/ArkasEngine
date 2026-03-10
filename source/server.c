@@ -2,9 +2,11 @@
 #include "mem.h"
 #include "util.h"
 #include "server.h"
+#include "resources.h"
 
 Server server = {
 	.running   = false,
+	.mapPath   = NULL,
 	.netSock   = NULL,
 	.localSock = NULL
 };
@@ -87,8 +89,32 @@ void Server_Free(void) {
 
 enum {
 	SC_WAITING = 0, // waiting for a new packet
-	SC_PACKET       // waiting for the current packet to be finished
+	SC_PACKET,      // waiting for the current packet to be finished
+	SC_MAP,
 };
+
+static bool ClientSendMap(ServerClient* this) {
+	uint16_t id = 0x01;
+	Socket_Send(this->relSock, &id, sizeof(id));
+
+	char mapName[64];
+	strncpy(mapName, server.mapPath, 64);
+	Socket_Send(this->relSock, mapName, sizeof(mapName));
+
+	bool success;
+	this->mapStream = Resources_Open(server.mapPath, &success);
+
+	if (!success) {
+		Log("Failed to open map");
+		return false;
+	}
+
+	uint32_t mapSize = (uint32_t) Stream_Size(&this->mapStream);
+	Socket_Send(this->relSock, &mapSize, sizeof(mapSize));
+
+	this->relState = SC_MAP;
+	return true;
+}
 
 static bool ClientWorker(ServerClient* this) {
 	switch (this->relState) {
@@ -124,13 +150,23 @@ static bool ClientWorker(ServerClient* this) {
 					strcpy(this->username, username);
 
 					// now send response
-					uint16_t id             = 0;
+					uint16_t id             = 3;
 					char     serverName[32] = "Arkas Engine Server";
 
 					Socket_Send(this->relSock, &id, sizeof(id));
 					Socket_Send(this->relSock, serverName, sizeof(serverName));
 
-					this->relState = SC_WAITING;
+					// start sending map
+					if (server.mapPath == NULL) {
+						Log("server: warning: No map to send");
+						this->relState = SC_WAITING;
+					}
+					else {
+						if (!ClientSendMap(this)) {
+							Log("server: Failed to send map");
+							this->relState = SC_WAITING;
+						}
+					}
 					break;
 				}
 				default: {
@@ -138,6 +174,21 @@ static bool ClientWorker(ServerClient* this) {
 					return false;
 				}
 			}
+			break;
+		}
+		case SC_MAP: {
+			uint8_t chunk[1024];
+			size_t  size;
+
+			size = Stream_Read(&this->mapStream, 1024, &chunk);
+
+			Socket_Send(this->relSock, chunk, size);
+
+			if (size != 1024) {
+				Log("server: Finished sending map");
+				this->relState = SC_WAITING;
+			}
+			break;
 		}
 	}
 
@@ -174,4 +225,14 @@ void Server_Update(void) {
 		ServerClient* client = &server.clients[i];
 		ClientWorker(client);
 	}
+}
+
+void Server_SetMap(const char* name) {
+	if (server.mapPath) {
+		free(server.mapPath);
+	}
+
+	char* path     = ConcatString("maps:", name);
+	server.mapPath = ConcatString(path, ".arm");
+	free(path);
 }

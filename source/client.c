@@ -137,6 +137,8 @@ void Client_Update(void) {
 					client.fileContents = SafeMalloc(client.fileSize);
 					client.fileRead     = 0;
 					client.state        = C_FILE;
+
+					Log("Receiving '%s' from server...", client.fileName);
 					break;
 				}
 				default: {
@@ -177,6 +179,7 @@ void Client_Update(void) {
 					}
 
 					Map_LoadFile(&file, "net:map.arm");
+					client.state = C_WAITING;
 				}
 			}
 			break;

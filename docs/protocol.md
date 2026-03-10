@@ -39,6 +39,7 @@ Notes:
 - The client may have a file size limit
 - The file will be stored in the `net:` drive
 - If the server sends `map.arm`, the client will load that map
+- If the file already exists in the client's memory, the file will be replaced
 
 #### 0x02 - Game packet
 | Size | Description                                   |
