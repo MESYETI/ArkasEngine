@@ -18,6 +18,7 @@
 #include "mapEditor.h"
 #include "fileBrowser.h"
 #include "imageViewer.h"
+#include "splashScreen.h"
 
 #define ASSERT_ARGC(N) \
 	(void) argv; \
@@ -564,6 +565,17 @@ static void Command_ViewMap(size_t argc, char** argv) {
 	engine.console = false;
 }
 
+static void DefaultSplashCallback(void) {
+	SceneManager_PopScene();
+	engine.console = true;
+}
+
+static void Command_Splash(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+	SceneManager_AddScene(NewSplashScreen(argv[0], &DefaultSplashCallback, 5.0));
+	engine.console = false;
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "clear-scenes",       &Command_ClearScenes);
@@ -598,4 +610,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "delete",             &Command_Delete);
 	Console_AddCommand(true,  "unmount",            &Command_Unmount);
 	Console_AddCommand(true,  "view-map",           &Command_ViewMap);
+	Console_AddCommand(true,  "splash",             &Command_Splash);
 }
