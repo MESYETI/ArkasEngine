@@ -38,5 +38,7 @@ Texture* Texture_LoadFile(const char* path) {
 		return NULL;
 	}
 
-	return Texture_LoadMem(data, size);
+	Texture* ret = Texture_LoadMem(data, size);
+	free(data);
+	return ret;
 }

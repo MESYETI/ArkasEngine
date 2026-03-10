@@ -345,6 +345,9 @@ void Socket_Close(Socket* sock) {
 			if (sock->value.local.other) {
 				sock->value.local.other->other = NULL;
 			}
+			if (sock->value.local.buf) {
+				free(sock->value.local.buf);
+			}
 			break;
 		}
 		case SOCKET_TYPE_NET: {

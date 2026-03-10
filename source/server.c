@@ -133,8 +133,6 @@ static bool ClientWorker(ServerClient* this) {
 
 					if (available < size) break;
 
-					Log("server: 0x00 - %d bytes", available);
-
 					uint16_t version;
 					Socket_Receive(this->relSock, &version, 2);
 
@@ -187,6 +185,7 @@ static bool ClientWorker(ServerClient* this) {
 
 			if (size != 1024) {
 				Log("server: Finished sending map");
+				Stream_Close(&this->mapStream);
 				this->relState = SC_WAITING;
 			}
 			break;

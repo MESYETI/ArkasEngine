@@ -4,9 +4,13 @@
 #include "stream.h"
 
 void Stream_Close(Stream* stream) {
-	if (!stream->close) return;
+	if (stream->close) {
+		stream->close(stream);
+	}
 
-	stream->close(stream);
+	if (stream->data) {
+		free(stream->data);
+	}
 }
 
 size_t Stream_Write(Stream* stream, size_t size, void* data) {
@@ -241,7 +245,7 @@ Stream Stream_SubStream(Stream* stream, size_t start, size_t size) {
 
 	return (Stream) {
 		.data = data,
-		.close = free? &MemClose : NULL,
+		.close = NULL,
 		.write = NULL,
 		.read  = &SubRead,
 		.peek  = &SubPeek,

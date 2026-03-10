@@ -230,8 +230,6 @@ bool Map_LoadFile(Stream* file, const char* path) {
 		}
 	}
 
-	Stream_Close(file);
-
 	Log("Loaded map");
 	camera.sector = &map.sectors[0];
 	player.sector = &map.sectors[0];

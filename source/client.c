@@ -112,7 +112,6 @@ void Client_Update(void) {
 					size_t size = 32;
 
 					if (available < size) break;
-					Log("client: 0x00 - %d bytes", available);
 
 					char name[33];
 					name[32] = 0;
@@ -126,7 +125,6 @@ void Client_Update(void) {
 					size_t size = 64 + 4;
 
 					if (available < size) break;
-					Log("client: 0x01 - %d bytes", available);
 
 					client.fileName[64] = 0;
 					Socket_Receive(client.relSock, &client.fileName, 64);
@@ -182,7 +180,7 @@ void Client_Update(void) {
 					}
 
 					Map_LoadFile(&file, "net:map.arm");
-					Log("Loaded map 'net:map.arm'");
+					Stream_Close(&file);
 					client.state = C_WAITING;
 				}
 			}

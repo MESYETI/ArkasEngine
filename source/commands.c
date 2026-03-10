@@ -79,6 +79,8 @@ static void Command_Map(size_t argc, char** argv) {
 			return;
 		}
 
+		Stream_Close(&stream);
+
 		free(path2);
 		engine.console = false;
 	}
