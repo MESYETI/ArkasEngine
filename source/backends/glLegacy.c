@@ -749,7 +749,7 @@ void Backend_Begin(void) {
 void Backend_Begin2D(void) {
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
+	glEnable(GL_BLEND);
 	GL(glMatrixMode(GL_MODELVIEW));
 	GL(glLoadIdentity());
 	GL(glMatrixMode(GL_PROJECTION));
