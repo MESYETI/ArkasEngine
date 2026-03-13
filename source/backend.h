@@ -50,6 +50,7 @@ void Backend_SetViewport(int x, int y, int w, int h);
 void Backend_EnableViewport(bool enable);
 void Backend_RenderRect(Rect rect, Colour colour);
 void Backend_RenderLine(Vec2 a, Vec2 b, Colour colour);
+void Backend_EnableAlpha(bool enable);
 void Backend_InitSkybox(void);
 void Backend_FinishRender(void);
 

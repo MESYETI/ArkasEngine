@@ -252,19 +252,19 @@ static void Render(Scene* scene) {
 
 	for (int i = 0; i < video.height; ++ i) {
 		if ((i + cam.y) % (unitPx * 4) == 0) {
-			Backend_HLine(0, i, 1, video.width, (Colour) {0x80, 0x80, 0x80});
+			Backend_HLine(0, i, 1, video.width, (Colour) {0x80, 0x80, 0x80, 0xFF});
 		}
 		else if ((i + cam.y) % unitPx == 0) {
-			Backend_HLine(0, i, 1, video.width, (Colour) {0x40, 0x40, 0x40});
+			Backend_HLine(0, i, 1, video.width, (Colour) {0x40, 0x40, 0x40, 0xFF});
 		}
 	}
 
 	for (int i = 0; i < video.width; ++ i) {
 		if ((i + cam.x) % (unitPx * 4) == 0) {
-			Backend_VLine(i, 0, 1, video.height, (Colour) {0x80, 0x80, 0x80});
+			Backend_VLine(i, 0, 1, video.height, (Colour) {0x80, 0x80, 0x80, 0xFF});
 		}
 		else if ((i + cam.x) % unitPx == 0) {
-			Backend_VLine(i, 0, 1, video.height, (Colour) {0x40, 0x40, 0x40});
+			Backend_VLine(i, 0, 1, video.height, (Colour) {0x40, 0x40, 0x40, 0xFF});
 		}
 	}
 
@@ -277,7 +277,7 @@ static void Render(Scene* scene) {
 				.y = ((int) ((point->pos.y - mCamera.y) * unitPx)) - 2,
 				.w = 4, .h = 4
 			};
-			Backend_RenderRect(rect, (Colour) {0xFF, 0xFF, 0xFF});
+			Backend_RenderRect(rect, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
 
 			size_t next = (j == sectors[i].pointsLen - 1)?
 				0 : j + 1;
@@ -289,7 +289,7 @@ static void Render(Scene* scene) {
 			};
 
 			Backend_RenderLine(
-				(Vec2) {rect.x + 2, rect.y + 2}, b, (Colour) {0x80, 0x80, 0x80}
+				(Vec2) {rect.x + 2, rect.y + 2}, b, (Colour) {0x80, 0x80, 0x80, 0xFF}
 			);
 		}
 	}
@@ -300,7 +300,7 @@ static void Render(Scene* scene) {
 		.w = 10, .h = 10
 	};
 	if (editorMode == ME_MODE_EDIT) {
-		Backend_RenderRectOL(cursor, (Colour) {0xFF, 0xFF, 0xFF});
+		Backend_RenderRectOL(cursor, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
 	}
 
 	UI_ManagerRender(&scene->ui);

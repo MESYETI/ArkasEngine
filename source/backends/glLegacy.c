@@ -749,7 +749,7 @@ void Backend_Begin(void) {
 void Backend_Begin2D(void) {
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
+	glDisable(GL_BLEND);
 	GL(glMatrixMode(GL_MODELVIEW));
 	GL(glLoadIdentity());
 	GL(glMatrixMode(GL_PROJECTION));
@@ -802,6 +802,15 @@ void Backend_RenderLine(Vec2 a, Vec2 b, Colour colour) {
 	glVertex2i(b.x, b.y);
 	GL(glEnd());
 	GL(glEnable(GL_TEXTURE_2D));
+}
+
+void Backend_EnableAlpha(bool enable) {
+	if (enable) {
+		GL(glEnable(GL_BLEND));
+	}
+	else {
+		GL(glDisable(GL_BLEND));
+	}
 }
 
 void Backend_InitSkybox(void) {

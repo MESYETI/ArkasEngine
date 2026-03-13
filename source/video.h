@@ -7,7 +7,7 @@
 #undef main
 
 typedef struct {
-	uint8_t r, g, b;
+	uint8_t r, g, b, a;
 } Colour;
 
 typedef struct {

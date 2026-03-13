@@ -339,7 +339,7 @@ void UI_ContainerRender(UI_Container* container, bool focus) {
 
 			// Backend_RenderRectOL((Rect) {
 			// 	rect.x + elem->x, rect.y + elem->y, elem->w, elem->h
-			// }, (Colour) {0xFF, 0xFF, 0xFF});
+			// }, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
 
 			if (!elem->render) continue;
 

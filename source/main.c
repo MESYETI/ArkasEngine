@@ -1,3 +1,4 @@
+#include "event.h"
 #include "engine.h"
 
 #ifdef AE_STANDALONE

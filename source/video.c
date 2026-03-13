@@ -51,7 +51,8 @@ Colour Video_MultiplyColour(Colour colour, float by) {
 	return (Colour) {
 		(uint8_t) (r * 255.0),
 		(uint8_t) (g * 255.0),
-		(uint8_t) (b * 255.0)
+		(uint8_t) (b * 255.0),
+		colour.a
 	};
 }
 

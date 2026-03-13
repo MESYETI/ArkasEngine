@@ -36,7 +36,7 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	if (focus) {
 		Backend_VLine(
 			textPos.x + (engine.font.charWidth * ((int) data->cursor)), textPos.y,
-			1, engine.font.charHeight, (Colour) {255, 255, 255}
+			1, engine.font.charHeight, (Colour) {255, 255, 255, 255}
 		);
 	}
 }
