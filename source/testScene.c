@@ -3,10 +3,12 @@
 #include "backend.h"
 #include "ui/label.h"
 #include "ui/button.h"
+#include "ui/checkBox.h"
 #include "ui/textInput.h"
 #include "testScene.h"
 
 static char input[128];
+static bool thing = false;
 
 static void ManulButton(UI_Button* this, uint8_t button) {
 	(void) this;
@@ -39,6 +41,12 @@ static void Init(Scene* scene) {
 	row = UI_ContainerAddRow(container, 0);
 
 	UI_RowAddElement(row, UI_NewTextInput(input, sizeof(input)));
+	UI_RowUpdate(row);
+
+	row = UI_ContainerAddRow(container, 0);
+
+	UI_RowAddElement(row, UI_NewLabel(&engine.font, "Click this checkbox:", 0));
+	UI_RowAddElement(row, UI_NewCheckBox(&thing));
 	UI_RowUpdate(row);
 
 	input[0] = 0;
