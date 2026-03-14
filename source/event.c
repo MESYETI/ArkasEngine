@@ -37,6 +37,10 @@ static int FindFree(void) {
 		if (events[i].type == AE_EVENT_NONE) return i;
 	}
 
+	for (i = 0; i < EVENTS_AMOUNT; ++ i) {
+		printf("Event %d: %d\n", i, (int) events[i].type);
+	}
+
 	Error("Event pool full");
 	return -1;
 }
