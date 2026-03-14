@@ -636,7 +636,7 @@ void Backend_RenderScene(void) {
 }
 
 void Backend_OnWindowResize(void) {
-	state.aspect = ((float) video.width) / ((float) video.height);
+	state.aspect = ((float) video.aWidth) / ((float) video.aHeight);
 	CalcProjMatrix();
 }
 
