@@ -1,8 +1,15 @@
 #include "util.h"
+#include "event.h"
 #include "video.h"
 #include "backend.h"
 
 Video video;
+
+static void EventHandler(Event* e) {
+	video.width  = e->windowResize.width;
+	video.height = e->windowResize.height;
+	Backend_OnWindowResize();
+}
 
 void Video_Init(const char* gameName) {
 	Backend_Init(true);
@@ -24,6 +31,8 @@ void Video_Init(const char* gameName) {
 	Log("Created window");
 
 	Backend_Init(false);
+
+	Event_AddHandler(AE_EVENT_WINDOW_RESIZE, &EventHandler);
 }
 
 void Video_Free(void) {

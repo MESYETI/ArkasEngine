@@ -115,7 +115,7 @@ void Event_Update(void) {
 			default: break;
 		}
 
-		if ((idx != -1) && (events[idx].type != AE_EVENT_NONE)) {
+		if (idx != -1) if (events[idx].type != AE_EVENT_NONE) {
 			for (size_t i = 0; i < handlerNum; ++ i) {
 				if (handlers[i].type == events[idx].type) {
 					handlers[i].func(&events[idx]);

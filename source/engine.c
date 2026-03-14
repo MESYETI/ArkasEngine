@@ -1,4 +1,5 @@
 #include "fs.h"
+#include "ui.h"
 #include "engine.h"
 #include "map.h"
 #include "util.h"
@@ -84,6 +85,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	SceneManager_Init();
 	Audio_Init();
 	Theme_Init();
+	UI_Init();
 
 	bool success;
 	engine.font    = Text_LoadFont("builtin:font.png", &success);
@@ -159,12 +161,6 @@ void Engine_Update(void) {
 				break;
 			}
 			case AE_EVENT_QUIT: engine.running = false; break;
-			case AE_EVENT_WINDOW_RESIZE: {
-				video.width  = e.windowResize.width;
-				video.height = e.windowResize.height;
-				Backend_OnWindowResize();
-				break;
-			}
 		}
 
 		if (engine.server) continue;

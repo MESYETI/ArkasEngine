@@ -15,12 +15,18 @@ static void ManulButton(UI_Button* this, uint8_t button) {
 	Log("Your input: %s", input);
 }
 
+static Vec2 Resizer(UI_Container* cont) {
+	(void) cont;
+	return (Vec2) {video.width, video.height};
+}
+
 static void Init(Scene* scene) {
 	scene->ui = UI_ManagerInit(1);
 
 	UI_Container* container = UI_ManagerAddContainer(scene->ui, 512, NULL);
-	UI_ContainerCenterX(container);
-	UI_ContainerAlignTop(container, 10);
+	UI_ContainerAlignLeft(container, 0);
+	UI_ContainerAlignTop(container, 0);
+	container->resizer = &Resizer;
 	UI_ContainerSetPadding(container, 5, 5, 5, 5);
 
 	UI_Row* row = UI_ContainerAddRow(container, 0);
