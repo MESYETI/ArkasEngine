@@ -23,10 +23,11 @@ static Vec2 Resizer(UI_Container* cont) {
 static void Init(Scene* scene) {
 	scene->ui = UI_ManagerInit(1);
 
-	UI_Container* container = UI_ManagerAddContainer(scene->ui, 512, NULL);
+	UI_Container* container = UI_ManagerAddContainer(scene->ui, video.width, NULL);
 	UI_ContainerAlignLeft(container, 0);
 	UI_ContainerAlignTop(container, 0);
-	container->resizer = &Resizer;
+	container->resizer     = &Resizer;
+	container->fixedHeight = video.height;
 	UI_ContainerSetPadding(container, 5, 5, 5, 5);
 
 	UI_Row* row = UI_ContainerAddRow(container, 0);

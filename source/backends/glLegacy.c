@@ -741,7 +741,7 @@ void Backend_DrawTexture(
 }
 
 void Backend_Begin(void) {
-	glViewport(0, 0, video.width, video.height);
+	glViewport(0, 0, video.aWidth, video.aHeight);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -754,11 +754,7 @@ void Backend_Begin2D(void) {
 	GL(glLoadIdentity());
 	GL(glMatrixMode(GL_PROJECTION));
 	GL(glLoadIdentity());
-	GL(glOrtho(
-		0.0, ((float) video.width) / ((float) globalConfig.scale2D),
-		((float) video.height) / ((float) globalConfig.scale2D),
-		0.0, -1.0, 1.0
-	));
+	GL(glOrtho(0.0, (float) video.width, (float) video.height, 0.0, -1.0, 1.0));
 }
 
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {

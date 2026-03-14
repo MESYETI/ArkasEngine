@@ -13,6 +13,7 @@ typedef struct {
 typedef struct {
 	SDL_Window* window;
 	int         width, height;
+	int         aWidth, aHeight;
 	bool        cursorVisible; // DO NOT CHANGE - nothing will happen!
 	bool        relativeMouseMode; // ditto
 } Video;

@@ -1,5 +1,5 @@
-#ifndef Event_H
-#define Event_H
+#ifndef AE_EVENT_H
+#define AE_EVENT_H
 
 #include "keyboard.h"
 

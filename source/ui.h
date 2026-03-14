@@ -55,6 +55,7 @@ struct UI_Container {
 	int     padBottom;
 	int     padLeft;
 	int     padRight;
+	int     fixedHeight;
 	
 	UI_Mode yMode;
 	UI_Mode xMode;
@@ -102,6 +103,7 @@ void UI_ContainerSetPadding(
 UI_Row* UI_ContainerAddRow(UI_Container* container, int height);
 void    UI_ContainerRender(UI_Container* container, bool focus);
 Rect    UI_ContainerGetRect(UI_Container* container);
+int     UI_ContainerTotalRowHeight(UI_Container* container);
 
 UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element);
 void        UI_RowUpdate(UI_Row* row);

@@ -1,24 +1,31 @@
 #include "util.h"
 #include "event.h"
 #include "video.h"
+#include "config.h"
 #include "backend.h"
 
 Video video;
 
 static void EventHandler(Event* e) {
-	video.width  = e->windowResize.width;
-	video.height = e->windowResize.height;
+	video.aWidth  = e->windowResize.width;
+	video.aHeight = e->windowResize.height;
 	Backend_OnWindowResize();
+
+	video.width  = video.aWidth / globalConfig.scale2D;
+	video.height = video.aHeight / globalConfig.scale2D;
 }
 
 void Video_Init(const char* gameName) {
 	Backend_Init(true);
 
-	video.width  = 640;
-	video.height = 480;
-	video.window = SDL_CreateWindow(
+	video.aWidth  = 640;
+	video.aHeight = 480;
+	video.width   = video.aWidth  / globalConfig.scale2D;
+	video.height  = video.aHeight / globalConfig.scale2D;
+
+	video.window  = SDL_CreateWindow(
 		gameName, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		video.width, video.height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
+		video.aWidth, video.aHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 	);
 	video.cursorVisible     = true;
 	video.relativeMouseMode = false;

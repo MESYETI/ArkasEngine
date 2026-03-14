@@ -13,9 +13,9 @@ static void EventHandler(Event* e) {
 			UI_Container* con = &man->containers[i];
 
 			if (con->resizer) {
-				Vec2 newSize = con->resizer(con);
-				con->w       = newSize.x;
-				con->h       = newSize.y;
+				Vec2 newSize     = con->resizer(con);
+				con->w           = newSize.x;
+				con->fixedHeight = newSize.y;
 
 				for (size_t j = 0; j < con->rowAmount; ++ j) {
 					UI_RowUpdate(&con->rows[j]);
@@ -93,6 +93,7 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w, UI_ContainerResizer
 			.active = true,
 			.x = 0, .y = 0, .w = w, .h = 0,
 			.padTop = 0, .padBottom = 0, .padLeft = 0, .padRight = 0,
+			.fixedHeight = 0,
 			.yMode = 0, .xMode = 0,
 			.rows      = NULL,
 			.rowAmount = 0,
@@ -351,10 +352,7 @@ UI_Row* UI_ContainerAddRow(UI_Container* container, int height) {
 		container->rows, (container->rowAmount + 1) * sizeof(UI_Row)
 	);
 
-	container->h += height;
-
-	Rect rect = UI_ContainerGetRect(container);
-	int  y    = rect.h;
+	int y = UI_ContainerTotalRowHeight(container);
 
 	++ container->rowAmount;
 
@@ -392,9 +390,14 @@ Rect UI_ContainerGetRect(UI_Container* container) {
 	Rect rect;
 	rect.w = container->w;
 
-	rect.h = container->padBottom;
-	for (size_t i = 0; i < container->rowAmount; ++ i) {
-		rect.h += container->padTop + container->rows[i].height;
+	if (container->fixedHeight) {
+		rect.h = container->fixedHeight;
+	}
+	else {
+		rect.h = container->padBottom;
+		for (size_t i = 0; i < container->rowAmount; ++ i) {
+			rect.h += container->padTop + container->rows[i].height;
+		}
 	}
 
 	switch (container->yMode) {
@@ -412,6 +415,16 @@ Rect UI_ContainerGetRect(UI_Container* container) {
 	}
 
 	return rect;
+}
+
+int UI_ContainerTotalRowHeight(UI_Container* container) {
+	int res = container->padBottom;
+
+	for (size_t i = 0; i < container->rowAmount; ++ i) {
+		res += container->padTop + container->rows[i].height;
+	}
+
+	return res;
 }
 
 UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element) {
