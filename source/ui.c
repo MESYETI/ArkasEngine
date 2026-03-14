@@ -427,6 +427,27 @@ int UI_ContainerTotalRowHeight(UI_Container* container) {
 	return res;
 }
 
+void UI_ClearContainer(UI_Container* container) {
+	if (!container->active) return;
+
+	for (size_t j = 0; j < container->rowAmount; ++ j) {
+		UI_Row* row = &container->rows[j];
+
+		for (size_t k = 0; k < row->elemAmount; ++ k) {
+			UI_Element* elem = &row->elems[k];
+
+			if (elem->free) {
+				elem->free(elem);
+			}
+		}
+
+		if (row->elemAmount > 0) free(container->rows[j].elems);
+	}
+
+	if (container->rowAmount > 0) free(container->rows);
+	container->rowAmount = 0;
+}
+
 UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element) {
 	row->elems = SafeRealloc(row->elems, (row->elemAmount + 1) * sizeof(UI_Element));
 	++ row->elemAmount;
