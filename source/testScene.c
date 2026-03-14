@@ -16,9 +16,9 @@ static void ManulButton(UI_Button* this, uint8_t button) {
 }
 
 static void Init(Scene* scene) {
-	UI_ManagerInit(&scene->ui, 1);
+	scene->ui = UI_ManagerInit(1);
 
-	UI_Container* container = UI_ManagerAddContainer(&scene->ui, 512);
+	UI_Container* container = UI_ManagerAddContainer(scene->ui, 512, NULL);
 	UI_ContainerCenterX(container);
 	UI_ContainerAlignTop(container, 10);
 	UI_ContainerSetPadding(container, 5, 5, 5, 5);
@@ -38,11 +38,11 @@ static void Init(Scene* scene) {
 }
 
 static void Free(Scene* scene) {
-	UI_ManagerFree(&scene->ui);
+	UI_ManagerFree(scene->ui);
 }
 
 static bool HandleEvent(Scene* scene, Event* e) {
-	return UI_ManagerHandleEvent(&scene->ui, e);
+	return UI_ManagerHandleEvent(scene->ui, e);
 }
 
 static void Update(Scene* scene, bool top) {
@@ -52,7 +52,7 @@ static void Update(Scene* scene, bool top) {
 
 static void Render(Scene* scene) {
 	Backend_Begin2D();
-	UI_ManagerRender(&scene->ui);
+	UI_ManagerRender(scene->ui);
 }
 
 Scene TestScene(void) {

@@ -43,6 +43,8 @@ typedef uint8_t UI_Mode;
 
 typedef struct UI_Manager UI_Manager;
 
+typedef Vec2 (*UI_ContainerResizer)(UI_Container* container);
+
 struct UI_Container {
 	bool    active;
 	int     x;
@@ -61,6 +63,8 @@ struct UI_Container {
 
 	UI_Element* focus;
 	UI_Manager* manager;
+
+	UI_ContainerResizer resizer;
 };
 
 struct UI_Manager {
@@ -68,11 +72,16 @@ struct UI_Manager {
 	size_t        containerLen;
 	UI_Container* focus;
 	bool          priority;
+
+	UI_Manager* prev;
+	UI_Manager* next;
 };
 
-void          UI_ManagerInit(UI_Manager* man, size_t poolSize);
+void UI_Init(void);
+
+UI_Manager*   UI_ManagerInit(size_t poolSize);
 void          UI_ManagerFree(UI_Manager* man);
-UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w);
+UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w, UI_ContainerResizer resizer);
 void          UI_ManagerRender(UI_Manager* man);
 bool          UI_ManagerHandleEvent(UI_Manager* man, Event* e);
 

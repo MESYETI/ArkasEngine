@@ -110,9 +110,9 @@ static void Init(Scene* scene) {
 	files       = NULL;
 	filesSize   = 0;
 
-	UI_ManagerInit(&scene->ui, 1);
+	scene->ui = UI_ManagerInit(1);
 
-	UI_Container* container = UI_ManagerAddContainer(&scene->ui, 640);
+	UI_Container* container = UI_ManagerAddContainer(scene->ui, 640, NULL);
 	UI_ContainerCenterX(container);
 	UI_ContainerCenterY(container);
 	UI_ContainerSetPadding(container, 5, 5, 5, 5);
@@ -158,11 +158,11 @@ static void Init(Scene* scene) {
 }
 
 static void Free(Scene* scene) {
-	UI_ManagerFree(&scene->ui);
+	UI_ManagerFree(scene->ui);
 }
 
 static bool HandleEvent(Scene* scene, Event* e) {
-	UI_ManagerHandleEvent(&scene->ui, e);
+	UI_ManagerHandleEvent(scene->ui, e);
 	return true;
 }
 
@@ -173,7 +173,7 @@ static void Update(Scene* scene, bool top) {
 
 static void Render(Scene* scene) {
 	Backend_Begin2D();
-	UI_ManagerRender(&scene->ui);
+	UI_ManagerRender(scene->ui);
 }
 
 Scene FileBrowserScene(void) {

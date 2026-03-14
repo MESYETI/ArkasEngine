@@ -33,7 +33,7 @@ static void Command_Test(size_t argc, char** argv) {
 	Log("Starting map viewer");
 
 	SceneManager_AddScene((Scene) {
-		SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
+		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
 		NULL, NULL
 	});
 	Map_LoadTest();
@@ -59,7 +59,7 @@ static void Command_Map(size_t argc, char** argv) {
 		free(path1);
 
 		SceneManager_AddScene((Scene) {
-			SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
+			SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
 			NULL, NULL
 		});
 
@@ -559,7 +559,7 @@ static void Command_Unmount(size_t argc, char** argv) {
 static void Command_ViewMap(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
 	SceneManager_AddScene((Scene) {
-		SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
+		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
 		NULL, NULL
 	});
 	engine.console = false;

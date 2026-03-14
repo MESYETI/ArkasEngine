@@ -17,7 +17,7 @@ struct Scene {
 	int         type;
 	void*       data;
 	const char* name;
-	UI_Manager  ui;
+	UI_Manager* ui;
 
 	FUNCTION_POINTER(void, init, Scene*);
 	FUNCTION_POINTER(void, free, Scene*);

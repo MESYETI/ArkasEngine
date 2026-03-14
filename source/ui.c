@@ -5,15 +5,54 @@
 #include "video.h"
 #include "backend.h"
 
-void UI_ManagerInit(UI_Manager* man, size_t poolSize) {
-	man->containers   = SafeMalloc(poolSize * sizeof(UI_Container));
-	man->containerLen = poolSize;
-	man->focus        = NULL;
-	man->priority     = false;
+static UI_Manager* managers;
+
+static void EventHandler(Event* e) {
+	for (UI_Manager* man = managers; man; man = man->next) {
+		for (size_t i = 0; i < man->containerLen; ++ i) {
+			UI_Container* con = &man->containers[i];
+
+			if (con->resizer) {
+				Vec2 newSize = con->resizer(con);
+				con->w       = newSize.x;
+				con->h       = newSize.y;
+
+				for (size_t j = 0; j < con->rowAmount; ++ j) {
+					UI_RowUpdate(&con->rows[j]);
+				}
+			}
+		}
+	}
+}
+
+void UI_Init(void) {
+	Event_AddHandler(AE_EVENT_WINDOW_RESIZE, &EventHandler);
+}
+
+UI_Manager* UI_ManagerInit(size_t poolSize) {
+	if (managers) {
+		UI_Manager* new = SafeMalloc(sizeof(UI_Manager));
+		new->prev       = NULL;
+		new->next       = managers;
+		managers->prev  = new;
+		managers        = new;
+	}
+	else {
+		managers       = SafeMalloc(sizeof(UI_Manager));
+		managers->prev = NULL;
+		managers->next = NULL;
+	}
+
+	managers->containers   = SafeMalloc(poolSize * sizeof(UI_Container));
+	managers->containerLen = poolSize;
+	managers->focus        = NULL;
+	managers->priority     = false;
 
 	for (size_t i = 0; i < poolSize; ++ i) {
-		man->containers[i].active = false;
+		managers->containers[i].active = false;
 	}
+
+	return managers;
 }
 
 void UI_ManagerFree(UI_Manager* man) {
@@ -46,7 +85,7 @@ void UI_ManagerFree(UI_Manager* man) {
 	man->focus        = NULL;
 }
 
-UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w) {
+UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w, UI_ContainerResizer resizer) {
 	for (size_t i = 0; i < man->containerLen; ++ i) {
 		if (man->containers[i].active) continue;
 
@@ -58,7 +97,8 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w) {
 			.rows      = NULL,
 			.rowAmount = 0,
 			.focus     = NULL,
-			.manager   = man
+			.manager   = man,
+			.resizer   = resizer
 		};
 		return &man->containers[i];
 	}

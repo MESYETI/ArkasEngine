@@ -112,7 +112,7 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 
 	SceneManager_Free();
 	SceneManager_AddScene((Scene) {
-		SCENE_TYPE_GAME, NULL, "Map Viewer", (UI_Manager) {0}, NULL, NULL, NULL,
+		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
 		NULL, NULL
 	});
 
@@ -132,9 +132,9 @@ static void Init(Scene* scene) {
 	sectors    = NULL;
 	sectorsLen = 0;
 
-	UI_ManagerInit(&scene->ui, 4);
+	scene->ui = UI_ManagerInit(4);
 
-	topCont = UI_ManagerAddContainer(&scene->ui, video.width);
+	topCont = UI_ManagerAddContainer(scene->ui, video.width, NULL);
 	UI_ContainerAlignLeft(topCont, 0);
 	UI_ContainerAlignTop(topCont, 0);
 	UI_ContainerSetPadding(topCont, 5, 5, 5, 5);
@@ -160,7 +160,7 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));
 	UI_RowUpdate(row);
 
-	bottomCont = UI_ManagerAddContainer(&scene->ui, video.width);
+	bottomCont = UI_ManagerAddContainer(scene->ui, video.width, NULL);
 	UI_ContainerAlignLeft(bottomCont, 0);
 	UI_ContainerAlignBottom(bottomCont, 0);
 	UI_ContainerSetPadding(bottomCont, 5, 5, 5, 5);
@@ -176,16 +176,18 @@ static void Init(Scene* scene) {
 }
 
 static void Free(Scene* scene) {
-	UI_ManagerFree(&scene->ui);
+	UI_ManagerFree(scene->ui);
 }
 
 static bool HandleEvent(Scene* scene, Event* e) {
-	if (UI_ManagerHandleEvent(&scene->ui, e)) return true;
+	if (UI_ManagerHandleEvent(scene->ui, e)) return true;
 
 	switch (e->type) {
 		case AE_EVENT_MOUSE_BUTTON_DOWN: {
 			switch (editorMode) {
 				case ME_MODE_SECTOR: {
+					if (e->mouseButton.button != 0) break;
+
 					++ thisSect->pointsLen;
 					thisSect->points = SafeRealloc(
 						thisSect->points, sizeof(EPoint) * thisSect->pointsLen
@@ -303,7 +305,7 @@ static void Render(Scene* scene) {
 		Backend_RenderRectOL(cursor, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
 	}
 
-	UI_ManagerRender(&scene->ui);
+	UI_ManagerRender(scene->ui);
 }
 
 Scene MapEditorScene(void) {
