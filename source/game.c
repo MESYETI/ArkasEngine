@@ -1,9 +1,10 @@
-#include "engine.h"
 #include "text.h"
 #include "game.h"
 #include "util.h"
 #include "video.h"
 #include "camera.h"
+#include "config.h"
+#include "engine.h"
 #include "player.h"
 #include "backend.h"
 #include "audio.h"
@@ -210,9 +211,11 @@ void GameBase_HandleEvent(Event* e) {
 		}
 		case AE_EVENT_MOUSE_MOVE: {
 			player.yaw +=
-				(float) e->mouseMove.xRel * gameBaseConfig.sensitivity * engine.delta;
+				(float) e->mouseMove.xRel * globalConfig.scale2D *
+				gameBaseConfig.sensitivity * engine.delta;
 			player.pitch -=
-				(float) e->mouseMove.yRel * gameBaseConfig.sensitivity * engine.delta;
+				(float) e->mouseMove.yRel * globalConfig.scale2D *
+				gameBaseConfig.sensitivity * engine.delta;
 
 			if (player.pitch >  90.0) player.pitch =  90.0;
 			if (player.pitch < -90.0) player.pitch = -90.0;

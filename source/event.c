@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "util.h"
 #include "event.h"
+#include "config.h"
 #include "input/sdl.h"
 
 #define EVENTS_AMOUNT 32
@@ -54,10 +55,10 @@ void Event_Update(void) {
 			case SDL_MOUSEMOTION: {
 				events[idx].mouseMove = (Event_MouseMove) {
 					.type = AE_EVENT_MOUSE_MOVE,
-					.x    = e.motion.x,
-					.y    = e.motion.y,
-					.xRel = e.motion.xrel,
-					.yRel = e.motion.yrel
+					.x    = e.motion.x / globalConfig.scale2D,
+					.y    = e.motion.y / globalConfig.scale2D,
+					.xRel = e.motion.xrel / globalConfig.scale2D,
+					.yRel = e.motion.yrel / globalConfig.scale2D
 				};
 				break;
 			}
@@ -76,8 +77,8 @@ void Event_Update(void) {
 					.type   = e.type == SDL_MOUSEBUTTONDOWN?
 						AE_EVENT_MOUSE_BUTTON_DOWN : AE_EVENT_MOUSE_BUTTON_UP,
 					.button = button,
-					.x      = e.button.x,
-					.y      = e.button.y
+					.x      = e.button.x / globalConfig.scale2D,
+					.y      = e.button.y / globalConfig.scale2D
 				};
 				break;
 			}
