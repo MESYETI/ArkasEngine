@@ -351,7 +351,7 @@ void UI_ContainerUpdateRowY(UI_Container* container) {
 	int y = container->padBottom;
 
 	for (size_t i = 0; i < container->rowAmount; ++ i) {
-		container->y = y;
+		container->rows[i].y = y;
 
 		y += container->padTop + container->rows[i].height;
 	}
