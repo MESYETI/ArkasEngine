@@ -347,6 +347,16 @@ void UI_ContainerSetPadding(
 	container->padRight  = right;
 }
 
+void UI_ContainerUpdateRowY(UI_Container* container) {
+	int y = container->padBottom;
+
+	for (size_t i = 0; i < container->rowAmount; ++ i) {
+		container->y = y;
+
+		y += container->padTop + container->rows[i].height;
+	}
+}
+
 UI_Row* UI_ContainerAddRow(UI_Container* container, int height) {
 	container->rows = SafeRealloc(
 		container->rows, (container->rowAmount + 1) * sizeof(UI_Row)

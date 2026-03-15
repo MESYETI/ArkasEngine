@@ -100,6 +100,7 @@ void UI_ContainerSetPadding(
 	UI_Container* container, int top, int bottom, int left, int right
 );
 
+void    UI_ContainerUpdateRowY(UI_Container* container);
 UI_Row* UI_ContainerAddRow(UI_Container* container, int height);
 void    UI_ContainerRender(UI_Container* container, bool focus);
 Rect    UI_ContainerGetRect(UI_Container* container);
