@@ -461,6 +461,7 @@ void UI_ClearContainer(UI_Container* container) {
 
 	if (container->rowAmount > 0) free(container->rows);
 	container->rowAmount = 0;
+	container->rows      = NULL;
 }
 
 UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element) {
