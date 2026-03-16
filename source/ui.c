@@ -70,6 +70,10 @@ void UI_ManagerFree(UI_Manager* man) {
 				if (elem->free) {
 					elem->free(elem);
 				}
+
+				if (elem->data) {
+					free(elem->data);
+				}
 			}
 
 			if (row->elemAmount > 0) free(container->rows[j].elems);
