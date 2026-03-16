@@ -7,6 +7,7 @@ typedef struct {
 	bool    running;
 	int     state;
 	Socket* relSock;
+	char    name[32];
 
 	// state stuff
 	uint16_t packetID;

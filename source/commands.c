@@ -192,7 +192,8 @@ static void Command_Set(size_t argc, char** argv) {
 		{VAR_STR,   "engine.backend",          &backendOptions.name, 20},
 		{VAR_BOOL,  "server.inet",             &serverConf.inet, 0},
 		{VAR_INT,   "server.inet-port",        &serverConf.inetPort, 0},
-		{VAR_BOOL,  "server.local",            &serverConf.local, 0}
+		{VAR_BOOL,  "server.local",            &serverConf.local, 0},
+		{VAR_STR,   "client.username",         &client.name, sizeof(client.name)}
 	};
 
 	if (argc == 0) {

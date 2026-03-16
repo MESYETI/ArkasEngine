@@ -90,8 +90,7 @@ void Client_Update(void) {
 			uint16_t ver = 0;
 			Socket_Send(client.relSock, &ver, sizeof(ver));
 
-			char name[32] = "player";
-			Socket_Send(client.relSock, name, sizeof(name));
+			Socket_Send(client.relSock, client.name, sizeof(client.name));
 
 			client.state = C_WAITING;
 			Log("client: Sent identification");
