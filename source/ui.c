@@ -362,6 +362,12 @@ void UI_ContainerUpdateRowY(UI_Container* container) {
 	}
 }
 
+UI_Row* UI_ContainerAddSingleElemRow(UI_Container* container, int height, UI_Element elem) {
+	UI_Row* ret = UI_ContainerAddRow(container, height);
+	UI_RowAddElement(ret, elem);
+	return ret;
+}
+
 UI_Row* UI_ContainerAddRow(UI_Container* container, int height) {
 	container->rows = SafeRealloc(
 		container->rows, (container->rowAmount + 1) * sizeof(UI_Row)
