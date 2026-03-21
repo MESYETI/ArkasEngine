@@ -237,7 +237,7 @@ void GameBase_Render(void) {
 	Backend_RenderScene();
 
     int    csLen = (int) (((float) video.height) / 96);
-    Colour csCol = (Colour) {255, 255, 255};
+    Colour csCol = (Colour) {255, 255, 255, 255};
 
     Backend_VLine((video.width / 2) - 1, (video.height / 2) - csLen, 2, csLen * 2, csCol);
     Backend_HLine((video.width / 2) - csLen, (video.height / 2) - 1, 2, csLen * 2, csCol);
