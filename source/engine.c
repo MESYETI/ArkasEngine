@@ -34,6 +34,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Variables_Add(VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D, 0);
 	Variables_Add(VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering, 0);
 	Variables_Add(VAR_STR,   "engine.backend",          &backendOptions.name, 20);
+	Variables_Add(VAR_INT,   "engine.debug-level",      &gameBaseConfig.debugInfoLevel, 0);
 	Variables_Add(VAR_BOOL,  "server.inet",             &serverConf.inet, 0);
 	Variables_Add(VAR_INT,   "server.inet-port",        &serverConf.inetPort, 0);
 	Variables_Add(VAR_BOOL,  "server.local",            &serverConf.local, 0);

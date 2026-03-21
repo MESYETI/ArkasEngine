@@ -10,11 +10,12 @@
 #include "audio.h"
 
 GameBaseConfig gameBaseConfig = {
-	.forward  = INPUT_BIND_NONE,
-	.left     = INPUT_BIND_NONE,
-	.backward = INPUT_BIND_NONE,
-	.right    = INPUT_BIND_NONE,
-	.jump     = INPUT_BIND_NONE
+	.debugInfoLevel = 0,
+	.forward        = INPUT_BIND_NONE,
+	.left           = INPUT_BIND_NONE,
+	.backward       = INPUT_BIND_NONE,
+	.right          = INPUT_BIND_NONE,
+	.jump           = INPUT_BIND_NONE
 };
 
 AudioEmitter emitters2d[1];
@@ -91,6 +92,8 @@ void GameBase_Free(void) {
 
 void GameBase_Update(bool top) {
 	if (!top || engine.console) return;
+
+	if (!map.active) return;
 
 	const uint8_t* keys = SDL_GetKeyboardState(NULL);
 
@@ -198,6 +201,8 @@ void GameBase_Update(bool top) {
 }
 
 void GameBase_HandleEvent(Event* e) {
+	if (!map.active) return;
+
 	switch (e->type) {
 		case AE_EVENT_KEY_DOWN: {
 			if (Input_MatchBind(gameBaseConfig.jump, e)) {
@@ -229,6 +234,14 @@ void GameBase_Render(void) {
 	Player_FPCamera();
 	Backend_RenderScene();
 
+    int    csLen = (int) (((float) video.height) / 96);
+    Colour csCol = (Colour) {255, 255, 255};
+
+    Backend_VLine((video.width / 2) - 1, (video.height / 2) - csLen, 2, csLen * 2, csCol);
+    Backend_HLine((video.width / 2) - csLen, (video.height / 2) - 1, 2, csLen * 2, csCol);
+
+    if (gameBaseConfig.debugInfoLevel == 0) return;
+
 	static char text[80];
 	snprintf(text, 80, "FPS: %d", engine.fps);
 	Text_Render(&engine.font, text, 8, 8);
@@ -240,12 +253,15 @@ void GameBase_Render(void) {
 	snprintf(text, 80, "Z: %.3f", player.pos.z);
 	Text_Render(&engine.font, text, 8, 8 + (16 * 3));
 	snprintf(text, 80, "Sector: %d", (int) (camera.sector - map.sectors));
+
+	if (!map.active || (gameBaseConfig.debugInfoLevel == 1)) return;
+
 	Text_Render(&engine.font, text, 8, 8 + (16 * 4));
 	snprintf(text, 80, "Camera: %.3f %.3f %.3f", camera.pos.x, camera.pos.y, camera.pos.z);
 	Text_Render(&engine.font, text, 8, 8 + (16 * 5));
 	snprintf(text, 80, "Player rot: %.3f %.3f", player.yaw, player.pitch);
 	Text_Render(&engine.font, text, 8, 8 + (16 * 6));
-	snprintf(text, 80, "Sector floor: %.3f", camera.sector->floor);
+	snprintf(text, 80, "Sector floor: %.3f", camera.sector? 0.0f : camera.sector->floor);
 	Text_Render(&engine.font, text, 8, 8 + (16 * 7));
 	snprintf(text, 80, "Velocity: %.3f %.3f %.3f", player.vel.x, player.vel.y, player.vel.z);
 	Text_Render(&engine.font, text, 8, 8 + (16 * 8));
@@ -256,10 +272,4 @@ void GameBase_Render(void) {
 		FloatEqual(player.sector->floor, player.pos.y, 0.05)? "true" : "false"
 	);
 	Text_Render(&engine.font, text, 8, 8 + (16 * 10));
-
-    int    csLen = (int) (((float) video.height) / 96);
-    Colour csCol = (Colour) {255, 255, 255};
-
-    Backend_VLine((video.width / 2) - 1, (video.height / 2) - csLen, 2, csLen * 2, csCol);
-    Backend_HLine((video.width / 2) - csLen, (video.height / 2) - 1, 2, csLen * 2, csCol);
 }

@@ -31,6 +31,7 @@ typedef struct {
 } Sector;
 
 typedef struct {
+	bool      active;
 	char*     name;
 	MapPoint* points;
 	size_t    pointsLen;

@@ -10,6 +10,7 @@ typedef struct {
 	float sensitivity;
 	float musicVolume;
 	bool  skyboxFiltering;
+	int   debugInfoLevel;
 
 	Input_BindID forward;
 	Input_BindID left;

@@ -8,6 +8,7 @@
 #include "backend.h"
 
 Map map = {
+	false,
 	NULL,
 	NULL, 0, // points
 	NULL, 0, // walls
@@ -17,6 +18,7 @@ Map map = {
 // static Resource* texture; // temp
 
 void Map_Init(void) {
+	map.active     = false;
 	map.points     = NULL;
 	map.pointsLen  = 0;
 	map.walls      = NULL;
@@ -26,6 +28,8 @@ void Map_Init(void) {
 }
 
 void Map_Free(void) {
+	map.active = false;
+
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
 		if (map.sectors[i].floorTexture) {
 			Resources_FreeRes(map.sectors[i].floorTexture);
@@ -64,6 +68,7 @@ void Map_Free(void) {
 }
 
 void Map_LoadTest(void) {
+	map.active    = true;
 	map.name      = NewString("ae_test");
 	map.points    = SafeMalloc(12 * sizeof(MapPoint));
 	map.pointsLen = 12;
@@ -233,6 +238,7 @@ bool Map_LoadFile(Stream* file, const char* path) {
 	Log("Loaded map");
 	camera.sector = &map.sectors[0];
 	player.sector = &map.sectors[0];
+	map.active    = true;
 
 	FreeStrArray(stringTable);
 	return true;
