@@ -12,6 +12,8 @@ static void EventHandler(Event* e) {
 		for (size_t i = 0; i < man->containerLen; ++ i) {
 			UI_Container* con = &man->containers[i];
 
+			if (!con->active) continue;
+
 			if (con->resizer) {
 				Vec2 newSize     = con->resizer(con);
 				con->w           = newSize.x;
