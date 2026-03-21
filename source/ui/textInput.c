@@ -41,6 +41,13 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	}
 }
 
+static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down) {
+	if ((button != 0) || !down) return;
+
+	UI_TextInput* data = (UI_TextInput*) e->data;
+	data->cursor       = strlen(data->dest);
+}
+
 static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {
 	(void) cont;
 
@@ -81,7 +88,7 @@ UI_Element UI_NewTextInput(char* dest, size_t size) {
 	ret.data            = SafeMalloc(sizeof(UI_TextInput));
 	ret.preferredHeight = engine.font.charHeight + 8;
 	ret.free            = &Free;
-	ret.onClick         = NULL;
+	ret.onClick         = &OnClick;
 	ret.render          = &Render;
 	ret.onEvent         = &OnEvent;
 
