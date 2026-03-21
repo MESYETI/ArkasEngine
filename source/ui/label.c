@@ -25,7 +25,7 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 	if (data->centered) {
 		int width = strlen(data->label) * data->font->charWidth;
 
-		x += (e->h / 2) - (width / 2);
+		x += (e->w / 2) - (width / 2);
 	}
 
 	Text_Render(
