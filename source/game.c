@@ -231,6 +231,8 @@ void GameBase_HandleEvent(Event* e) {
 }
 
 void GameBase_Render(void) {
+	if (!map.active) return;
+
 	Player_FPCamera();
 	Backend_RenderScene();
 
