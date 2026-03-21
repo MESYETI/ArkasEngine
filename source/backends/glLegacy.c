@@ -60,6 +60,7 @@ typedef struct {
 	float fov;
 	float aspect;
 	Model model;
+	bool  alpha;
 
 	BackendViewport viewport;
 
@@ -788,7 +789,14 @@ void Backend_EnableViewport(bool enable) {
 void Backend_RenderRect(Rect rect, Colour colour) {
 	GL(glDisable(GL_TEXTURE_2D));
 	glBegin(GL_TRIANGLE_FAN);
-	glColor3ub(colour.r, colour.g, colour.b);
+
+	if (state.alpha) {
+		glColor3ub(colour.r, colour.g, colour.b);
+	}
+	else {
+		glColor4ub(colour.r, colour.g, colour.b, colour.a);
+	}
+
 	glVertex2i(rect.x,          rect.y);
 	glVertex2i(rect.x + rect.w, rect.y);
 	glVertex2i(rect.x + rect.w, rect.y + rect.h);
@@ -808,6 +816,8 @@ void Backend_RenderLine(Vec2 a, Vec2 b, Colour colour) {
 }
 
 void Backend_EnableAlpha(bool enable) {
+	state.alpha = enable;
+
 	if (enable) {
 		GL(glEnable(GL_BLEND));
 	}
