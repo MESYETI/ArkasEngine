@@ -88,7 +88,15 @@ void SceneManager_HandleEvent(Event* e) {
 		if (sm.scenes[i].handleEvent(&sm.scenes[i], e)) {
 			return;
 		}
+
+		if (sm.update) {
+			sm.update = false;
+			SceneManager_HandleEvent(e);
+			return;
+		}
 	}
+
+	sm.update = false;
 }
 
 void SceneManager_Update(void) {
@@ -100,6 +108,8 @@ void SceneManager_Update(void) {
 		if (sm.scenes[i].update == NULL) continue;
 		sm.scenes[i].update(&sm.scenes[i], i == sm.activeScenes - 1);
 	}
+
+	sm.update = false;
 }
 
 void SceneManager_Render(void) {

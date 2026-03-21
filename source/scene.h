@@ -29,6 +29,7 @@ struct Scene {
 typedef struct {
 	Scene  scenes[8];
 	size_t activeScenes;
+	bool   update;
 } SceneManager;
 
 void SceneManager_Init(void);
