@@ -29,11 +29,16 @@ struct Scene {
 typedef struct {
 	Scene  scenes[8];
 	size_t activeScenes;
-	bool   update;
+
+	bool  pop;
+	bool  addScene;
+	Scene addedScene;
 } SceneManager;
 
 void SceneManager_Init(void);
 void SceneManager_Free(void);
+void SceneManager_SchedulePop(void);
+void SceneManager_ScheduleAdd(Scene scene);
 void SceneManager_AddScene(Scene scene);
 void SceneManager_PopScene(void);
 void SceneManager_InitActive(void);

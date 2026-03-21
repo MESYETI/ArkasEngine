@@ -22,6 +22,15 @@ void SceneManager_Free(void) {
 	sm.activeScenes = 0;
 }
 
+void SceneManager_SchedulePop(void) {
+	sm.pop = true;
+}
+
+void SceneManager_ScheduleAdd(Scene scene) {
+	sm.addScene   = true;
+	sm.addedScene = scene;
+}
+
 void SceneManager_AddScene(Scene scene) {
 	if (sm.activeScenes == 8) {
 		Error("Scene stack filled");
@@ -88,18 +97,20 @@ void SceneManager_HandleEvent(Event* e) {
 		if (sm.scenes[i].handleEvent(&sm.scenes[i], e)) {
 			return;
 		}
-
-		if (sm.update) {
-			sm.update = false;
-			SceneManager_HandleEvent(e);
-			return;
-		}
 	}
-
-	sm.update = false;
 }
 
 void SceneManager_Update(void) {
+	if (sm.pop) {
+		SceneManager_PopScene();
+		sm.pop = false;
+	}
+
+	if (sm.addScene) {
+		SceneManager_AddScene(sm.addedScene);
+		sm.addScene = false;
+	}
+
 	for (size_t i = 0; i < sm.activeScenes; ++ i) {
 		if (sm.scenes[i].type == SCENE_TYPE_GAME) {
 			GameBase_Update(i == sm.activeScenes - 1);
@@ -108,8 +119,6 @@ void SceneManager_Update(void) {
 		if (sm.scenes[i].update == NULL) continue;
 		sm.scenes[i].update(&sm.scenes[i], i == sm.activeScenes - 1);
 	}
-
-	sm.update = false;
 }
 
 void SceneManager_Render(void) {
