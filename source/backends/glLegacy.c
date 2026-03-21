@@ -791,10 +791,10 @@ void Backend_RenderRect(Rect rect, Colour colour) {
 	glBegin(GL_TRIANGLE_FAN);
 
 	if (state.alpha) {
-		glColor3ub(colour.r, colour.g, colour.b);
+		glColor4ub(colour.r, colour.g, colour.b, colour.a);
 	}
 	else {
-		glColor4ub(colour.r, colour.g, colour.b, colour.a);
+		glColor3ub(colour.r, colour.g, colour.b);
 	}
 
 	glVertex2i(rect.x,          rect.y);
