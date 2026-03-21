@@ -65,6 +65,8 @@ void Map_Free(void) {
 		free(map.name);
 		map.name = NULL;
 	}
+
+	Backend_OnMapFree();
 }
 
 void Map_LoadTest(void) {

@@ -635,6 +635,13 @@ void Backend_RenderScene(void) {
 	Backend_Begin2D();
 }
 
+void Backend_OnMapFree(void) {
+	if (state.sectorsRendered) {
+		free(state.sectorsRendered);
+		state.sectorsRendered = NULL;
+	}
+}
+
 void Backend_OnWindowResize(void) {
 	state.aspect = ((float) video.aWidth) / ((float) video.aHeight);
 	CalcProjMatrix();

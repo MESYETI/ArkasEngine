@@ -78,13 +78,28 @@ bool Server_Start(void) {
 }
 
 void Server_Free(void) {
-	if (server.netSock)   Socket_Close(server.netSock);
-	if (server.localSock) Socket_Close(server.localSock);
-
-	for (size_t i = 0; i < server.clientNum; ++ i) {
-		Socket_Close(server.clients[i].relSock);
+	if (server.netSock) {
+		Socket_Close(server.netSock);
+		server.netSock = NULL;
 	}
-	free(server.clients);
+
+	if (server.localSock) {
+		Socket_Close(server.localSock);
+		server.localSock = NULL;
+	}
+
+	if (server.clients) {
+		for (size_t i = 0; i < server.clientNum; ++ i) {
+			Socket_Close(server.clients[i].relSock);
+		}
+		free(server.clients);
+		server.clients = NULL;
+	}
+
+	if (server.mapPath) {
+		free(server.mapPath);
+		server.mapPath = NULL;
+	}
 }
 
 enum {
