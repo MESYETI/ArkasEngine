@@ -14,6 +14,7 @@
 #include "commands.h"
 #include "ramDrive.h"
 #include "resources.h"
+#include "variables.h"
 #include "testScene.h"
 #include "mapEditor.h"
 #include "fileBrowser.h"
@@ -163,41 +164,9 @@ static void Command_Resources(size_t argc, char** argv) {
 	}
 }
 
-enum {
-	VAR_INT,
-	VAR_FLOAT,
-	VAR_BOOL,
-	VAR_STR
-};
-
-typedef struct {
-	int         type;
-	const char* name;
-	void*       ptr;
-	size_t      size;
-} Variable;
-
 static void Command_Set(size_t argc, char** argv) {
-	static const Variable vars[] = {
-		{VAR_FLOAT, "player.ground-friction",  &player.groundFriction, 0},
-		{VAR_FLOAT, "player.gravity",          &player.gravity, 0},
-		{VAR_FLOAT, "player.speed",            &player.speed, 0},
-		{VAR_FLOAT, "player.air-speed",        &player.airSpeed, 0},
-		{VAR_FLOAT, "player.jump-speed",       &player.jumpSpeed, 0},
-		{VAR_FLOAT, "game.sensitivity",        &gameBaseConfig.sensitivity, 0},
-		{VAR_FLOAT, "game.music-volume",       &gameBaseConfig.musicVolume, 0},
-		{VAR_BOOL,  "echo",                    &console.echo, 0},
-		{VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D, 0},
-		{VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering, 0},
-		{VAR_STR,   "engine.backend",          &backendOptions.name, 20},
-		{VAR_BOOL,  "server.inet",             &serverConf.inet, 0},
-		{VAR_INT,   "server.inet-port",        &serverConf.inetPort, 0},
-		{VAR_BOOL,  "server.local",            &serverConf.local, 0},
-		{VAR_STR,   "client.username",         &client.name, sizeof(client.name)}
-	};
-
 	if (argc == 0) {
-		for (size_t i = 0; i < sizeof(vars) / sizeof(Variable); ++ i) {
+		for (size_t i = 0; i < varsAmount; ++ i) {
 			switch (vars[i].type) {
 				case VAR_INT:   Log("int:    %s", vars[i].name); break;
 				case VAR_FLOAT: Log("float:  %s", vars[i].name); break;
@@ -208,75 +177,73 @@ static void Command_Set(size_t argc, char** argv) {
 		}
 	}
 	else if (argc == 1) {
-		for (size_t i = 0; i < sizeof(vars) / sizeof(Variable); ++ i) {
-			if (strcmp(vars[i].name, argv[0]) == 0) {
-				switch (vars[i].type) {
-					case VAR_INT: {
-						Log("%s = %d", argv[0], *((int*) vars[i].ptr));
-						break;
-					}
-					case VAR_FLOAT: {
-						Log("%s = %g", argv[0], *((float*) vars[i].ptr));
-						break;
-					}
-					case VAR_BOOL: {
-						Log(
-							"%s = %s", argv[0],
-							(*((bool*) vars[i].ptr))? "true" : "false"
-						);
-						break;
-					}
-					case VAR_STR: {
-						Log("%s = %s", argv[0], vars[i].ptr);
-						break;
-					}
-					default: assert(0);
-				}
+		Variable* var = Variables_Get(argv[0]);
 
-				return;
-			}
+		if (!var) {
+			Log("Variable '%s' does not exist", argv[0]);
+			return;
 		}
 
-		Log("Variable '%s' does not exist", argv[0]);
+		switch (var->type) {
+			case VAR_INT: {
+				Log("%s = %d", argv[0], *((int*) var->ptr));
+				break;
+			}
+			case VAR_FLOAT: {
+				Log("%s = %g", argv[0], *((float*) var->ptr));
+				break;
+			}
+			case VAR_BOOL: {
+				Log(
+					"%s = %s", argv[0],
+					(*((bool*) var->ptr))? "true" : "false"
+				);
+				break;
+			}
+			case VAR_STR: {
+				Log("%s = %s", argv[0], var->ptr);
+				break;
+			}
+			default: assert(0);
+		}
 	}
 	else if (argc == 2) {
-		for (size_t i = 0; i < sizeof(vars) / sizeof(Variable); ++ i) {
-			if (strcmp(vars[i].name, argv[0]) == 0) {
-				switch (vars[i].type) {
-					case VAR_INT: {
-						*((int*) vars[i].ptr) = atoi(argv[1]);
-						break;
-					}
-					case VAR_FLOAT: {
-						*((float*) vars[i].ptr) = (float) atof(argv[1]);
-						break;
-					}
-					case VAR_BOOL: {
-						if (strcmp(argv[1], "true") == 0) {
-							*((bool*) vars[i].ptr) = true;
-						}
-						else if (strcmp(argv[1], "false") == 0) {
-							*((bool*) vars[i].ptr) = false;
-						}
-						else {
-							Log("Invalid value");
-							return;
-						}
+		Variable* var = Variables_Get(argv[0]);
 
-						break;
-					}
-					case VAR_STR: {
-						strncpy(vars[i].ptr, argv[1], vars[i].size);
-						break;
-					}
-					default: assert(0);
-				}
-
-				return;
-			}
+		if (!var) {
+			Log("Variable '%s' does not exist", argv[0]);
+			return;
 		}
 
-		Log("Variable '%s' does not exist", argv[0]);
+		switch (var->type) {
+			case VAR_INT: {
+				*((int*) var->ptr) = atoi(argv[1]);
+				break;
+			}
+			case VAR_FLOAT: {
+				*((float*) var->ptr) = (float) atof(argv[1]);
+				break;
+			}
+			case VAR_BOOL: {
+				if (strcmp(argv[1], "true") == 0) {
+					*((bool*) var->ptr) = true;
+				}
+				else if (strcmp(argv[1], "false") == 0) {
+					*((bool*) var->ptr) = false;
+				}
+				else {
+					Log("Invalid value");
+					return;
+				}
+
+				break;
+			}
+			case VAR_STR: {
+				strncpy(var->ptr, argv[1], var->size);
+				break;
+			}
+			default: assert(0);
+		}
 	}
 	else {
 		Log("Invalid command, available variants:");
@@ -577,6 +544,11 @@ static void Command_Splash(size_t argc, char** argv) {
 	engine.console = false;
 }
 
+static void Command_SaveConfig(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+	SaveConfig();
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "clear-scenes",       &Command_ClearScenes);
@@ -612,4 +584,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "unmount",            &Command_Unmount);
 	Console_AddCommand(true,  "view-map",           &Command_ViewMap);
 	Console_AddCommand(true,  "splash",             &Command_Splash);
+	Console_AddCommand(true,  "save-config",        &Command_SaveConfig);
 }

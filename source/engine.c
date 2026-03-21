@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "engine.h"
 #include "map.h"
+#include "game.h"
 #include "util.h"
 #include "event.h"
 #include "input.h"
@@ -12,14 +13,32 @@
 #include "config.h"
 #include "camera.h"
 #include "client.h"
+#include "player.h"
 #include "server.h"
 #include "backend.h"
 #include "console.h"
 #include "resources.h"
+#include "variables.h"
 
 Engine engine;
 
 void Engine_Init(const char* gameName, int argc, const char** argv) {
+	Variables_Add(VAR_FLOAT, "player.ground-friction",  &player.groundFriction, 0);
+	Variables_Add(VAR_FLOAT, "player.gravity",          &player.gravity, 0);
+	Variables_Add(VAR_FLOAT, "player.speed",            &player.speed, 0);
+	Variables_Add(VAR_FLOAT, "player.air-speed",        &player.airSpeed, 0);
+	Variables_Add(VAR_FLOAT, "player.jump-speed",       &player.jumpSpeed, 0);
+	Variables_Add(VAR_FLOAT, "game.sensitivity",        &gameBaseConfig.sensitivity, 0);
+	Variables_Add(VAR_FLOAT, "game.music-volume",       &gameBaseConfig.musicVolume, 0);
+	Variables_Add(VAR_BOOL,  "echo",                    &console.echo, 0);
+	Variables_Add(VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D, 0);
+	Variables_Add(VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering, 0);
+	Variables_Add(VAR_STR,   "engine.backend",          &backendOptions.name, 20);
+	Variables_Add(VAR_BOOL,  "server.inet",             &serverConf.inet, 0);
+	Variables_Add(VAR_INT,   "server.inet-port",        &serverConf.inetPort, 0);
+	Variables_Add(VAR_BOOL,  "server.local",            &serverConf.local, 0);
+	Variables_Add(VAR_STR,   "client.username",         &client.name, sizeof(client.name));
+
 	engine.server = false;
 	for (int i = 1; i < argc; ++ i) {
 		if (strcmp(argv[i], "--server") == 0) {
