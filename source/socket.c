@@ -163,10 +163,11 @@ Socket* Socket_Accept(Socket* sock) {
 
 				int fd = accept(sock->value.net.fd, &addr, &len);
 
-				if ((fd == EAGAIN) || (fd == EWOULDBLOCK)) {
-					return NULL;
-				}
-				else if (fd < 0) {
+				if (fd < 0) {
+					if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
+						return NULL;
+					}
+
 					Error("accept error: %s", strerror(errno));
 				}
 
