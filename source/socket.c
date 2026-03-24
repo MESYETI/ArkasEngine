@@ -12,18 +12,15 @@
 Socket* sockets = NULL;
 
 static Socket* AllocSocket(void) {
-	if (sockets == NULL) {
-		sockets = SafeMalloc(sizeof(Socket));
-		sockets->prev = NULL;
-		sockets->next = NULL;
+	Socket* socket = SafeMalloc(sizeof(Socket));
+	socket->prev   = NULL;
+	socket->next   = sockets;
+
+	if (sockets) {
+		sockets->prev = socket;
 	}
-	else {
-		Socket* socket = SafeMalloc(sizeof(Socket));
-		socket->prev   = NULL;
-		socket->next   = sockets;
-		sockets->prev  = socket;
-		sockets        = socket;
-	}
+
+	sockets = socket;
 
 	return sockets;
 }
