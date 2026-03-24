@@ -163,7 +163,12 @@ Socket* Socket_Accept(Socket* sock) {
 
 				int fd = accept(sock->value.net.fd, &addr, &len);
 
-				if (fd < 0) return NULL; // TODO: check for actual errors
+				if ((fd == EAGAIN) || (fd == EWOULDBLOCK)) {
+					return NULL;
+				}
+				else if (fd < 0) {
+					Error("accept error: %s", strerror(errno));
+				}
 
 				Socket* ret             = AllocSocket();
 				ret->value.type         = sock->value.type;
