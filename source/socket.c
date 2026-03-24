@@ -21,6 +21,7 @@ static Socket* AllocSocket(void) {
 		Socket* socket = SafeMalloc(sizeof(Socket));
 		socket->prev   = NULL;
 		socket->next   = sockets;
+		sockets->prev  = socket;
 		sockets        = socket;
 	}
 
@@ -370,9 +371,9 @@ void Socket_Close(Socket* sock) {
 		sock->prev->next = sock->next;
 	}
 	if (sock->next) {
-		sock->next->prev = sock->prev;
+		sock->next->prev = sock->prev; // use after free
 	}
-	free(sock);
+	free(sock); // freed here
 }
 
 void Socket_StringAddr(Socket* sock, char* dest, size_t size) {
