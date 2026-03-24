@@ -159,7 +159,7 @@ Socket* Socket_Accept(Socket* sock) {
 		case SOCKET_TYPE_NET: {
 			#ifdef AE_NET_SOCKET
 				struct sockaddr addr;
-				socklen_t len;
+				socklen_t len = sizeof(addr);
 
 				int fd = accept(sock->value.net.fd, &addr, &len);
 
