@@ -1,11 +1,10 @@
 # ARM (ARkas Map)
 All integers are little endian
 
-Note: this WILL change in the future. do not use
-
 ## Header
 | Offset | Size | Description                                                       |
 | ------ | ---- | ----------------------------------------------------------------- |
+| 0      | 2    | ARM version (currently 1)                                         |
 | 0      | 4    | Number of points                                                  |
 | 4      | 4    | Number of walls                                                   |
 | 8      | 4    | Number of sectors                                                 |
@@ -26,15 +25,21 @@ After this, there are sets of these entries (in this order):
 ## Point entry
 | Offset | Size | Description                                                       |
 | ------ | ---- | ----------------------------------------------------------------- |
-| 0      | 4    | X position (float)                                                |
-| 4      | 4    | Y position (float)                                                |
+| 0      | 4    | X offset (float)                                                  |
+| 4      | 4    | Y offset (float)                                                  |
 
 ## Wall entry
 | Offset | Size | Description                                                       |
 | ------ | ---- | ----------------------------------------------------------------- |
 | 0      | 1    | Boolean - is a portal?                                            |
-| 1      | 4    | Wall index for where the portal goes                              |
-| 9      | 4    | String table index - wall texture path                            |
+| 1      | 4    | String table index - wall texture path                            |
+
+If the wall is a portal, it contains these values:
+| Size | Description                              |
+| ---- | ---------------------------------------- |
+| 4    | Wall index for where the portal goes     |
+| 4    | X offset (float)                         |
+| 4    | Y offset (float)                         |
 
 ## Sector entry
 | Offset | Size | Description                                                       |

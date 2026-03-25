@@ -14,6 +14,7 @@ typedef struct {
 	bool      isPortal;
 	size_t    portalSector; // TODO: check this when loading a map
 	Resource* texture;
+	FVec2     portalOff;
 } Wall;
 
 typedef struct {

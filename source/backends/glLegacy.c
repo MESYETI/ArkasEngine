@@ -371,7 +371,7 @@ Vec2 Backend_GetTextureSize(Texture* texture) {
 	return (Vec2) {texture->width, texture->height};
 }
 
-static void RenderSector(Sector* sector) {
+static void RenderSector(Sector* sector, FVec2 offset) {
 	// float height = sector->ceiling - sector->floor;
 
 	if (state.sectorsRendered[sector - map.sectors]) {
@@ -386,6 +386,11 @@ static void RenderSector(Sector* sector) {
 		const MapPoint* point1 = &map.points[i + sector->start];
 		const MapPoint* point2 = (i == sector->length - 1)?
 			&map.points[sector->start] : &map.points[i + sector->start + 1];
+
+		float x1 = point1->pos.x + offset.x;
+		float y1 = point1->pos.y + offset.y;
+		float x2 = point2->pos.x + offset.x;
+		float y2 = point2->pos.y + offset.y;
 
 		const Wall* wall = &map.walls[i + sector->start];
 		glBindTexture(GL_TEXTURE_2D, wall->texture->v.texture->name);
@@ -410,19 +415,19 @@ static void RenderSector(Sector* sector) {
 
 				glTexCoord2f(-maxTexCoord, sector->floor); // lower left
 				glColor3f(shadeLeft, shadeLeft, shadeLeft);
-				glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
+				glVertex3f(x1, sector->floor, y1);
 
 				glTexCoord2f(-0.0, sector->floor); // lower right
 				glColor3f(shadeRight, shadeRight, shadeRight);
-				glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
+				glVertex3f(x2, sector->floor, y2);
 
 				glTexCoord2f(-0.0, nextSector->floor); // upper right
 				glColor3f(shadeRight, shadeRight, shadeRight);
-				glVertex3f(point2->pos.x, nextSector->floor, point2->pos.y);
+				glVertex3f(x2, nextSector->floor, y2);
 
 				glTexCoord2f(-maxTexCoord, nextSector->floor); // upper left
 				glColor3f(shadeLeft, shadeLeft, shadeLeft);
-				glVertex3f(point1->pos.x, nextSector->floor, point1->pos.y);
+				glVertex3f(x1, nextSector->floor, y1);
 
 				GL(glEnd());
 			}
@@ -433,19 +438,19 @@ static void RenderSector(Sector* sector) {
 
 				glTexCoord2f(-maxTexCoord, nextSector->ceiling); // lower left
 				glColor3f(shadeLeft, shadeLeft, shadeLeft);
-				glVertex3f(point1->pos.x, nextSector->ceiling, point1->pos.y);
+				glVertex3f(x1, nextSector->ceiling, y1);
 
 				glTexCoord2f(-0.0, nextSector->ceiling); // lower right
 				glColor3f(shadeRight, shadeRight, shadeRight);
-				glVertex3f(point2->pos.x, nextSector->ceiling, point2->pos.y);
+				glVertex3f(x2, nextSector->ceiling, y2);
 
 				glTexCoord2f(-0.0, sector->ceiling); // upper right
 				glColor3f(shadeRight, shadeRight, shadeRight);
-				glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
+				glVertex3f(x2, sector->ceiling, y2);
 
 				glTexCoord2f(-maxTexCoord, sector->ceiling); // upper left
 				glColor3f(shadeLeft, shadeLeft, shadeLeft);
-				glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
+				glVertex3f(x1, sector->ceiling, y1);
 
 				GL(glEnd());
 			}
@@ -456,19 +461,19 @@ static void RenderSector(Sector* sector) {
 
 			glTexCoord2f(-maxTexCoord, sector->floor); // lower left
 			glColor3f(shadeLeft, shadeLeft, shadeLeft);
-			glVertex3f(point1->pos.x, sector->floor, point1->pos.y);
+			glVertex3f(x1, sector->floor, y1);
 
 			glTexCoord2f(-0.0, sector->floor); // lower right
 			glColor3f(shadeRight, shadeRight, shadeRight);
-			glVertex3f(point2->pos.x, sector->floor, point2->pos.y);
+			glVertex3f(x2, sector->floor, y2);
 
 			glTexCoord2f(-0.0, sector->ceiling); // upper right
 			glColor3f(shadeRight, shadeRight, shadeRight);
-			glVertex3f(point2->pos.x, sector->ceiling, point2->pos.y);
+			glVertex3f(x2, sector->ceiling, y2);
 
 			glTexCoord2f(-maxTexCoord, sector->ceiling); // upper left
 			glColor3f(shadeLeft, shadeLeft, shadeLeft);
-			glVertex3f(point1->pos.x, sector->ceiling, point1->pos.y);
+			glVertex3f(x1, sector->ceiling, y1);
 
 			GL(glEnd());
 		}
@@ -482,11 +487,14 @@ static void RenderSector(Sector* sector) {
 
 		for (size_t i = sector->length - 1; true; -- i) {
 			size_t idx = i + sector->start;
+			float  x   = map.points[idx].pos.x + offset.x;
+			float  y   = map.points[idx].pos.y + offset.y;
+
 			glTexCoord2f(
 				-map.points[idx].pos.x + sector->floorTexOff.x,
 				map.points[idx].pos.y + sector->floorTexOff.y
 			);
-			glVertex3f(map.points[idx].pos.x, sector->floor, map.points[idx].pos.y);
+			glVertex3f(x, sector->floor, y);
 
 			if (i == 0) break;
 		}
@@ -499,11 +507,14 @@ static void RenderSector(Sector* sector) {
 		glBegin(GL_TRIANGLE_FAN);
 		for (size_t i = 0; i < sector->length; ++ i) {
 			size_t idx = i + sector->start;
+			float  x   = map.points[idx].pos.x + offset.x;
+			float  y   = map.points[idx].pos.y + offset.y;
+
 			glTexCoord2f(
 				map.points[idx].pos.x + sector->ceilingTexOff.x,
 				map.points[idx].pos.y + sector->ceilingTexOff.y
 			);
-			glVertex3f(map.points[idx].pos.x, sector->ceiling, map.points[idx].pos.y);
+			glVertex3f(x, sector->ceiling, y);
 		}
 		GL(glEnd());
 	}
@@ -512,7 +523,7 @@ static void RenderSector(Sector* sector) {
 		const Wall* wall = &map.walls[i + sector->start];
 
 		if (wall->isPortal) {
-			RenderSector(&map.sectors[wall->portalSector]);
+			RenderSector(&map.sectors[wall->portalSector], wall->portalOff);
 		}
 	}
 }
@@ -623,7 +634,7 @@ void Backend_RenderScene(void) {
 	CalcViewMatrix();
 	GL(glLoadMatrixf((float*) state.viewMatrix));
 
-	RenderSector(camera.sector);
+	RenderSector(camera.sector, (FVec2) {0.0, 0.0});
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
