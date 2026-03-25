@@ -197,6 +197,9 @@ void GameBase_Update(bool top) {
 					player.pos.y = player.sector->floor;
 					player.vel.y = 0.0;
 				}
+
+				player.pos.x -= wall->portalOff.x;
+				player.pos.z -= wall->portalOff.y;
 			}
 		}
 	};

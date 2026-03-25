@@ -397,8 +397,8 @@ static void RenderSector(Sector* sector, FVec2 offset) {
 
 		FVec2 camPos = (FVec2) {camera.pos.x, camera.pos.z};
 
-		float shadeLeft  = 1.0 - (Distance(camPos, point1->pos) / 20.0);
-		float shadeRight = 1.0 - (Distance(camPos, point2->pos) / 20.0);
+		float shadeLeft  = 1.0 - (Distance(camPos, (FVec2) {x1, y1}) / 20.0);
+		float shadeRight = 1.0 - (Distance(camPos, (FVec2) {x2, y2}) / 20.0);
 
 		if (shadeLeft  < 0.0) shadeLeft  = 0.0;
 		if (shadeRight < 0.0) shadeRight = 0.0;

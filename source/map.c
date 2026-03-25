@@ -92,10 +92,15 @@ void Map_LoadTest(void) {
 	map.points[10] = (MapPoint) {{-2,  4}};
 	map.points[11] = (MapPoint) {{-5,  4}};
 
+	// testing relative stuff
+	for (size_t i = 6; i < 12; ++ i) {
+		map.points[i].pos.y -= 4;
+	}
+
 	map.walls     = SafeMalloc(12 * sizeof(Wall));
 	map.wallsLen  = 12;
 	map.walls[0]  = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
-	map.walls[1]  = (Wall) {false, true,  1, NULL, {0.0, 0.0}};
+	map.walls[1]  = (Wall) {false, true,  1, NULL, {0.0, 4.0}};
 	map.walls[2]  = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
 	map.walls[3]  = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
 	map.walls[4]  = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
@@ -103,7 +108,7 @@ void Map_LoadTest(void) {
 	map.walls[6]  = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
 	map.walls[7]  = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
 	map.walls[8]  = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
-	map.walls[9]  = (Wall) {false, true,  0, NULL, {0.0, 0.0}};
+	map.walls[9]  = (Wall) {false, true,  0, NULL, {0.0, -4.0}};
 	map.walls[10] = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
 	map.walls[11] = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
 
