@@ -203,6 +203,37 @@ void GameBase_Update(bool top) {
 			}
 		}
 	};
+
+	// check collision with walls
+	for (size_t i = 0; i < player.sector->length; ++ i) {
+		size_t idx  = player.sector->start + i;
+		Wall*  wall = &map.walls[idx];
+
+		if (wall->isPortal) continue; // TODO: solid portals
+
+		FVec2 a = (FVec2) {map.points[idx].pos.x, map.points[idx].pos.y};
+		FVec2 b;
+		size_t bIdx;
+
+		bIdx = i == player.sector->length - 1? player.sector->start : idx + 1;
+		b    = (FVec2) {map.points[bIdx].pos.x, map.points[bIdx].pos.y};
+
+		float dist = LinePointDistance(a, b, (FVec2) {player.pos.x, player.pos.z});
+		if (dist < 0.2) {
+			float angleToWall = GetAngle(a, b) + 90.0;
+			FVec2 wallPoint;
+
+			wallPoint.x = player.pos.x + (CosDeg(angleToWall) * dist);
+			wallPoint.y = player.pos.z + (SinDeg(angleToWall) * dist);
+
+			float angleToPlayer = GetAngle(
+				wallPoint, (FVec2) {player.pos.x, player.pos.z}
+			);
+
+			player.pos.x = wallPoint.x + (CosDeg(angleToPlayer) * 0.2);
+			player.pos.z = wallPoint.y + (SinDeg(angleToPlayer) * 0.2);
+		}
+	}
 }
 
 void GameBase_HandleEvent(Event* e) {

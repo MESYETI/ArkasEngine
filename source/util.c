@@ -20,6 +20,10 @@ float Lerp(float a, float b, float t) {
 	return a * (1.0 - t) + (b * t);
 }
 
+FVec2 LerpVec(FVec2 a, FVec2 b, float t) {
+	return (FVec2) {Lerp(a.x, b.x, t), Lerp(a.y, b.y, t)};
+}
+
 float CosDeg(float deg) {
 	return cos(DegToRad(deg));
 }
@@ -42,6 +46,10 @@ float DistanceI(Vec2 a, Vec2 b) {
 	return Distance(
 		(FVec2) {(float) a.x, (float) a.y}, (FVec2) {(float) b.x, (float) b.y}
 	);
+}
+
+float GetAngle(FVec2 a, FVec2 b) {
+	return RadToDeg(atan2(b.y - a.y, b.x - a.x));
 }
 
 #define CROSS_PRODUCT(X1, Y1, X2, Y2) ((X1) * (Y2) - (X2) * (Y1))
@@ -77,6 +85,41 @@ bool PointInLine(FVec2 p, FVec2 a, FVec2 b) {
 	return true;
 }
 #undef BOUND_MARGIN
+
+bool RectLineCollision(FVec2 a, FVec2 b, FRect rect, FVec2* res) {
+	FVec2 lines[5] = {
+		{rect.x, rect.y}, {rect.x + rect.w, rect.y},
+		{rect.x + rect.w, rect.y + rect.h}, {rect.x, rect.y + rect.h}
+	};
+	lines[4] = lines[0];
+
+	FVec2 center = {rect.x + (rect.w / 2), rect.y + (rect.h / 2)};
+
+	for (int i = 0; i < 4; ++ i) {
+		FVec2 intersection = LineIntersect(lines[i], lines[i + 1], a, b);
+
+		if (PointInLine(intersection, lines[i], lines[i + 1])) {
+			*res = (FVec2) {
+				intersection.x - center.x, intersection.y - center.y
+			};
+			return true;
+		}
+	}
+
+	return false;
+}
+
+float LinePointDistance(FVec2 la, FVec2 lb, FVec2 point) {
+	float a = -(lb.y - la.y);
+	float b = lb.x - la.x;
+	float c = -(a * la.x) - (b * la.y);
+
+	float dist  = (a * point.x) + (b * point.y) + c;
+	dist        = fabsf(dist);
+	dist       /= sqrtf((a * a) + (b * b));
+
+	return dist;
+}
 
 char* NewString(const char* src) {
 	char* ret = SafeMalloc(strlen(src) + 1);

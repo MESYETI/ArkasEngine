@@ -89,9 +89,11 @@ static void Command_Map(size_t argc, char** argv) {
 }
 
 static void Command_DlMap(size_t argc, char** argv) {
-	ASSERT_ARGC(1);
+	if (argc > 1) {
+		Log("dl-map must either have 1 parameter (map name) or none");
+	}
 
-	char* path1 = ConcatString("maps/", argv[0]);
+	char* path1 = ConcatString("maps/", argc? argv[0] : map.name);
 	char* path2 = ConcatString(path1,   ".arm");
 	free(path1);
 
