@@ -11,6 +11,7 @@ typedef struct {
 	float musicVolume;
 	bool  skyboxFiltering;
 	int   debugInfoLevel;
+	bool  noclip;
 
 	Input_BindID forward;
 	Input_BindID left;

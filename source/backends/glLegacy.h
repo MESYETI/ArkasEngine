@@ -1,7 +1,11 @@
 #ifndef AE_BACKENDS_GL_LEGACY_H
 #define AE_BACKENDS_GL_LEGACY_H
 
-#include "../glad.h"
+#ifdef AE_PLATFORM_PSVITA
+	#include <vitaGL.h>
+#else
+	#include "../glad.h"
+#endif
 
 /*
 #define GL_GLEXT_PROTOTYPES

@@ -1,13 +1,16 @@
-#include <errno.h>
-#include <fcntl.h>
 #include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <netinet/in.h>
 #include "mem.h"
 #include "util.h"
 #include "socket.h"
+
+#ifdef AE_NET_SOCKET
+	#include <arpa/inet.h>
+	#include <sys/ioctl.h>
+	#include <netinet/in.h>
+	#include <unistd.h>
+	#include <errno.h>
+	#include <fcntl.h>
+#endif
 
 Socket* sockets = NULL;
 

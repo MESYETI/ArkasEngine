@@ -1,5 +1,6 @@
 #include <dirent.h>
 #include <string.h>
+#include "fs.h"
 #include "ark.h"
 #include "mem.h"
 #include "stb.h"
@@ -12,7 +13,7 @@
 ResourceManager resources;
 
 void Resources_Init(void) {
-	DIR* dir = opendir("game");
+	DIR* dir = opendir(AE_LOCATION "game");
 
 	if (dir == NULL) {
 		Error("Failed to open directory 'game'");
@@ -22,11 +23,11 @@ void Resources_Init(void) {
 	resources.drivesNum       = 4;
 	resources.drives[0]       = BuiltIn_GetDrive();
 	resources.drives[0]->name = NewString("builtin");
-	resources.drives[1]       = NewFolderDrive("game/extra");
+	resources.drives[1]       = NewFolderDrive(AE_LOCATION "game/extra");
 	resources.drives[1]->name = NewString("extra");
-	resources.drives[2]       = NewFolderDrive("maps");
+	resources.drives[2]       = NewFolderDrive(AE_LOCATION "maps");
 	resources.drives[2]->name = NewString("maps");
-	resources.drives[3]       = NewFolderDrive("screenshots");
+	resources.drives[3]       = NewFolderDrive(AE_LOCATION "screenshots");
 	resources.drives[3]->name = NewString("screenshots");
 
 	struct dirent* entry;
@@ -38,7 +39,7 @@ void Resources_Init(void) {
 			continue;
 		}
 
-		char* concatPath = ConcatString("game/", entry->d_name);
+		char* concatPath = ConcatString(AE_LOCATION "game/", entry->d_name);
 		FILE* file       = fopen(concatPath, "rb");
 
 		ResourceDrive* drive = Ark_CreateResourceDrive(

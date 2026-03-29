@@ -11,6 +11,7 @@
 
 GameBaseConfig gameBaseConfig = {
 	.debugInfoLevel = 0,
+	.noclip         = false,
 	.forward        = INPUT_BIND_NONE,
 	.left           = INPUT_BIND_NONE,
 	.backward       = INPUT_BIND_NONE,
@@ -205,6 +206,7 @@ void GameBase_Update(bool top) {
 	};
 
 	// check collision with walls
+	if (gameBaseConfig.noclip) return;
 	for (size_t i = 0; i < player.sector->length; ++ i) {
 		size_t idx  = player.sector->start + i;
 		Wall*  wall = &map.walls[idx];

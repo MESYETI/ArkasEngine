@@ -17,12 +17,15 @@
 #include "server.h"
 #include "backend.h"
 #include "console.h"
+#include "platform.h"
 #include "resources.h"
 #include "variables.h"
 
 Engine engine;
 
 void Engine_Init(const char* gameName, int argc, const char** argv) {
+	Platform_Init();
+
 	Variables_Add(VAR_FLOAT, "player.ground-friction",  &player.groundFriction, 0);
 	Variables_Add(VAR_FLOAT, "player.gravity",          &player.gravity, 0);
 	Variables_Add(VAR_FLOAT, "player.speed",            &player.speed, 0);
@@ -35,6 +38,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Variables_Add(VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering, 0);
 	Variables_Add(VAR_STR,   "engine.backend",          &backendOptions.name, 20);
 	Variables_Add(VAR_INT,   "engine.debug-level",      &gameBaseConfig.debugInfoLevel, 0);
+	Variables_Add(VAR_BOOL,  "engine.noclip",           &gameBaseConfig.noclip, 0);
 	Variables_Add(VAR_BOOL,  "server.inet",             &serverConf.inet, 0);
 	Variables_Add(VAR_INT,   "server.inet-port",        &serverConf.inetPort, 0);
 	Variables_Add(VAR_BOOL,  "server.local",            &serverConf.local, 0);
@@ -48,11 +52,11 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	}
 
 	// make game engine folders
-	MakeDir("game",        true);
-	MakeDir("game/extra",  true);
-	MakeDir("game/net",    true);
-	MakeDir("game/maps",   true);
-	MakeDir("screenshots", true);
+	MakeDir(AE_LOCATION "game",        true);
+	MakeDir(AE_LOCATION "game/extra",  true);
+	MakeDir(AE_LOCATION "game/net",    true);
+	MakeDir(AE_LOCATION "game/maps",   true);
+	MakeDir(AE_LOCATION "screenshots", true);
 
 	Console_Init();
 	Log("Arkas Engine WIP");
@@ -64,16 +68,16 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 		exit(1);
 	}
 
-	if (!FileExists("startup.cmd")) {
+	if (!FileExists(AE_LOCATION "startup.cmd")) {
 		Log("Generating startup.cmd");
 
-		WriteFile_("startup.cmd",
+		WriteFile_(AE_LOCATION "startup.cmd",
 			"@set echo false\n"
 			"run gen_options.cmd\n"
 			"@set echo true\n"
 		);
 	}
-	if (!FileExists("gen_options.cmd")) {
+	if (!FileExists(AE_LOCATION "gen_options.cmd")) {
 		Log("Generating gen_options.cmd");
 
 		SaveDefaultConfig();
@@ -88,7 +92,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	if (engine.server) {
 		Log("Running server startup...");
 
-		if (!Console_RunFile("server.cmd")) {
+		if (!Console_RunFile(AE_LOCATION "server.cmd")) {
 			Log("Failed to run server startup");
 		}
 		return;
@@ -96,7 +100,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	else {
 		Log("Running game startup...");
 
-		if (!Console_RunFile("startup.cmd")) {
+		if (!Console_RunFile(AE_LOCATION "startup.cmd")) {
 			Log("Failed to run startup");
 		}
 	}

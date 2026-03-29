@@ -14,6 +14,10 @@
 
 #ifdef AE_BACKEND_GL_LEGACY
 
+#ifndef GL_CLAMP_TO_EDGE_SGIS
+	#define GL_CLAMP_TO_EDGE_SGIS GL_CLAMP_TO_EDGE
+#endif
+
 static void GL_Error(GLenum error, const char* file, int line) {
 	const char* errorStr;
 	switch (error) {
@@ -166,18 +170,26 @@ void Backend_Init(bool beforeWindow) {
 	state.ctx = SDL_GL_CreateContext(video.window);
 	assert(SDL_GL_MakeCurrent(video.window, state.ctx) == 0);
 
-	int ver = gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress);
+	#ifdef AE_PLATFORM_PSVITA
+		vglInit(0x800000);
 
-	Log("GLAD loaded GL %d.%d", GLAD_VERSION_MAJOR(ver), GLAD_VERSION_MINOR(ver));
-
-	if (backendOptions.vsync) {
-		if (SDL_GL_SetSwapInterval(-1) == -1) {
-			SDL_GL_SetSwapInterval(1);
+		if (backendOptions.vsync) {
+			vglWaitVblankStart(GL_TRUE);
 		}
-	}
-	else {
-		SDL_GL_SetSwapInterval(0);
-	}
+	#else
+		int ver = gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress);
+
+		Log("GLAD loaded GL %d.%d", GLAD_VERSION_MAJOR(ver), GLAD_VERSION_MINOR(ver));
+
+		if (backendOptions.vsync) {
+			if (SDL_GL_SetSwapInterval(-1) == -1) {
+				SDL_GL_SetSwapInterval(1);
+			}
+		}
+		else {
+			SDL_GL_SetSwapInterval(0);
+		}
+	#endif
 
 	Log("Backend info: GL Legacy");
 

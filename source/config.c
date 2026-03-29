@@ -1,3 +1,4 @@
+#include "fs.h"
 #include "util.h"
 #include "game.h"
 #include "config.h"
@@ -7,7 +8,7 @@ GlobalConfig globalConfig = {.scale2D = 1};
 ConfigExt    configExt;
 
 void SaveConfig(void) {
-	FILE* file = fopen("gen_options.cmd", "w");
+	FILE* file = fopen(AE_LOCATION "gen_options.cmd", "w");
 
 	if (file == NULL) {
 		Error("Failed to open gen_options.cmd");

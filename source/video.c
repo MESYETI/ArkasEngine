@@ -18,8 +18,13 @@ static void EventHandler(Event* e) {
 void Video_Init(const char* gameName) {
 	Backend_Init(true);
 
-	video.aWidth  = 640;
-	video.aHeight = 480;
+	#ifdef AE_PLATFORM_PSVITA
+		video.aWidth  = 960;
+		video.aHeight = 544;
+	#else
+		video.aWidth  = 640;
+		video.aHeight = 480;
+	#endif
 	video.width   = video.aWidth  / globalConfig.scale2D;
 	video.height  = video.aHeight / globalConfig.scale2D;
 
