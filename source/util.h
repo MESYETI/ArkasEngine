@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include "log.h"
 #include "types.h"
 
 #define FUNCTION_POINTER(TYPE, NAME, ...) TYPE (*NAME)(__VA_ARGS__)
@@ -41,8 +42,6 @@ char** AppendStrArray(char** array, char* string);
 bool   StrArrayContains(char** array, char* string);
 size_t StrArrayFind(char** array, char* string);
 void   FreeStrArray(char** array);
-void   Log(const char* format, ...);
-void   Error(const char* format, ...);
 
 const char* BaseName(const char* path);
 

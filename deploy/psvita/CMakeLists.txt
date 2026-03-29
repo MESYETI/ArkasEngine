@@ -35,7 +35,7 @@ set(
 	CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -Wall -Wextra -Wuninitialized \
 	-Wundef -pedantic -Ilib -Werror=return-type \
 	-DAE_STANDALONE -DAE_BACKEND_GL_LEGACY -DAE_AUDIO_PSRC -DAE_USE_SDL2 \
-	-DSDL_MAIN_HANDLED -DAE_PLATFORM_PSVITA -I../../lib"
+	-DSDL_MAIN_HANDLED -DAE_PLATFORM_PSVITA -I../../lib -g -O0"
 )
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # Optional. You can specify more param.sfo flags this way.
