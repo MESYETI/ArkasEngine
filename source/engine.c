@@ -122,7 +122,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 void Engine_Free(void) {
 	Log("Goodbye!");
 
-	SDL_Quit();
+	Window_Quit();
 
 	if (server.running) {
 		Server_Free();
@@ -137,14 +137,15 @@ void Engine_Free(void) {
 	Resources_Free();
 	Video_Free();
 	Event_Free();
+	Platform_Quit();
 }
 
 void Engine_Update(void) {
 	static uint64_t oldFrameTime = 0;
 
-	uint64_t newFrameTime  = SDL_GetTicks64();
+	uint64_t newFrameTime  = Platform_GetTime();
 	uint64_t frameTimeDiff = newFrameTime - oldFrameTime;
-	engine.delta           = frameTimeDiff / 1000.0f;
+	engine.delta           = frameTimeDiff / 1000000.0f;
 
 	static float fpsTimer = 0.0;
 	static int   frames   = 0;

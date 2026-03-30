@@ -170,7 +170,7 @@ void Backend_Init(bool beforeWindow) {
 	state.ctx = SDL_GL_CreateContext(video.window.window);
 	assert(SDL_GL_MakeCurrent(video.window.window, state.ctx) == 0);
 
-	#ifdef AE_PLATFORM_PSVITA
+	#ifdef PLATFORM_PSVITA
 		vglInit(0x800000);
 
 		if (backendOptions.vsync) {

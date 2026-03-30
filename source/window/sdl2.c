@@ -14,6 +14,10 @@ void Window_Init(void) {
 	}
 }
 
+void Window_Quit(void) {
+	SDL_Quit();
+}
+
 Window Window_Create(const char* name, int width, int height) {
 	Window ret;
 	ret.window = SDL_CreateWindow(

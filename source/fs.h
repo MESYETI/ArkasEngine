@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#ifdef AE_PLATFORM_PSVITA
+#ifdef PLATFORM_PSVITA
 	#define AE_LOCATION "ux0:data/ArkasEngine/"
 #else
 	#define AE_LOCATION "./"

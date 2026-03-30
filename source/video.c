@@ -19,7 +19,7 @@ static void EventHandler(Event* e) {
 void Video_Init(const char* gameName) {
 	Backend_Init(true);
 
-	#ifdef AE_PLATFORM_PSVITA
+	#ifdef PLATFORM_PSVITA
 		video.aWidth  = 960;
 		video.aHeight = 544;
 	#else

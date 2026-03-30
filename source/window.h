@@ -13,6 +13,7 @@ enum {
 };
 
 void   Window_Init(void);
+void   Window_Quit(void);
 Window Window_Create(const char* name, int width, int height);
 void   Window_Free(Window* window);
 void   Window_ShowCursor(bool show);

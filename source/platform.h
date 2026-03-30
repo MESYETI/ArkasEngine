@@ -1,6 +1,10 @@
 #ifndef AE_PLATFORM_H
 #define AE_PLATFORM_H
 
-void Platform_Init(void);
+#include "common.h"
+
+void     Platform_Init(void);
+void     Platform_Quit(void);
+uint64_t Platform_GetTime(void);
 
 #endif

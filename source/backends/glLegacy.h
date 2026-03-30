@@ -1,7 +1,7 @@
 #ifndef AE_BACKENDS_GL_LEGACY_H
 #define AE_BACKENDS_GL_LEGACY_H
 
-#ifdef AE_PLATFORM_PSVITA
+#ifdef PLATFORM_PSVITA
 	#include <vitaGL.h>
 #else
 	#include "../glad.h"
