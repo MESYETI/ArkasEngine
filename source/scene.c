@@ -128,11 +128,11 @@ void SceneManager_Render(void) {
 		}
 
 		if (engine.console) {
-			Video_SetRelativeMouseMode(false);
-			Video_ShowCursor(true);
+			Window_SetRelativeMouseMode(false);
+			Window_ShowCursor(true);
 		}
 		else if (i == sm.activeScenes - 1) {
-			Video_SetRelativeMouseMode(sm.scenes[i].type == SCENE_TYPE_GAME);
+			Window_SetRelativeMouseMode(sm.scenes[i].type == SCENE_TYPE_GAME);
 		}
 
 		if (sm.scenes[i].render == NULL) continue;

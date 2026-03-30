@@ -2,6 +2,7 @@
 #include "event.h"
 #include "video.h"
 #include "config.h"
+#include "window.h"
 #include "backend.h"
 
 Video video;
@@ -25,21 +26,10 @@ void Video_Init(const char* gameName) {
 		video.aWidth  = 640;
 		video.aHeight = 480;
 	#endif
-	video.width   = video.aWidth  / globalConfig.scale2D;
-	video.height  = video.aHeight / globalConfig.scale2D;
+	video.width  = video.aWidth  / globalConfig.scale2D;
+	video.height = video.aHeight / globalConfig.scale2D;
 
-	video.window  = SDL_CreateWindow(
-		gameName, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		video.aWidth, video.aHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
-	);
-	video.cursorVisible     = true;
-	video.relativeMouseMode = false;
-
-	if (video.window == NULL) {
-		fprintf(stderr, "Failed to create window: %s\n", SDL_GetError());
-		exit(1);
-	}
-
+	video.window = Window_Create(gameName, video.aWidth, video.aHeight);
 	Log("Created window");
 
 	Backend_Init(false);
@@ -49,7 +39,7 @@ void Video_Init(const char* gameName) {
 
 void Video_Free(void) {
 	Backend_Free();
-	SDL_DestroyWindow(video.window);
+	Window_Free(&video.window);
 }
 
 Colour Video_MultiplyColour(Colour colour, float by) {
@@ -75,20 +65,4 @@ Colour Video_MultiplyColour(Colour colour, float by) {
 		(uint8_t) (b * 255.0),
 		colour.a
 	};
-}
-
-void Video_ShowCursor(bool show) {
-	if (video.cursorVisible != show) {
-		SDL_ShowCursor(show? SDL_ENABLE : SDL_DISABLE);
-	}
-
-	video.cursorVisible = show;
-}
-
-void Video_SetRelativeMouseMode(bool enable) {
-	if (video.relativeMouseMode != enable) {
-		SDL_SetRelativeMouseMode(enable? SDL_TRUE : SDL_FALSE);
-	}
-
-	video.relativeMouseMode = enable;
 }

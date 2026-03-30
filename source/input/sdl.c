@@ -1,4 +1,4 @@
-#ifdef AE_USE_SDL2
+#ifdef AE_INPUT_SDL2
 #include <SDL2/SDL.h>
 
 #include "sdl.h"

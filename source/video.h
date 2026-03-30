@@ -1,8 +1,8 @@
 #ifndef AE_VIDEO_H
 #define AE_VIDEO_H
 
-#include <SDL2/SDL.h>
 #include "common.h"
+#include "window.h"
 
 #undef main
 
@@ -11,11 +11,9 @@ typedef struct {
 } Colour;
 
 typedef struct {
-	SDL_Window* window;
-	int         width, height;
-	int         aWidth, aHeight;
-	bool        cursorVisible; // DO NOT CHANGE - nothing will happen!
-	bool        relativeMouseMode; // ditto
+	Window window;
+	int    width, height;
+	int    aWidth, aHeight;
 } Video;
 
 extern Video video;
@@ -23,7 +21,5 @@ extern Video video;
 void   Video_Init(const char* gameName);
 void   Video_Free(void);
 Colour Video_MultiplyColour(Colour colour, float by);
-void   Video_ShowCursor(bool show);
-void   Video_SetRelativeMouseMode(bool enable);
 
 #endif

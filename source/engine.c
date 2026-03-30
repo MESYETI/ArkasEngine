@@ -15,6 +15,7 @@
 #include "client.h"
 #include "player.h"
 #include "server.h"
+#include "window.h"
 #include "backend.h"
 #include "console.h"
 #include "platform.h"
@@ -64,10 +65,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Log("Made by MESYETI in 2025");
 	Resources_Init();
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-		fprintf(stderr, "Failed to initialise SDL2: %s\n", SDL_GetError());
-		exit(1);
-	}
+	Window_Init();
 
 	if (!FileExists(AE_LOCATION "startup.cmd")) {
 		Log("Generating startup.cmd");

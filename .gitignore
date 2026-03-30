@@ -9,3 +9,9 @@
 /libArkasEngine.a
 /oldmaps
 /log.txt
+
+/deploy/psvita/CMakeCache.txt
+/deploy/psvita/CMakeFiles
+/deploy/psvita/cmake_install.cmake
+/deploy/psvita/Makefile
+/deploy/psvita/arkas_engine*

@@ -98,8 +98,6 @@ void GameBase_Update(bool top) {
 
 	if (!map.active) return;
 
-	const uint8_t* keys = SDL_GetKeyboardState(NULL);
-
 	// static const float sensitivity = 180.0;
 	float speed = player.speed;
 

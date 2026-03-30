@@ -10,9 +10,9 @@
 #include "../camera.h"
 #include "../stream.h"
 #include "../backend.h"
-#include "glLegacy.h"
 
 #ifdef AE_BACKEND_GL_LEGACY
+#include "glLegacy.h"
 
 #ifndef GL_CLAMP_TO_EDGE_SGIS
 	#define GL_CLAMP_TO_EDGE_SGIS GL_CLAMP_TO_EDGE
@@ -167,8 +167,8 @@ void Backend_Init(bool beforeWindow) {
 		return;
 	}
 
-	state.ctx = SDL_GL_CreateContext(video.window);
-	assert(SDL_GL_MakeCurrent(video.window, state.ctx) == 0);
+	state.ctx = SDL_GL_CreateContext(video.window.window);
+	assert(SDL_GL_MakeCurrent(video.window.window, state.ctx) == 0);
 
 	#ifdef AE_PLATFORM_PSVITA
 		vglInit(0x800000);
@@ -873,7 +873,7 @@ void Backend_InitSkybox(void) {
 
 void Backend_FinishRender(void) {
 	GL(glFinish());
-	SDL_GL_SwapWindow(video.window);
+	SDL_GL_SwapWindow(video.window.window);
 }
 
 BackendViewport Backend_SaveViewport(void) {

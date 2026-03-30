@@ -47,11 +47,11 @@ void Console_WriteLine(char* text) {
 
 void Console_Begin(void) {
 	memset(console.editor, 0, 100);
-	SDL_StartTextInput();
+	Event_StartTextInput();
 }
 
 void Console_End(void) {
-	SDL_StopTextInput();
+	Event_StopTextInput();
 }
 
 // written by PQCraft after he was ragebaited by my C code

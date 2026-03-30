@@ -1,4 +1,4 @@
-#if !defined(AE_INPUT_SDL_H) && defined(AE_USE_SDL2)
+#if !defined(AE_INPUT_SDL_H) && defined(AE_INPUT_SDL2)
 
 #include <SDL2/SDL.h>
 #include "../keyboard.h"

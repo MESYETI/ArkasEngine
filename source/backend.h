@@ -8,6 +8,10 @@
 //   (struct) Texture
 #if defined(AE_BACKEND_GL_LEGACY)
 	#include "backends/glLegacy.h"
+#elif defined(AE_BACKEND_CITRO3D)
+	#include "backends/citro3d.h"
+#elif defined(AE_BACKEND_STUB)
+	#include "backends/stub.h"
 #else
 	#error "No backend"
 #endif

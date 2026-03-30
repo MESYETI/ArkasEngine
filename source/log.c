@@ -5,6 +5,7 @@
 #include "fs.h"
 #include "log.h"
 #include "mem.h"
+#include "window.h"
 #include "console.h"
 
 static FILE* logFile = NULL;
@@ -93,7 +94,7 @@ void Error(const char* format, ...) {
 		fflush(logFile);
 	}
 
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Fatal error", ret, NULL);
+	Window_MessageBox(WINDOW_MSG_ERROR, "Fatal error", ret);
 	free(ret);
 	exit(1);
 }
@@ -118,6 +119,6 @@ void Warn(const char* format, ...) {
 		fflush(logFile);
 	}
 
-	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Warning", ret, NULL);
+	Window_MessageBox(WINDOW_MSG_WARNING, "Warning", ret);
 	free(ret);
 }
