@@ -4,6 +4,8 @@
 #ifdef AE_WINDOW_SDL2
 #include "sdl2.h"
 
+const bool windowRequired = true;
+
 static bool cursorVisible     = true;
 static bool relativeMouseMode = false;
 

@@ -24,7 +24,7 @@ AudioEmitter emitters3d[2];
 
 void GameBase_Init(void) {
 	//Map_Init();
-	startAudio();
+	Audio_StartAudio();
 
 	camera.pos.x = 0.0;
 	camera.pos.y = 0.0;
@@ -89,7 +89,7 @@ void GameBase_Init(void) {
 }
 
 void GameBase_Free(void) {
-	stopAudio();
+	Audio_StopAudio();
 	Map_Free();
 }
 
@@ -150,17 +150,6 @@ void GameBase_Update(bool top) {
 	player.acc.x = 0.0;
 	player.acc.y = 0.0;
 	player.acc.z = 0.0;
-
-	struct audioplayerdata* playerAudio = &audiostate.playerdata.data[0];
-	playerAudio->pos[0]    = camera.pos.x;
-	playerAudio->pos[1]    = camera.pos.y;
-	playerAudio->pos[2]    = camera.pos.z;
-	playerAudio->rotsin[0] = SinDeg(-camera.pitch);
-	playerAudio->rotsin[1] = SinDeg(-camera.yaw);
-	playerAudio->rotsin[2] = SinDeg(-camera.roll);
-	playerAudio->rotcos[0] = CosDeg(-camera.pitch);
-	playerAudio->rotcos[1] = CosDeg(-camera.yaw);
-	playerAudio->rotcos[2] = CosDeg(-camera.roll);
 
 	{
 		// camera

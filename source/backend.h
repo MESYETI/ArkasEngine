@@ -3,13 +3,14 @@
 
 #include "types.h"
 #include "model.h"
+#include "window.h"
 
 // defined:
 //   (struct) Texture
 #if defined(AE_BACKEND_GL_LEGACY)
 	#include "backends/glLegacy.h"
 #elif defined(AE_BACKEND_CITRO3D)
-	#include "backends/citro3d.h"
+	#include "backends/ae3ds.h"
 #elif defined(AE_BACKEND_STUB)
 	#include "backends/stub.h"
 #else
@@ -36,7 +37,8 @@ typedef struct {
 // implemented per backend
 void     Backend_Init(bool beforeWindow);
 void     Backend_Free(void);
-Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch);
+void     Backend_SetTarget(Window* window);
+Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch);
 void     Backend_FreeTexture(Texture* texture);
 Vec2     Backend_GetTextureSize(Texture* texture);
 void     Backend_RenderScene(void);

@@ -22,6 +22,9 @@ void Video_Init(const char* gameName) {
 	#ifdef PLATFORM_PSVITA
 		video.aWidth  = 960;
 		video.aHeight = 544;
+	#elif defined(PLATFORM_3DS)
+		video.aWidth  = 400;
+		video.aHeight = 240;
 	#else
 		video.aWidth  = 640;
 		video.aHeight = 480;

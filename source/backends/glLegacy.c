@@ -286,56 +286,22 @@ void Backend_Free(void) {
 	// Model_Free(&state.model);
 }
 
-Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch) {
-	int newWidth  = width;
-	int newHeight = height;
+void Backend_SetTarget(Window* window) {
+	(void) window; // unimplemented
 
-	if (width & (width - 1)) {
-		// i don't know what's going on either
-		-- newWidth;
-		newWidth |= newWidth >> 1;
-		newWidth |= newWidth >> 2;
-		newWidth |= newWidth >> 4;
-		newWidth |= newWidth >> 8;
-		newWidth |= newWidth >> 16;
-		++ newWidth;
+	static bool warning = false;
+	if (!warning) {
+		warning = true;
+		Log("Warning: Backend_SetTarget unimplemented");
 	}
+}
 
-	if (height & (height - 1)) {
-		-- newHeight;
-		newHeight |= newHeight >> 1;
-		newHeight |= newHeight >> 2;
-		newHeight |= newHeight >> 4;
-		newHeight |= newHeight >> 8;
-		newHeight |= newHeight >> 16;
-		++ newHeight;
-	}
-
-	uint8_t* data2 = malloc(newWidth * newHeight * ch);
-	if (data2 == NULL) {
-		free(data);
-		Log("Failed to allocate texture");
-		return NULL;
-	}
-
-	//stbir_resize_uint8_linear(data, width, height, 0, data2, newWidth, newHeight, 0, ch);
-
-	memset(data2, 0, newWidth * newHeight * ch);
-
-	for (int y = 0; y < height; ++ y) {
-		memcpy(&data2[(y * newWidth * ch)], &data[(y * width * ch)], width * ch);
-	}
-
-	free(data);
-	data = data2;
-
-	// return LoadTexture(data, newWidth, newHeight, ch);
-
+Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch) {
 	GLuint tex;
 	GL(glGenTextures(1, &tex));
 	GL(glBindTexture(GL_TEXTURE_2D, tex));
 	GL(glTexImage2D(
-		GL_TEXTURE_2D, 0, ch, newWidth, newHeight, 0, (ch == 3) ? GL_RGB : GL_RGBA,
+		GL_TEXTURE_2D, 0, ch, aW, aH, 0, (ch == 3) ? GL_RGB : GL_RGBA,
 		GL_UNSIGNED_BYTE, data
 	));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
@@ -351,10 +317,10 @@ Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch) {
 		if (!state.textures[i].used) {
 			state.textures[i].used         = true;
 			state.textures[i].name         = tex;
-			state.textures[i].width        = width;
-			state.textures[i].height       = height;
-			state.textures[i].actualWidth  = newWidth;
-			state.textures[i].actualHeight = newHeight;
+			state.textures[i].width        = w;
+			state.textures[i].height       = h;
+			state.textures[i].actualWidth  = aW;
+			state.textures[i].actualHeight = aH;
 			return &state.textures[i];
 		}
 	}

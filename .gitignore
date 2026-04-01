@@ -15,3 +15,6 @@
 /deploy/psvita/cmake_install.cmake
 /deploy/psvita/Makefile
 /deploy/psvita/arkas_engine*
+
+/deploy/3ds/build
+/deploy/3ds/ArkasEngine*

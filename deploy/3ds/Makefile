@@ -33,9 +33,9 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	ArkasEngine
 BUILD		:=	build
-SOURCES		:=	../../source $(wildcard ../../source/**)
+SOURCES		:=	../../source $(wildcard ../../source/**/)
 DATA		:=	data
-INCLUDES	:=	../../source $(wildcard ../../source/**)
+INCLUDES	:=	../../source $(wildcard ../../source/**/) ../../lib
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
 #ROMFS		:=	romfs
@@ -46,9 +46,6 @@ APP_DESCRIPTION := Arkas Engine - standalone
 APP_AUTHOR      := mesyeti
 ICON            := icon.png
 
-CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ilib -Werror=return-type
-CFLAGS += -DAE_BACKEND_CITRO3D -DAE_AUDIO_PSRC -DAE_USE_SDL2 -DSDL_MAIN_HANDLED
-
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
@@ -58,14 +55,17 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			-ffunction-sections \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -D__3DS__
+CFLAGS += $(INCLUDE) -D__3DS__
+CFLAGS += -std=c23 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Werror=return-type
+CFLAGS += -DPLATFORM_3DS
+CFLAGS += -DAE_BACKEND_CITRO3D -DAE_USE_SDL2 -DSDL_MAIN_HANDLED -DAE_AUDIO_STUB -DAE_STANDALONE
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lSDL2 -lcitro3d -lctru -lm
+LIBS	:= -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

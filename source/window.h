@@ -5,6 +5,8 @@
 
 #ifdef AE_WINDOW_SDL2
 	#include "window/sdl2.h"
+#elif defined(PLATFORM_3DS)
+	#include "window/ae3ds.h"
 #endif
 
 enum {

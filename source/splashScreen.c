@@ -5,7 +5,7 @@
 
 static float     timer;
 static Resource* image;
-static float     time;
+static float     timeAmount;
 
 static SplashScreenCallback callback;
 static bool                 ended;
@@ -51,7 +51,7 @@ static void Render(Scene* scene) {
 
 	Backend_DrawTexture(image->v.texture, NULL, NULL, &dest);
 
-	if ((timer > time) && !ended) {
+	if ((timer > timeAmount) && !ended) {
 		callback();
 		ended = true;
 	}
@@ -67,9 +67,9 @@ Scene NewSplashScreen(const char* path, SplashScreenCallback p_callback, float p
 	ret.update      = &Update;
 	ret.render      = &Render;
 
-	callback = p_callback;
-	image    = Resources_GetRes(path, 0);
-	time     = p_time;
-	ended    = false;
+	callback   = p_callback;
+	image      = Resources_GetRes(path, 0);
+	timeAmount = p_time;
+	ended      = false;
 	return ret;
 }

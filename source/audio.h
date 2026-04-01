@@ -1,14 +1,16 @@
 #ifndef AE_AUDIO_H
 #define AE_AUDIO_H
-
-#include <PlatinumSrc/audio.h>
 #include "common.h"
 #include "resources.h"
 
 #ifdef AE_AUDIO_PSRC
-	typedef uint32_t AudioEmitter;
-#else
-	#error
+	#include "audio/psrc.h"
+#elif defined(AE_AUDIO_STUB)
+	#include "audio/stub.h"
+
+	struct audiofx {
+		int unused;
+	};
 #endif
 
 void Audio_Init(void);
@@ -28,5 +30,6 @@ bool Audio_MusicPlaying(void);
 bool Audio_PlayMusic(const char* path, bool loop);
 void Audio_StopMusic(void);
 void Audio_DefaultState(void);
+void Audio_SetPlayerState(void);
 
 #endif

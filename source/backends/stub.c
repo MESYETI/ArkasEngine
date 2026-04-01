@@ -11,6 +11,10 @@ void Backend_Free(void) {
 	
 }
 
+void Backend_SetTarget(Window* window) {
+	(void) window;
+}
+
 Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch) {
 	(void) data;
 	(void) width;

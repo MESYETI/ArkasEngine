@@ -1,6 +1,10 @@
-#include "engine.h"
-#include "game.h"
-#include "audio.h"
+#include "ae3ds.h"
+#include "../engine.h"
+#include "../game.h"
+#include "../audio.h"
+
+#ifdef AE_AUDIO_PSRC
+#include <PlatinumSrc/audio.h>
 
 AudioEmitter musicEmitter;
 bool         playingMusic = false;
@@ -135,3 +139,18 @@ void Audio_DefaultState(void) {
 	playerAudio->rotcos[1] = CosDeg(0);
 	playerAudio->rotcos[2] = CosDeg(0);
 }
+
+void Audio_SetPlayerState(void) {
+	struct audioplayerdata* playerAudio = &audiostate.playerdata.data[0];
+	playerAudio->pos[0]    = camera.pos.x;
+	playerAudio->pos[1]    = camera.pos.y;
+	playerAudio->pos[2]    = camera.pos.z;
+	playerAudio->rotsin[0] = SinDeg(-camera.pitch);
+	playerAudio->rotsin[1] = SinDeg(-camera.yaw);
+	playerAudio->rotsin[2] = SinDeg(-camera.roll);
+	playerAudio->rotcos[0] = CosDeg(-camera.pitch);
+	playerAudio->rotcos[1] = CosDeg(-camera.yaw);
+	playerAudio->rotcos[2] = CosDeg(-camera.roll);
+}
+
+#endif
