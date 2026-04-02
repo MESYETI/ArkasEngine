@@ -21,7 +21,7 @@ static uint32_t CompToRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 static uint32_t ColourToABGR(Colour c) {
 	return
 		(((uint32_t) c.a) << 24) | (((uint32_t) c.b) << 16) |
-		(((uint32_t) c.b) << 8) | ((uint32_t) c.r);
+		(((uint32_t) c.g) << 8) | ((uint32_t) c.r);
 }
 
 void Backend_Init(bool beforeWindow) {
@@ -33,8 +33,6 @@ void Backend_Free(void) {
 }
 
 void Backend_SetTarget(Window* window) {
-	C3D_FrameDrawOn(window->target);
-	C2D_SceneTarget(window->target);
 	state.target = window;
 }
 
@@ -170,10 +168,13 @@ void Backend_DrawTexture(
 
 void Backend_Begin(void) {
 	C3D_FrameBegin(0);
+	C3D_FrameDrawOn(state.target->target);
 }
 
 void Backend_Begin2D(void) {
 	C2D_Prepare();
+	C2D_SceneBegin(state.target->target);
+	printf("hello i am beginning 2D\n");
 }
 
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
@@ -214,7 +215,12 @@ void Backend_InitSkybox(void) {
 }
 
 void Backend_FinishRender(void) {
-	uint32_t c = CompToRGBA(0x00, 0xFF, 0x00, 0xFF);
+	if (hidKeysDown() & KEY_START) {
+		Log("Thank you for pressing START!");
+	}
+
+	// uint32_t c = CompToRGBA(0xFF, 0xFF, 0xFF, 0xFF);
+	uint32_t c = 0xFFFFFFFF;
 	assert(C2D_DrawRectangle(10, 10, 0, 100, 100, c, c, c, c));
 
 	C2D_Flush();

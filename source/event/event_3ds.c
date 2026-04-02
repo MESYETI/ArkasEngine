@@ -2,9 +2,13 @@
 #include "../config.h"
 
 #ifdef PLATFORM_3DS
+#include <3ds.h>
 
 bool Event_PollExternal(Event* event) {
-	(void) event;
+	if (!aptMainLoop()) {
+		event->type = AE_EVENT_QUIT;
+		return true;
+	}
 	return false;
 }
 
