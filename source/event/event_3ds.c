@@ -1,3 +1,4 @@
+#include <string.h>
 #include "../event.h"
 #include "../types.h"
 #include "../config.h"
@@ -5,6 +6,7 @@
 #ifdef PLATFORM_3DS
 #include <3ds.h>
 
+// touchscreen
 static bool touchDown = false;
 static Vec2 lastTouch;
 
@@ -47,7 +49,7 @@ bool Event_PollExternal(Event* event) {
 	else if (touchDown) {
 		touchDown = false;
 		event->mouseButton = (Event_MouseButton) {
-			AE_EVENT_MOUSE_BUTTON_UP, 0, touchPos.px, touchPos.py
+			AE_EVENT_MOUSE_BUTTON_UP, 0, lastTouch.x, lastTouch.y
 		};
 		return true;
 	}
@@ -56,7 +58,25 @@ bool Event_PollExternal(Event* event) {
 }
 
 void Event_StartTextInput(void) {
-	
+	SwkbdState  keyboard;
+	char        buf[60];
+	SwkbdButton button;
+
+	buf[0] = 0;
+
+	swkbdInit(&keyboard, SWKBD_TYPE_NORMAL, 2, -1);
+	swkbdSetInitialText(&keyboard, buf);
+	swkbdSetHintText(&keyboard, "Enter text");
+	swkbdSetButton(&keyboard, SWKBD_BUTTON_LEFT,  "Discard", false);
+	swkbdSetButton(&keyboard, SWKBD_BUTTON_RIGHT, "OK", true);
+	button = swkbdInputText(&keyboard, buf, sizeof(buf));
+
+	if (button == SWKBD_BUTTON_RIGHT) {
+		Event e;
+		e.type  = AE_EVENT_TEXT_INPUT;
+		strcpy(e.textInput.input, buf);
+		Event_Add(e);
+	}
 }
 
 void Event_StopTextInput(void) {

@@ -46,6 +46,7 @@ static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down
 
 	UI_TextInput* data = (UI_TextInput*) e->data;
 	data->cursor       = strlen(data->dest);
+	Event_StartTextInput();
 }
 
 static bool OnEvent(UI_Container* cont, UI_Element* e, Event* ev, bool focus) {

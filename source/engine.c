@@ -161,7 +161,6 @@ void Engine_Update(void) {
 
 	Event e;
 	while (Event_Poll(&e)) {
-		printf("event type: %d\n", e.type);
 		Input_HandleEvent(&e);
 
 		switch (e.type) {

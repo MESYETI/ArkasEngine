@@ -45,20 +45,15 @@ static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down
 
 	UI_Button* data = (UI_Button*) e->data;
 
-	printf("button: on click\n");
 	if (button != 0) return;
-	printf("button: is zero\n");
 
 	if (down) {
 		data->pressed = true;
-		puts("button: set pressed to true");
 	}
 	else if (data->pressed) {
 		data->pressed = false;
-		puts("button: set pressed to false");
 
 		if (data->onClick) {
-			puts("button: call onClick");
 			data->onClick(data, button);
 		}
 	}

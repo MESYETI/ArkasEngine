@@ -45,7 +45,7 @@ typedef struct {
 
 typedef struct {
 	Event_Type type;
-	char       input[32];
+	char       input[60];
 } Event_TextInput;
 
 typedef union {

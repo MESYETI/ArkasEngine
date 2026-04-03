@@ -194,7 +194,6 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 
 						if (PointInRect((Vec2) {x, y}, elemRect)) {
 							if (elem->onClick) {
-								puts("ui: on click");
 								elem->onClick(
 									container, elem, button,
 									e->type == AE_EVENT_MOUSE_BUTTON_DOWN
