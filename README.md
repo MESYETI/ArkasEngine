@@ -66,14 +66,10 @@ these commands:
 
 ## Graphics backends
 ### Implemented
-- OpenGL 1.1
+- OpenGL 1.1 - 2.0
 
 ### In Progress
 - Citro3D
-
-### Todo
-- OpenGL 1.5 (for VBO)
-- OpenGL 2.0 (for shaders)
 
 ## Community
 Arkas Engine is discussed in the non-bloat collective: <https://discord.gg/zPf8RS2a4r>
