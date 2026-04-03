@@ -245,6 +245,7 @@ static void Update(Scene* scene, bool top) {
 
 static void Render(Scene* scene) {
 	Backend_Begin2D();
+	Backend_Clear(0, 0, 0);
 
 	const int unitPx = 32;
 
