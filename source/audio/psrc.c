@@ -1,10 +1,11 @@
-#include "ae3ds.h"
-#include "../engine.h"
 #include "../game.h"
+#include "../camera.h"
+#include "../engine.h"
 #include "../audio.h"
 
 #ifdef AE_AUDIO_PSRC
 #include <PlatinumSrc/audio.h>
+#include "psrc.h"
 
 AudioEmitter musicEmitter;
 bool         playingMusic = false;

@@ -32,7 +32,7 @@ override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ili
 override LDLIBS += -lm
 
 override CPPFLAGS += -DAE_BACKEND_GL_LEGACY -DAE_AUDIO_PSRC
-override CPPFLAGS += -DAE_WINDOW_SDL2 -DAE_INPUT_SDL2 -DAE_INPUT_SDL2
+override CPPFLAGS += -DAE_WINDOW_SDL2 -DAE_INPUT_SDL2 -DAE_EVENT_SDL2
 override CPPFLAGS += -DSDL_MAIN_HANDLED -D_POSIX_C_SOURCE=199309L
 
 ifeq ($(BUILD),release)
@@ -88,10 +88,13 @@ bin/event:
 bin/platform:
 	mkdir -p bin/platform
 
-bin/PlatinumSrc_%.o: lib/PlatinumSrc/%.c $(call deps,lib/PlatinumSrc/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform
+bin/audio:
+	mkdir -p bin/audio
+
+bin/PlatinumSrc_%.o: lib/PlatinumSrc/%.c $(call deps,lib/PlatinumSrc/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform
+bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 clean:

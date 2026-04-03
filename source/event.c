@@ -49,6 +49,7 @@ void Event_Add(Event e) {
 void Event_Update(void) {
 	Event e;
 
+	Event_PrepareExternal();
 	while (Event_PollExternal(&e)) {
 		events[FindFree()] = e;
 

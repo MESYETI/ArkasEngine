@@ -1,4 +1,4 @@
-#include "ae3ds.h"
+#include "stub.h"
 #include "../audio.h"
 
 #ifdef AE_AUDIO_STUB

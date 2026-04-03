@@ -23,7 +23,7 @@ void Video_Init(const char* gameName) {
 		video.aWidth  = 960;
 		video.aHeight = 544;
 	#elif defined(PLATFORM_3DS)
-		video.aWidth  = 400;
+		video.aWidth  = 320;
 		video.aHeight = 240;
 	#else
 		video.aWidth  = 640;

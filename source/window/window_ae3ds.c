@@ -13,7 +13,7 @@ void Window_Init(void) {
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
-	consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(GFX_TOP, NULL);
 }
 
 void Window_Quit(void) {
@@ -32,13 +32,13 @@ Window Window_Create(const char* name, int width, int height) {
 
 	Window ret;
 	ret.target = C3D_RenderTargetCreate(
-		height, width, GPU_RB_RGB8, GPU_RB_DEPTH24_STENCIL8
+		height, width, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8
 	);
 
-	if ((height == 240) || (width == 400)) {
+	if ((height == 240) && (width == 400)) {
 		C3D_RenderTargetSetOutput(ret.target, GFX_TOP, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
 	}
-	else if ((height == 240) || (width == 320)) {
+	else if ((height == 240) && (width == 320)) {
 		C3D_RenderTargetSetOutput(ret.target, GFX_BOTTOM, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
 	}
 	else {

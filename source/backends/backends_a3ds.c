@@ -7,15 +7,19 @@
 
 typedef struct {
 	Texture textures[64];
-	Window* target;
+
+	C3D_RenderTarget* target;
 } State;
 
 static State state;
 
-static uint32_t CompToRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+static uint32_t CompToABGR(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+	// return
+	// 	((uint32_t) r) | (((uint32_t) g) << 8) | (((uint32_t) b) << 16) |
+	// 	(((uint32_t) a) << 24);
 	return
-		((uint32_t) r) | (((uint32_t) g) << 8) | (((uint32_t) b) << 16) |
-		(((uint32_t) a) << 24);
+		((uint32_t) a) | (((uint32_t) b) << 8) | (((uint32_t) g) << 16) |
+		(((uint32_t) r) << 24);
 }
 
 static uint32_t ColourToABGR(Colour c) {
@@ -33,7 +37,7 @@ void Backend_Free(void) {
 }
 
 void Backend_SetTarget(Window* window) {
-	state.target = window;
+	state.target = window->target;
 }
 
 static Texture* AllocTexture(void) {
@@ -144,16 +148,14 @@ void Backend_DrawTexture(
 		dest = *p_dest;
 	}
 
-	Tex3DS_SubTexture subTex = {
-		.width  = texture->tex.width,
-		.height = texture->tex.height,
-		.left   = ((float) src.x) / ((float) texture->width),
-		.top    = (((float) src.y) / ((float) texture->height)),
-		.right  = 1.0f,
-		.bottom = 0.0f
-	};
-	subTex.right  = subTex.left + (((float) src.w) / ((float) texture->width));
-	subTex.bottom = subTex.top  + (((float) src.h) / ((float) texture->height));
+	Tex3DS_SubTexture subTex;
+
+	subTex.top    = 1.0f - ((float) src.y) / ((float) texture->tex.height);
+	subTex.left   = ((float) src.x) / ((float) texture->tex.width);
+	subTex.right  = ((float) (src.x + src.w)) / ((float) texture->tex.width);
+	subTex.bottom = 1.0f - ((float) (src.y + src.h)) / ((float) texture->tex.height);
+	subTex.width  = src.w;
+	subTex.height = src.h;
 
 	C2D_Image img;
 	img.tex    = &texture->tex;
@@ -167,19 +169,18 @@ void Backend_DrawTexture(
 }
 
 void Backend_Begin(void) {
-	C3D_FrameBegin(0);
-	C3D_FrameDrawOn(state.target->target);
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+	C3D_FrameDrawOn(state.target);
 }
 
 void Backend_Begin2D(void) {
 	C2D_Prepare();
-	C2D_SceneBegin(state.target->target);
-	printf("hello i am beginning 2D\n");
+	C2D_SceneBegin(state.target);
 }
 
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
-	uint32_t colour = CompToRGBA(r, g, b, 255);
-	C3D_RenderTargetClear(state.target->target, C3D_CLEAR_ALL, colour, 0);
+	uint32_t colour = CompToABGR(r, g, b, 255);
+	C3D_RenderTargetClear(state.target, C3D_CLEAR_ALL, colour, 0);
 }
 
 void Backend_SetViewport(int x, int y, int w, int h) {
@@ -194,7 +195,7 @@ void Backend_EnableViewport(bool enable) {
 }
 
 void Backend_RenderRect(Rect rect, Colour colour) {
-	uint32_t c = CompToRGBA(colour.r, colour.g, colour.b, colour.a);
+	uint32_t c = C2D_Color32(colour.r, colour.g, colour.b, colour.a);
 	C2D_DrawRectangle(
 		(float) rect.x, (float) rect.y, 0.0f, (float) rect.w, (float) rect.h,
 		c, c, c, c
@@ -202,7 +203,7 @@ void Backend_RenderRect(Rect rect, Colour colour) {
 }
 
 void Backend_RenderLine(Vec2 a, Vec2 b, Colour colour) {
-	uint32_t c = CompToRGBA(colour.r, colour.g, colour.b, colour.a);
+	uint32_t c = C2D_Color32(colour.r, colour.g, colour.b, colour.a);
 	C2D_DrawLine((float) a.x, (float) a.y, c, (float) b.x, (float) b.y, c, 1.0f, 0.0f);
 }
 
@@ -215,14 +216,6 @@ void Backend_InitSkybox(void) {
 }
 
 void Backend_FinishRender(void) {
-	if (hidKeysDown() & KEY_START) {
-		Log("Thank you for pressing START!");
-	}
-
-	// uint32_t c = CompToRGBA(0xFF, 0xFF, 0xFF, 0xFF);
-	uint32_t c = 0xFFFFFFFF;
-	assert(C2D_DrawRectangle(10, 10, 0, 100, 100, c, c, c, c));
-
 	C2D_Flush();
 	C3D_FrameEnd(0);
 }

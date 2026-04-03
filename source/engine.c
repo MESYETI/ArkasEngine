@@ -161,6 +161,7 @@ void Engine_Update(void) {
 
 	Event e;
 	while (Event_Poll(&e)) {
+		printf("event type: %d\n", e.type);
 		Input_HandleEvent(&e);
 
 		switch (e.type) {
@@ -215,6 +216,10 @@ void Engine_Update(void) {
 	if (engine.console) {
 		Console_Render();
 	}
+
+	// Backend_Clear(0, 0, 50);
+	// Backend_Begin2D();
+	// Backend_DrawTexture(engine.font.texture, NULL, NULL, NULL);
 
 	Backend_FinishRender();
 	oldFrameTime = newFrameTime;

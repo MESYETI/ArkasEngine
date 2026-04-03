@@ -4,6 +4,10 @@
 
 #ifdef AE_EVENT_SDL2
 
+void Event_PrepareExternal(void) {
+	
+}
+
 bool Event_PollExternal(Event* event) {
 	SDL_Event e;
 

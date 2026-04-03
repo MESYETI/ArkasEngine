@@ -66,6 +66,7 @@ void Event_Init(void);
 void Event_Free(void);
 void Event_Add(Event e);
 void Event_Update(void);
+void Event_PrepareExternal(void);
 bool Event_PollExternal(Event* event); // defined in source/event/*.c
 bool Event_Available(void);
 bool Event_Poll(Event* e);
