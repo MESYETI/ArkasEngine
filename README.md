@@ -6,8 +6,7 @@ Currently has a demo map with two sectors and a team fortress 2 model
 Controls:
 - WASD for movement
 - left or right arrow keys to turn camera (or use mouse)
-- O to free the cursor
-- P to lock the cursor back into the window
+- grave key to open console (and escape to close)
 
 ## Screenshot
 ![Screenshot](/img/screenshot3.png)
@@ -22,6 +21,28 @@ Make options:
 - `PLAT=windows` - Cross compile to Windows (64-bit)
 - `BUILD=release` - Compile a release build
 - `ASAN=y` - Enable address santiser
+
+### 3DS
+Arkas Engine has an incomplete 3DS port. To compile it, use these commands:
+
+```
+cd deploy/3ds
+make
+```
+
+Requirements: `3ds-dev` from devkitpro
+
+### PlayStation Vita
+Arkas Engine has a completely dysfunctional PlayStation Vita port. To compile it,
+uses these commands:
+
+```
+cd deploy/psvita
+cmake .
+make
+```
+
+Requirements: Vita SDK, SDL2, VitaGL
 
 ## Preparation
 Get a D compiler and the `dub` build system and build the `ark` tool in `tools/ark`. Then,
@@ -40,10 +61,15 @@ these commands:
   the resource manager is added)
 - `dl-map <MAP NAME>` - Saves the current loaded map as `MAP NAME` in the `maps` folder
 - `help` - Shows a list of commands
+- `editor` - Open WIP map editor
+- `browser` - Open WIP file browser
 
 ## Graphics backends
 ### Implemented
 - OpenGL 1.1
+
+### In Progress
+- Citro3D
 
 ### Todo
 - OpenGL 1.5 (for VBO)
