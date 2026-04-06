@@ -56,6 +56,7 @@ struct UI_Container {
 	int     padLeft;
 	int     padRight;
 	int     fixedHeight;
+	int     window;
 	
 	UI_Mode yMode;
 	UI_Mode xMode;
@@ -88,6 +89,7 @@ bool          UI_ManagerHandleEvent(UI_Manager* man, Event* e);
 
 void UI_RenderBorder(size_t depth, Rect rect, bool swap);
 
+void    UI_ContainerSetWindow(UI_Container* container, int window);
 void    UI_ContainerCenterX(UI_Container* container);
 void    UI_ContainerCenterY(UI_Container* container);
 void    UI_ContainerAlignLeft(UI_Container* container, int padding);

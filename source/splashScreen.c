@@ -41,13 +41,13 @@ static void Render(Scene* scene) {
 
 	Vec2 dim = Backend_GetTextureSize(image->v.texture);
 
-	float mult = ((float) video.height) / ((float) dim.y);
+	float mult = ((float) video.windows[0].height) / ((float) dim.y);
 
 	Rect dest;
 	dest.h = (int) (((float) dim.y) * mult);
 	dest.w = (int) (((float) dim.x) * mult);
 	dest.y = 0;
-	dest.x = (video.width / 2) - (dest.w / 2);
+	dest.x = (video.windows[0].width / 2) - (dest.w / 2);
 
 	Backend_DrawTexture(image->v.texture, NULL, NULL, &dest);
 

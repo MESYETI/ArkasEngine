@@ -4,6 +4,8 @@
 #include <SDL2/SDL.h>
 
 typedef struct {
+	WINDOW_COMMON;
+
 	SDL_Window* window;
 } Window;
 

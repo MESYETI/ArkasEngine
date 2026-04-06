@@ -297,7 +297,7 @@ void Console_Render(void) {
 		console.editor[0] = 0;
 	}
 
-	int y = video.height - (engine.font.charHeight * 2);
+	int y = video.windows[0].height - (engine.font.charHeight * 2);
 
 	for (size_t i = 0; i < 100; ++ i) {
 		Text_Render(&engine.font, console.lines[i], 1, y);
@@ -308,10 +308,10 @@ void Console_Render(void) {
 		}
 	}
 
-	Text_Render(&engine.font, "> ", 1, video.height - engine.font.charHeight);
+	Text_Render(&engine.font, "> ", 1, video.windows[0].height - engine.font.charHeight);
 
 	Text_Render(
 		&engine.font, console.editor, 1 + (engine.font.charWidth * 2),
-		video.height - engine.font.charHeight
+		video.windows[0].height - engine.font.charHeight
 	);
 }

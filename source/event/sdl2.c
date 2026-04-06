@@ -1,4 +1,5 @@
 #include "../event.h"
+#include "../video.h"
 #include "../config.h"
 #include "../input/sdl.h"
 
@@ -8,6 +9,16 @@ void Event_PrepareExternal(void) {
 	
 }
 
+static int GetWindow(uint32_t id) {
+	for (int i = 0; i < WIN_NUM; ++ i) {
+		if (SDL_GetWindowID(video.windows[i].window) == id) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 bool Event_PollExternal(Event* event) {
 	SDL_Event e;
 
@@ -15,11 +26,12 @@ bool Event_PollExternal(Event* event) {
 		switch (e.type) {
 			case SDL_MOUSEMOTION: {
 				event->mouseMove = (Event_MouseMove) {
-					.type = AE_EVENT_MOUSE_MOVE,
-					.x    = e.motion.x / globalConfig.scale2D,
-					.y    = e.motion.y / globalConfig.scale2D,
-					.xRel = e.motion.xrel / globalConfig.scale2D,
-					.yRel = e.motion.yrel / globalConfig.scale2D
+					.type   = AE_EVENT_MOUSE_MOVE,
+					.window = GetWindow(e.motion.windowID),
+					.x      = e.motion.x / globalConfig.scale2D,
+					.y      = e.motion.y / globalConfig.scale2D,
+					.xRel   = e.motion.xrel / globalConfig.scale2D,
+					.yRel   = e.motion.yrel / globalConfig.scale2D
 				};
 				break;
 			}
@@ -37,6 +49,7 @@ bool Event_PollExternal(Event* event) {
 				event->mouseButton = (Event_MouseButton) {
 					.type   = e.type == SDL_MOUSEBUTTONDOWN?
 						AE_EVENT_MOUSE_BUTTON_DOWN : AE_EVENT_MOUSE_BUTTON_UP,
+					.window = GetWindow(e.button.windowID),
 					.button = button,
 					.x      = e.button.x / globalConfig.scale2D,
 					.y      = e.button.y / globalConfig.scale2D
@@ -60,6 +73,7 @@ bool Event_PollExternal(Event* event) {
 				if (e.window.event == SDL_WINDOWEVENT_RESIZED) {
 					event->windowResize = (Event_WindowResize) {
 						.type   = AE_EVENT_WINDOW_RESIZE,
+						.window = GetWindow(e.button.windowID),
 						.width  = e.window.data1,
 						.height = e.window.data2
 					};

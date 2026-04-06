@@ -5,6 +5,8 @@
 #include <citro3d.h>
 
 typedef struct {
+	WINDOW_COMMON;
+
 	C3D_RenderTarget* target;
 } Window;
 

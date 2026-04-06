@@ -7,7 +7,7 @@
 #ifdef AE_STANDALONE
 int main(int argc, const char** argv) {
 	Engine_Init("Arkas Engine (standalone)", argc, argv);
-	engine.console = false;
+	engine.console = true;
 
 	if (Console_RunFile(AE_LOCATION "game.cmd")) {
 		Log("Ran game.cmd");

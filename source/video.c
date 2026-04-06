@@ -8,32 +8,47 @@
 Video video;
 
 static void EventHandler(Event* e) {
-	video.aWidth  = e->windowResize.width;
-	video.aHeight = e->windowResize.height;
+	Window* win = &video.windows[e->windowResize.window]; // TODO: check
+
+	win->aWidth  = e->windowResize.width;
+	win->aHeight = e->windowResize.height;
 	Backend_OnWindowResize();
 
-	video.width  = video.aWidth / globalConfig.scale2D;
-	video.height = video.aHeight / globalConfig.scale2D;
+	win->width  = win->aWidth  / globalConfig.scale2D;
+	win->height = win->aHeight / globalConfig.scale2D;
 }
 
 void Video_Init(const char* gameName) {
 	Backend_Init(true);
 
-	#ifdef PLATFORM_PSVITA
-		video.aWidth  = 960;
-		video.aHeight = 544;
-	#elif defined(PLATFORM_3DS)
-		video.aWidth  = 320;
-		video.aHeight = 240;
-	#else
-		video.aWidth  = 640;
-		video.aHeight = 480;
-	#endif
-	video.width  = video.aWidth  / globalConfig.scale2D;
-	video.height = video.aHeight / globalConfig.scale2D;
+	int w;
+	int h;
 
-	video.window = Window_Create(gameName, video.aWidth, video.aHeight);
-	Log("Created window");
+	#ifdef PLATFORM_PSVITA
+		w = 960;
+		h = 544;
+	#elif defined(PLATFORM_3DS)
+		w = 400;
+		h = 240;
+	#else
+		w = 640;
+		h = 480;
+	#endif
+
+	video.windows[0]        = Window_Create(gameName, w, h);
+	video.windows[0].width  = w / globalConfig.scale2D;
+	video.windows[0].height = h / globalConfig.scale2D;
+	Log("Created window 0");
+
+	#ifdef PLATFORM_3DS
+		w = 320;
+		h = 480;
+
+		videos.windows[1]        = Window_Create(gameName, w, h);
+		videos.windows[1].width  = w / globalConfig.scale2D;
+		videos.windows[1].height = h / globalConfig.scale2D;
+		Log("Created window 1");
+	#endif
 
 	Backend_Init(false);
 
@@ -42,7 +57,9 @@ void Video_Init(const char* gameName) {
 
 void Video_Free(void) {
 	Backend_Free();
-	Window_Free(&video.window);
+	for (int i = 0; i < WIN_NUM; ++ i) {
+		Window_Free(&video.windows[i]);
+	}
 }
 
 Colour Video_MultiplyColour(Colour colour, float by) {

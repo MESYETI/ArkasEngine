@@ -14,6 +14,12 @@
 #include "ui/dropDown.h"
 #include "testScene.h"
 
+#ifdef PLATFORM_3DS
+	#define UI_WIN 1
+#else
+	#define UI_WIN 0
+#endif
+
 enum {
 	ME_MODE_EDIT = 0,
 	ME_MODE_SECTOR
@@ -135,7 +141,7 @@ static void Init(Scene* scene) {
 
 	scene->ui = UI_ManagerInit(4);
 
-	topCont = UI_ManagerAddContainer(scene->ui, video.width, NULL);
+	topCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, NULL);
 	UI_ContainerAlignLeft(topCont, 0);
 	UI_ContainerAlignTop(topCont, 0);
 	UI_ContainerSetPadding(topCont, 5, 5, 5, 5);
@@ -161,7 +167,7 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));
 	UI_RowUpdate(row);
 
-	bottomCont = UI_ManagerAddContainer(scene->ui, video.width, NULL);
+	bottomCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, NULL);
 	UI_ContainerAlignLeft(bottomCont, 0);
 	UI_ContainerAlignBottom(bottomCont, 0);
 	UI_ContainerSetPadding(bottomCont, 5, 5, 5, 5);
@@ -254,21 +260,29 @@ static void Render(Scene* scene) {
 		(int) (mCamera.y * unitPx)
 	};
 
-	for (int i = 0; i < video.height; ++ i) {
+	for (int i = 0; i < video.windows[UI_WIN].height; ++ i) {
+		int w = video.windows[UI_WIN].width;
+
 		if ((i + cam.y) % (unitPx * 4) == 0) {
-			Backend_HLine(0, i, 1, video.width, (Colour) {0x80, 0x80, 0x80, 0xFF});
+			Backend_HLine(0, i, 1, w, (Colour) {0x80, 0x80, 0x80, 0xFF});
 		}
 		else if ((i + cam.y) % unitPx == 0) {
-			Backend_HLine(0, i, 1, video.width, (Colour) {0x40, 0x40, 0x40, 0xFF});
+			Backend_HLine(0, i, 1, w, (Colour) {0x40, 0x40, 0x40, 0xFF});
 		}
 	}
 
-	for (int i = 0; i < video.width; ++ i) {
+	for (int i = 0; i < video.windows[UI_WIN].width; ++ i) {
 		if ((i + cam.x) % (unitPx * 4) == 0) {
-			Backend_VLine(i, 0, 1, video.height, (Colour) {0x80, 0x80, 0x80, 0xFF});
+			Backend_VLine(
+				i, 0, 1, video.windows[UI_WIN].height,
+				(Colour) {0x80, 0x80, 0x80, 0xFF}
+			);
 		}
 		else if ((i + cam.x) % unitPx == 0) {
-			Backend_VLine(i, 0, 1, video.height, (Colour) {0x40, 0x40, 0x40, 0xFF});
+			Backend_VLine(
+				i, 0, 1, video.windows[UI_WIN].height,
+				(Colour) {0x40, 0x40, 0x40, 0xFF}
+			);
 		}
 	}
 

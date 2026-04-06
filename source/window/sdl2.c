@@ -26,6 +26,10 @@ Window Window_Create(const char* name, int width, int height) {
 		name, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height,
 		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 	);
+	ret.aWidth  = width;
+	ret.aHeight = height;
+	ret.width   = width;
+	ret.height  = height;
 
 	if (ret.window == NULL) {
 		Log("Failed to create window: %s", SDL_GetError());

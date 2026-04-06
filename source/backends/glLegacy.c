@@ -167,8 +167,8 @@ void Backend_Init(bool beforeWindow) {
 		return;
 	}
 
-	state.ctx = SDL_GL_CreateContext(video.window.window);
-	assert(SDL_GL_MakeCurrent(video.window.window, state.ctx) == 0);
+	state.ctx = SDL_GL_CreateContext(video.windows[0].window);
+	assert(SDL_GL_MakeCurrent(video.windows[0].window, state.ctx) == 0);
 
 	#ifdef PLATFORM_PSVITA
 		vglInit(0x800000);
@@ -292,7 +292,7 @@ void Backend_SetTarget(Window* window) {
 	static bool warning = false;
 	if (!warning) {
 		warning = true;
-		Log("Warning: Backend_SetTarget unimplemented");
+		Warn("Backend_SetTarget unsupported");
 	}
 }
 
@@ -633,7 +633,8 @@ void Backend_OnMapFree(void) {
 }
 
 void Backend_OnWindowResize(void) {
-	state.aspect = ((float) video.aWidth) / ((float) video.aHeight);
+	state.aspect =
+		((float) video.windows[0].aWidth) / ((float) video.windows[0].aHeight);
 	CalcProjMatrix();
 }
 
@@ -695,7 +696,7 @@ void Backend_DrawTexture(
 
 	Rect dest;
 	if (p_dest == NULL) {
-		dest = (Rect) {0, 0, video.width, video.height};
+		dest = (Rect) {0, 0, video.windows[0].width, video.windows[0].height};
 	}
 	else {
 		dest = *p_dest;
@@ -738,7 +739,7 @@ void Backend_DrawTexture(
 }
 
 void Backend_Begin(void) {
-	glViewport(0, 0, video.aWidth, video.aHeight);
+	glViewport(0, 0, video.windows[0].aWidth, video.windows[0].aHeight);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -751,7 +752,10 @@ void Backend_Begin2D(void) {
 	GL(glLoadIdentity());
 	GL(glMatrixMode(GL_PROJECTION));
 	GL(glLoadIdentity());
-	GL(glOrtho(0.0, (float) video.width, (float) video.height, 0.0, -1.0, 1.0));
+	GL(glOrtho(
+		0.0, (float) video.windows[0].width, (float) video.windows[0].height,
+		0.0, -1.0, 1.0
+	));
 }
 
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
@@ -761,7 +765,7 @@ void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
 
 void Backend_SetViewport(int x, int y, int w, int h) {
 	state.viewport.rect = (Rect) {x, y, w, h};
-	GL(glScissor(x, video.height - 1 - (y + h), w, h));
+	GL(glScissor(x, video.windows[0].height - 1 - (y + h), w, h));
 }
 
 void Backend_EnableViewport(bool enable) {
@@ -839,7 +843,7 @@ void Backend_InitSkybox(void) {
 
 void Backend_FinishRender(void) {
 	GL(glFinish());
-	SDL_GL_SwapWindow(video.window.window);
+	SDL_GL_SwapWindow(video.windows[0].window);
 }
 
 BackendViewport Backend_SaveViewport(void) {

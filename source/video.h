@@ -6,14 +6,18 @@
 
 #undef main
 
+#ifdef PLATFORM_3DS
+	#define WIN_NUM 2
+#else
+	#define WIN_NUM 1
+#endif
+
 typedef struct {
 	uint8_t r, g, b, a;
 } Colour;
 
 typedef struct {
-	Window window;
-	int    width, height;
-	int    aWidth, aHeight;
+	Window windows[WIN_NUM];
 } Video;
 
 extern Video video;

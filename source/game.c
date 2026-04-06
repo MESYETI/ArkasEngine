@@ -261,11 +261,14 @@ void GameBase_Render(void) {
 	Player_FPCamera();
 	Backend_RenderScene();
 
-    int    csLen = (int) (((float) video.height) / 96);
+	int videoWidth  = video.windows[0].width;
+	int videoHeight = video.windows[0].height;
+
+    int    csLen = (int) (((float) videoHeight) / 96);
     Colour csCol = (Colour) {255, 255, 255, 255};
 
-    Backend_VLine((video.width / 2) - 1, (video.height / 2) - csLen, 2, csLen * 2, csCol);
-    Backend_HLine((video.width / 2) - csLen, (video.height / 2) - 1, 2, csLen * 2, csCol);
+    Backend_VLine((videoWidth / 2) - 1, (videoHeight / 2) - csLen, 2, csLen * 2, csCol);
+    Backend_HLine((videoWidth / 2) - csLen, (videoHeight / 2) - 1, 2, csLen * 2, csCol);
 
     if (gameBaseConfig.debugInfoLevel == 0) return;
 

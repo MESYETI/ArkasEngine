@@ -99,7 +99,7 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w, UI_ContainerResizer
 			.active = true,
 			.x = 0, .y = 0, .w = w, .h = 0,
 			.padTop = 0, .padBottom = 0, .padLeft = 0, .padRight = 0,
-			.fixedHeight = 0,
+			.fixedHeight = 0, .window = 0,
 			.yMode = 0, .xMode = 0,
 			.rows      = NULL,
 			.rowAmount = 0,
@@ -169,7 +169,8 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 			for (size_t i = 0; i < man->containerLen; ++ i) {
 				UI_Container* container = &man->containers[i];
 
-				if (!container->active) continue;
+				if (!container->active)                         continue;
+				if (container->window != e->mouseButton.window) continue;
 
 				Rect rect = UI_ContainerGetRect(container);
 
@@ -225,7 +226,8 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 			for (size_t i = 0; i < man->containerLen; ++ i) {
 				UI_Container* container = &man->containers[i];
 
-				if (!container->active) continue;
+				if (!container->active)                         continue;
+				if (container->window != e->mouseButton.window) continue;
 
 				Rect rect = UI_ContainerGetRect(container);
 
@@ -309,6 +311,14 @@ void UI_RenderBorder(size_t depth, Rect rect, bool swap) {
 	Backend_VLine(rect.x, rect.y, width, rect.h, bright);
 }
 
+void UI_ContainerSetWindow(UI_Container* container, int window) {
+	if ((window < 0) || (window >= WIN_NUM)) {
+		Error("Invalid window: %d", window);
+	}
+
+	container->window = window;
+}
+
 void UI_ContainerCenterX(UI_Container* container) {
 	container->xMode = UI_MODE_CENTERED;
 }
@@ -387,6 +397,10 @@ UI_Row* UI_ContainerAddRow(UI_Container* container, int height) {
 }
 
 void UI_ContainerRender(UI_Container* container, bool focus) {
+	if (WIN_NUM > 1) {
+		Backend_SetTarget(&video.windows[container->window]);
+	}
+
 	Rect rect = UI_ContainerGetRect(container);
 
 	Backend_RenderRect(rect, theme.bg[0]);
@@ -413,6 +427,8 @@ Rect UI_ContainerGetRect(UI_Container* container) {
 	Rect rect;
 	rect.w = container->w;
 
+	Window* win = &video.windows[container->window];
+
 	if (container->fixedHeight) {
 		rect.h = container->fixedHeight;
 	}
@@ -426,15 +442,15 @@ Rect UI_ContainerGetRect(UI_Container* container) {
 	switch (container->yMode) {
 		case UI_MODE_FIXED:    rect.y = container->y; break;
 		case UI_MODE_MIN_EDGE: rect.y = container->y; break;
-		case UI_MODE_MAX_EDGE: rect.y = video.height - rect.h - container->y; break;
-		case UI_MODE_CENTERED: rect.y = (video.height / 2) - (rect.h / 2); break;
+		case UI_MODE_MAX_EDGE: rect.y = win->height - rect.h - container->y; break;
+		case UI_MODE_CENTERED: rect.y = (win->height / 2) - (rect.h / 2); break;
 	}
 
 	switch (container->xMode) {
 		case UI_MODE_FIXED:    rect.x = container->x; break;
 		case UI_MODE_MIN_EDGE: rect.x = container->x; break;
-		case UI_MODE_MAX_EDGE: rect.x = video.width - rect.w - container->x; break;
-		case UI_MODE_CENTERED: rect.x = (video.width / 2) - (rect.w / 2); break;
+		case UI_MODE_MAX_EDGE: rect.x = win->width - rect.w - container->x; break;
+		case UI_MODE_CENTERED: rect.x = (win->width / 2) - (rect.w / 2); break;
 	}
 
 	return rect;

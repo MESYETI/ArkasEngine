@@ -1,6 +1,7 @@
 #ifndef AE_EVENT_H
 #define AE_EVENT_H
 
+#include "window.h"
 #include "keyboard.h"
 
 // i don't use an enum because of compiler warnings about missing cases in switch
@@ -19,6 +20,7 @@ typedef uint8_t Event_Type;
 
 typedef struct {
 	Event_Type type;
+	int        window;
 	int        x;
 	int        y;
 	int        xRel;
@@ -27,6 +29,7 @@ typedef struct {
 
 typedef struct {
 	Event_Type type;
+	int        window;
 	uint8_t    button;
 	int        x;
 	int        y;
@@ -39,6 +42,7 @@ typedef struct {
 
 typedef struct {
 	Event_Type type;
+	int        window;
 	int        width;
 	int        height;
 } Event_WindowResize;

@@ -46,8 +46,8 @@ static void Render(Scene* scene) {
 	Vec2     texSize = Backend_GetTextureSize(texture);
 
 	Rect dest = {
-		(video.width  / 2) - (texSize.x / 2),
-		(video.height / 2) - (texSize.y / 2),
+		(video.windows[0].width  / 2) - (texSize.x / 2),
+		(video.windows[0].height / 2) - (texSize.y / 2),
 		texSize.x, texSize.y
 	};
 
