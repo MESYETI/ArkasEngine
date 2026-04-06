@@ -245,7 +245,7 @@ bool Map_LoadFile(Stream* file, const char* path) {
 			map.sectors[i].floorTexture = Resources_GetRes("builtin:no_texture.png", 0);
 		}
 		if (!map.sectors[i].ceilingTexture) {
-			map.sectors[i].ceilingTexture = Resources_GetRes("builtin:no_texure.png", 0);
+			map.sectors[i].ceilingTexture = Resources_GetRes("builtin:no_texture.png", 0);
 		}
 	}
 

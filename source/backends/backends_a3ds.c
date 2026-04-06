@@ -1,14 +1,25 @@
 #include "../util.h"
+#include "../camera.h"
 #include "../backend.h"
 
 #ifdef AE_BACKEND_CITRO3D
 #include <citro2d.h>
 #include "citro3d.h"
+#include "vshader_shbin.h"
 
 typedef struct {
-	Texture textures[64];
+	Texture         textures[64];
+	int             uniProjection;
+	int             uniView;
+	C3D_Mtx         projMatrix;
+	C3D_Mtx         viewMatrix;
+	shaderProgram_s program;
+	DVLB_s*         dvlb;
+	bool            done2D;
 
 	C3D_RenderTarget* target;
+	int               targetW;
+	int               targetH;
 } State;
 
 static State state;
@@ -28,16 +39,65 @@ static uint32_t ColourToABGR(Colour c) {
 		(((uint32_t) c.g) << 8) | ((uint32_t) c.r);
 }
 
-void Backend_Init(bool beforeWindow) {
+static void CalcProjMatrix(void) {
+	// TODO: iod = slider/3
+	Mtx_PerspStereoTilt(
+		&state.projMatrix, C3D_AngleFromDegrees(70.0f),
+		((float) video.windows[0].width) / ((float) video.windows[0].height),
+		/* near */ 0.1f, /* far */ 1000.0f, /* iod */ 0.0f,
+		/* screen */ 2.0f, false
+	);
+}
 
+static void CalcViewMatrix(void) {
+	Mtx_Identity(&state.viewMatrix);
+	// Mtx_Translate(&state.viewMatrix, -camera.pos.x, -camera.pos.y, -camera.pos.z, true);
+	// Mtx_RotateX(&state.viewMatrix, C3D_AngleFromDegrees(camera.pitch), false);
+	// Mtx_RotateY(&state.viewMatrix, C3D_AngleFromDegrees(camera.yaw), false);
+	// Mtx_RotateZ(&state.viewMatrix, C3D_AngleFromDegrees(camera.roll), false);
+	Mtx_Scale(&state.viewMatrix, 1.0f, 1.0f, 1.0f);
+}
+
+void Backend_Init(bool beforeWindow) {
+	if (beforeWindow) return;
+
+	state.dvlb = DVLB_ParseFile((uint32_t*) vshader_shbin, vshader_shbin_size);
+
+	shaderProgramInit(&state.program);
+	shaderProgramSetVsh(&state.program, &state.dvlb->DVLE[0]);
+	C3D_BindProgram(&state.program);
+
+	state.uniProjection = shaderInstanceGetUniformLocation(
+		state.program.vertexShader, "projection"
+	);
+	state.uniView = shaderInstanceGetUniformLocation(
+		state.program.vertexShader, "view"
+	);
+
+	C3D_AttrInfo* attr = C3D_GetAttrInfo();
+	AttrInfo_Init(attr);
+	AttrInfo_AddLoader(attr, 0, GPU_FLOAT, 3); // v0 = position
+	AttrInfo_AddLoader(attr, 1, GPU_FLOAT, 3); // v1 = colour
+
+	CalcProjMatrix();
+
+	C3D_TexEnv* env = C3D_GetTexEnv(0);
+	C3D_TexEnvInit(env);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, 0, 0);
+	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+
+	C3D_CullFace(GPU_CULL_NONE);
 }
 
 void Backend_Free(void) {
-	
+	shaderProgramFree(&state.program);
+	DVLB_Free(state.dvlb);
 }
 
 void Backend_SetTarget(Window* window) {
-	state.target = window->target;
+	state.target  = window->target;
+	state.targetW = window->width;
+	state.targetH = window->height;
 }
 
 static Texture* AllocTexture(void) {
@@ -61,7 +121,7 @@ Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch
 	ret->tex.height = aH;
 
 	if (!C3D_TexInit(&ret->tex, aW, aH, GPU_RGBA8)) {
-		Log("Failed to loda texture");
+		Log("Failed to load texture");
 		return NULL;
 	}
 
@@ -103,7 +163,17 @@ Vec2 Backend_GetTextureSize(Texture* texture) {
 }
 
 void Backend_RenderScene(void) {
-	
+	puts("hi im drawing triangles");
+	C3D_ImmDrawBegin(GPU_TRIANGLES);
+		C3D_ImmSendAttrib(200.0f, 200.0f, 0.5f, 0.0f); // v0=position
+		C3D_ImmSendAttrib(1.0f, 0.0f, 0.0f, 1.0f);     // v1=color
+
+		C3D_ImmSendAttrib(100.0f, 40.0f, 0.5f, 0.0f);
+		C3D_ImmSendAttrib(0.0f, 1.0f, 0.0f, 1.0f);
+
+		C3D_ImmSendAttrib(300.0f, 40.0f, 0.5f, 0.0f);
+		C3D_ImmSendAttrib(0.0f, 0.0f, 1.0f, 1.0f);
+	C3D_ImmDrawEnd();
 }
 
 void Backend_OnMapFree(void) {
@@ -142,7 +212,7 @@ void Backend_DrawTexture(
 
 	Rect dest;
 	if (p_dest == NULL) {
-		dest = (Rect) {0, 0, video.width, video.height};
+		dest = (Rect) {0, 0, state.targetW, state.targetH};
 	}
 	else {
 		dest = *p_dest;
@@ -171,11 +241,21 @@ void Backend_DrawTexture(
 void Backend_Begin(void) {
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	C3D_FrameDrawOn(state.target);
+	CalcProjMatrix();
+	CalcViewMatrix();
+
+	// update uniforms
+	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, state.uniProjection, &state.projMatrix);
+	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, state.uniView,       &state.viewMatrix);
+
+	state.done2D = false;
 }
 
 void Backend_Begin2D(void) {
 	C2D_Prepare();
 	C2D_SceneBegin(state.target);
+
+	state.done2D = true;
 }
 
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
@@ -216,7 +296,9 @@ void Backend_InitSkybox(void) {
 }
 
 void Backend_FinishRender(void) {
-	C2D_Flush();
+	if (state.done2D) {
+		C2D_Flush();
+	}
 	C3D_FrameEnd(0);
 }
 

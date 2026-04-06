@@ -1,0 +1,45 @@
+; Example PICA200 vertex shader
+
+; Uniforms
+.fvec projection[4], modelView[4]
+
+; Constants
+.constf myconst(0.0, 1.0, -1.0, 0.5)
+.alias  zeros myconst.xxxx ; Vector full of zeros
+.alias  ones  myconst.yyyy ; Vector full of ones
+.alias  half  myconst.wwww
+
+; Outputs
+.out outPos position
+.out outCol color
+.out outView view
+
+; Inputs (defined as aliases for convenience)
+.in inPos v0
+.in inCol v1
+
+.proc main
+	; Force the w component of inPos to be 1.0
+	mov r0.xyz, inPos
+	mov r0.w,   ones
+
+	; r1 = modelView * inPos
+	dp4 r1.x, modelView[0], r0
+	dp4 r1.y, modelView[1], r0
+	dp4 r1.z, modelView[2], r0
+	dp4 r1.w, modelView[3], r0
+
+	; outView = -r1
+	mov outView, -r1
+
+	; outPos = projection * r1
+	dp4 outPos.x, projection[0], r1
+	dp4 outPos.y, projection[1], r1
+	dp4 outPos.z, projection[2], r1
+	dp4 outPos.w, projection[3], r1
+
+	mov outCol, inCol
+
+	; We're finished
+	end
+.end

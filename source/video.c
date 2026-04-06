@@ -42,15 +42,16 @@ void Video_Init(const char* gameName) {
 
 	#ifdef PLATFORM_3DS
 		w = 320;
-		h = 480;
+		h = 240;
 
-		videos.windows[1]        = Window_Create(gameName, w, h);
-		videos.windows[1].width  = w / globalConfig.scale2D;
-		videos.windows[1].height = h / globalConfig.scale2D;
+		video.windows[1]        = Window_Create(gameName, w, h);
+		video.windows[1].width  = w / globalConfig.scale2D;
+		video.windows[1].height = h / globalConfig.scale2D;
 		Log("Created window 1");
 	#endif
 
 	Backend_Init(false);
+	Backend_SetTarget(&video.windows[0]);
 
 	Event_AddHandler(AE_EVENT_WINDOW_RESIZE, &EventHandler);
 }
