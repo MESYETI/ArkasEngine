@@ -21,6 +21,9 @@ static void EventHandler(Event* e) {
 void Video_Init(const char* gameName) {
 	Backend_Init(true);
 
+	// options
+	video.fog = false;
+
 	int w;
 	int h;
 
