@@ -2,29 +2,37 @@
 #include "map.h"
 #include "util.h"
 #include "mem.h"
+#include "entity.h"
 #include "camera.h"
 #include "stream.h"
+#include "skybox.h"
 #include "player.h"
 #include "backend.h"
+
+#include "entity.h"
 
 Map map = {
 	false,
 	NULL,
 	NULL, 0, // points
 	NULL, 0, // walls
-	NULL, 0  // sectors
+	NULL, 0, // sectors
+	{0x66, 0x66, 0xFF, 0xFF}, // fog colour
+	100.0f, // fog distance
 };
 
 // static Resource* texture; // temp
 
 void Map_Init(void) {
-	map.active     = false;
-	map.points     = NULL;
-	map.pointsLen  = 0;
-	map.walls      = NULL;
-	map.wallsLen   = 0;
-	map.sectors    = NULL;
-	map.sectorsLen = 0;
+	map.active      = false;
+	map.points      = NULL;
+	map.pointsLen   = 0;
+	map.walls       = NULL;
+	map.wallsLen    = 0;
+	map.sectors     = NULL;
+	map.sectorsLen  = 0;
+	map.fogColour   = (Colour) {0x66, 0x66, 0xFF, 0xFF};
+	map.fogDistance = 100.0f;
 }
 
 void Map_Free(void) {
@@ -124,10 +132,10 @@ void Map_LoadTest(void) {
 	map.sectorsLen = 2;
 
 	map.sectors[0] = (Sector) {
-		0, 6, 50, -0.5, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL
+		0, 6, 50, -0.5, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL, NULL, 0
 	};
 	map.sectors[1] = (Sector) {
-		6, 6, 10, -0.3, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL
+		6, 6, 10, -0.3, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL, NULL, 0
 	};
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
@@ -146,6 +154,41 @@ void Map_LoadTest(void) {
 
 	camera.sector = &map.sectors[0];
 	player.sector = &map.sectors[0];
+
+	Skybox_Load("base:skyboxes/04");
+	Backend_OnMapLoad();
+}
+
+void Map_LoadTest2(void) {
+	map.active    = true;
+	map.name      = NewString("ae_test2");
+	map.points    = SafeMalloc(4 * sizeof(MapPoint));
+	map.pointsLen = 4;
+
+	map.points[0] = (MapPoint) {{-1000, -1000}};
+	map.points[1] = (MapPoint) {{-1000,  1000}};
+	map.points[2] = (MapPoint) {{ 1000,  1000}};
+	map.points[3] = (MapPoint) {{ 1000, -1000}};
+
+	map.walls    = SafeMalloc(4 * sizeof(Wall));
+	map.wallsLen = 4;
+	map.walls[0] = (Wall) {true, false, 0, NULL, {0.0, 0.0}};
+	map.walls[1] = (Wall) {true, false, 0, NULL, {0.0, 0.0}};
+	map.walls[2] = (Wall) {true, false, 0, NULL, {0.0, 0.0}};
+	map.walls[3] = (Wall) {true, false, 0, NULL, {0.0, 0.0}};
+
+	map.sectors    = SafeMalloc(sizeof(Sector));
+	map.sectorsLen = 1;
+	map.sectors[0] = (Sector) {
+		0, 4, 50.0, -0.5, (FVec2) {0, 0}, (FVec2) {0, 0}, false, true,
+		Resources_GetRes("base:3p_textures/grass1.png", 0), NULL, NULL, 0
+	};
+
+	camera.sector = &map.sectors[0];
+	player.sector = &map.sectors[0];
+
+	Skybox_Load("base:skyboxes/14");
+	Backend_OnMapLoad();
 }
 
 bool Map_LoadFile(Stream* file, const char* path) {
@@ -231,6 +274,8 @@ bool Map_LoadFile(Stream* file, const char* path) {
 		map.sectors[i].ceilingTexOff = (FVec2) {0.0, 0.0};
 		map.sectors[i].floorBlank    = false;
 		map.sectors[i].ceilingBlank  = false;
+		map.sectors[i].entities      = NULL;
+		map.sectors[i].entitiesNum   = 0;
 
 		uint32_t floorTexture = Stream_Read32(file);
 		uint32_t ceilTexture  = Stream_Read32(file);
@@ -332,4 +377,42 @@ bool Map_SaveFile(Stream* file) {
 	Log("Saved map '%s'", map.name);
 
 	return true;
+}
+
+void Map_AddEntity(Entity* entity) {
+	Sector* sector = entity->sector;
+
+	++ sector->entitiesNum;
+	sector->entities = SafeRealloc(
+		sector->entities, sector->entitiesNum * sizeof(void*)
+	);
+
+	sector->entities[sector->entitiesNum - 1] = entity;
+}
+
+void Map_DetachEntity(Entity* entity) {
+	int     idx    = -1;
+	Sector* sector = entity->sector;
+
+	for (int i = 0; i < (int) sector->entitiesNum; ++ i) {
+		if (sector->entities[i] == entity) {
+			idx = i;
+			break;
+		}
+	}
+
+	if (idx == -1) assert(0);
+
+	memmove(
+		&sector->entities[idx], &sector->entities[idx + 1],
+		sector->entitiesNum - idx - 1
+	);
+	entity->sector = NULL;
+}
+
+void Map_DeleteEntity(Entity* entity) {
+	Map_DetachEntity(entity);
+
+	entity->free(entity);
+	free(entity);
 }

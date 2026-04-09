@@ -6,6 +6,7 @@
 #include "../util.h"
 #include "../video.h"
 #include "../config.h"
+#include "../entity.h"
 #include "../skybox.h"
 #include "../camera.h"
 #include "../stream.h"
@@ -279,6 +280,8 @@ void Backend_Init(bool beforeWindow) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Model_Load(&state.model, "heavy.zkm");
+
+	glHint(GL_FOG_HINT, GL_NICEST);
 }
 
 void Backend_Free(void) {
@@ -497,6 +500,13 @@ static void RenderSector(Sector* sector, FVec2 offset) {
 		GL(glEnd());
 	}
 
+	// render entities
+	for (size_t i = 0; i < sector->entitiesNum; ++ i) {
+		Entity* entity = sector->entities[i];
+		entity->render(entity, offset);
+	}
+
+	// next sectors
 	for (size_t i = 0; i < sector->length; ++ i) {
 		const Wall* wall = &map.walls[i + sector->start];
 
@@ -606,7 +616,14 @@ void Backend_RenderScene(void) {
 	GL(glMatrixMode(GL_PROJECTION));
 	GL(glLoadMatrixf((float*) state.projMatrix));
 
-	if (skybox.active) RenderSkybox();
+	if (skybox.active) {
+		GL(glDisable(GL_FOG));
+		RenderSkybox();
+
+		if (video.fog) {
+			GL(glEnable(GL_FOG));
+		}
+	}
 
 	GL(glMatrixMode(GL_MODELVIEW));
 	CalcViewMatrix();
@@ -625,7 +642,21 @@ void Backend_RenderScene(void) {
 	Backend_Begin2D();
 }
 
+void Backend_OnMapLoad(void) {
+	GLfloat colour[4] = {
+		((float) map.fogColour.r) / 255.0f,
+		((float) map.fogColour.g) / 255.0f,
+		((float) map.fogColour.b) / 255.0f,
+		((float) map.fogColour.a) / 255.0f
+	};
+
+	GL(glFogi(GL_FOG_MODE,    GL_EXP2));
+	GL(glFogf(GL_FOG_DENSITY, 0.01));
+	GL(glFogfv(GL_FOG_COLOR,  colour));
+}
+
 void Backend_OnMapFree(void) {
+	GL(glDisable(GL_FOG));
 	if (state.sectorsRendered) {
 		free(state.sectorsRendered);
 		state.sectorsRendered = NULL;

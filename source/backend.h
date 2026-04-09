@@ -42,6 +42,7 @@ Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch
 void     Backend_FreeTexture(Texture* texture);
 Vec2     Backend_GetTextureSize(Texture* texture);
 void     Backend_RenderScene(void);
+void     Backend_OnMapLoad(void);
 void     Backend_OnMapFree(void);
 void     Backend_OnWindowResize(void);
 void     Backend_RenderModel(Model* model, ModelRenderOpt* opt);

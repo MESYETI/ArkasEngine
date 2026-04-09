@@ -4,9 +4,11 @@
 #include "util.h"
 #include "audio.h"
 #include "scene.h"
+#include "entity.h"
 #include "client.h"
 #include "config.h"
 #include "engine.h"
+#include "entity.h"
 #include "server.h"
 #include "skybox.h"
 #include "player.h"
@@ -38,6 +40,19 @@ static void Command_Test(size_t argc, char** argv) {
 		NULL, NULL
 	});
 	Map_LoadTest();
+	engine.console = false;
+}
+
+static void Command_Test2(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+
+	Log("Starting map viewer");
+
+	SceneManager_AddScene((Scene) {
+		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
+		NULL, NULL
+	});
+	Map_LoadTest2();
 	engine.console = false;
 }
 
@@ -551,8 +566,32 @@ static void Command_SaveConfig(size_t argc, char** argv) {
 	SaveConfig();
 }
 
+static void Command_SpawnProp(size_t argc, char** argv) {
+	const char* path;
+
+	if (argc == 0) {
+		path = "base:models/pq/generic_person.zkm";
+	}
+	else if (argc == 1) {
+		path = argv[0];
+	}
+	else {
+		Log("spawn-prop only accepts 0 or 1 arguments");
+		return;
+	}
+
+	Entity* entity = PropEntity_New(
+		player.sector, player.pos, (Direction) {
+			player.pitch, player.yaw, 0.0f
+		}, Resources_GetRes(path, 0), false
+	);
+
+	Map_AddEntity(entity);
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
+	Console_AddCommand(true,  "test-map2",          &Command_Test2);
 	Console_AddCommand(true,  "clear-scenes",       &Command_ClearScenes);
 	Console_AddCommand(true,  "map",                &Command_Map);
 	Console_AddCommand(true,  "dl-map",             &Command_DlMap);
@@ -587,4 +626,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "view-map",           &Command_ViewMap);
 	Console_AddCommand(true,  "splash",             &Command_Splash);
 	Console_AddCommand(true,  "save-config",        &Command_SaveConfig);
+	Console_AddCommand(true,  "spawn-prop",         &Command_SpawnProp);
 }

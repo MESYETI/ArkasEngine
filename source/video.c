@@ -48,10 +48,11 @@ void Video_Init(const char* gameName) {
 		video.windows[1].width  = w / globalConfig.scale2D;
 		video.windows[1].height = h / globalConfig.scale2D;
 		Log("Created window 1");
+
+		Backend_SetTarget(&video.windows[0]);
 	#endif
 
 	Backend_Init(false);
-	Backend_SetTarget(&video.windows[0]);
 
 	Event_AddHandler(AE_EVENT_WINDOW_RESIZE, &EventHandler);
 }

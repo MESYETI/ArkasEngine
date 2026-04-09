@@ -71,7 +71,7 @@ void Backend_Init(bool beforeWindow) {
 		state.program.vertexShader, "projection"
 	);
 	state.uniView = shaderInstanceGetUniformLocation(
-		state.program.vertexShader, "view"
+		state.program.vertexShader, "modelView"
 	);
 
 	C3D_AttrInfo* attr = C3D_GetAttrInfo();
@@ -176,8 +176,12 @@ void Backend_RenderScene(void) {
 	C3D_ImmDrawEnd();
 }
 
+void Backend_OnMapLoad(void) {
+
+}
+
 void Backend_OnMapFree(void) {
-	
+
 }
 
 void Backend_OnWindowResize(void) {

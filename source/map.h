@@ -5,6 +5,8 @@
 #include "common.h"
 #include "resources.h"
 
+typedef struct Entity Entity;
+
 typedef struct {
 	FVec2 pos;
 } MapPoint;
@@ -29,6 +31,10 @@ typedef struct {
 
 	Resource* floorTexture;
 	Resource* ceilingTexture;
+
+	// entities
+	Entity** entities;
+	size_t   entitiesNum;
 } Sector;
 
 typedef struct {
@@ -40,6 +46,8 @@ typedef struct {
 	size_t    wallsLen;
 	Sector*   sectors;
 	size_t    sectorsLen;
+	Colour    fogColour;
+	float     fogDistance;
 } Map;
 
 extern Map map;
@@ -47,8 +55,12 @@ extern Map map;
 void Map_Init(void);
 void Map_Free(void);
 void Map_LoadTest(void);
+void Map_LoadTest2(void);
 bool Map_LoadFile(Stream* file, const char* path);
 bool Map_SaveFile(Stream* file);
-bool Map_PointInMap(FVec2 pos);
+void Map_PointInMap(FVec2 pos);
+void Map_AddEntity(Entity* entity);
+void Map_DetachEntity(Entity* entity);
+void Map_DeleteEntity(Entity* entity);
 
 #endif

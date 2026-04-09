@@ -18,6 +18,7 @@ typedef struct {
 
 typedef struct {
 	Window windows[WIN_NUM];
+	bool   fog;
 } Video;
 
 extern Video video;
