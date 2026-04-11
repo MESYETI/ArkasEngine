@@ -1,10 +1,6 @@
 #ifndef AE_BACKEND_H
 #define AE_BACKEND_H
 
-#include "types.h"
-#include "model.h"
-#include "window.h"
-
 // defined:
 //   (struct) Texture
 #if defined(AE_BACKEND_GL_LEGACY)
@@ -16,6 +12,13 @@
 #else
 	#error "No backend"
 #endif
+
+struct Model;
+struct ModelRenderOpt;
+
+#include "types.h"
+#include "video.h"
+#include "window.h"
 
 typedef struct {
 	Rect rect;
@@ -45,7 +48,7 @@ void     Backend_RenderScene(void);
 void     Backend_OnMapLoad(void);
 void     Backend_OnMapFree(void);
 void     Backend_OnWindowResize(void);
-void     Backend_RenderModel(Model* model, ModelRenderOpt* opt);
+void     Backend_RenderModel(struct Model* model, struct ModelRenderOpt* opt);
 
 void Backend_DrawTexture(
 	Texture* texture, TextureRenderOpt* p_opt, Rect* p_src, Rect* p_dest

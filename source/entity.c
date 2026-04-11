@@ -1,4 +1,5 @@
 #include "mem.h"
+#include "engine.h"
 #include "entity.h"
 
 typedef struct {
@@ -26,7 +27,7 @@ static void* PropGetComponent(Entity* p_ent, int id) {
 
 static void PropRender(Entity* ent, FVec2 portalOff) {
 	ModelRenderOpt opt = {
-		.scale = ent->modelScale, .pos = ent->pos
+		.scale = ent->modelScale, .pos = ent->pos, .rot = ent->dir.yaw
 	};
 	opt.pos.x += portalOff.x;
 	opt.pos.z += portalOff.y;

@@ -7,6 +7,8 @@
 	#include "../glad.h"
 #endif
 
+#include "../common.h"
+
 /*
 #define GL_GLEXT_PROTOTYPES
 #ifdef AE_BACKEND_GL_LEGACY

@@ -3,6 +3,7 @@
 
 #include "text.h"
 #include "util.h"
+#include "model.h"
 #include "common.h"
 #include "stream.h"
 #include "backend.h"

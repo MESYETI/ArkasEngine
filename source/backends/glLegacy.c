@@ -4,6 +4,7 @@
 #include "../mem.h"
 #include "../game.h"
 #include "../util.h"
+#include "../model.h"
 #include "../video.h"
 #include "../config.h"
 #include "../entity.h"
@@ -670,6 +671,13 @@ void Backend_OnWindowResize(void) {
 }
 
 void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
+	// rotate model
+	GL(glMatrixMode(GL_MODELVIEW));
+	GL(glPushMatrix());
+	GL(glTranslatef(opt->pos.x, opt->pos.y, opt->pos.z));
+	GL(glRotatef(opt->rot, 0, 1, 0));
+
+	// render
 	glBegin(GL_TRIANGLES);
 	
 	for (size_t i = 0; i < model->facesNum; ++ i) {
@@ -679,31 +687,34 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 
 		#if 1
 			int ci = (face->indices[0] * 0x10492851) ^ face->indices[1];
-			uint8_t c[3] = {ci >> 16, ci >> 8, ci};
+			// uint8_t c[3] = {ci >> 16, ci >> 8, ci};
+			ci = 192 + (ci & 0xBF);
+			uint8_t c[3] = {ci, ci, ci};
 			glColor3ub(c[0], c[1], c[2]);
 		#endif
 
 		// glTexCoord2f(0.0f, 0.0f);
 		glVertex3f(
-			(model->vertices[face->indices[0]].x * opt->scale) + opt->pos.x,
-			(model->vertices[face->indices[0]].y * opt->scale) + opt->pos.y,
-			(model->vertices[face->indices[0]].z * opt->scale) + opt->pos.z
+			(model->vertices[face->indices[0]].x * opt->scale),
+			(model->vertices[face->indices[0]].y * opt->scale),
+			(model->vertices[face->indices[0]].z * opt->scale)
 		);
 		// glTexCoord2f(1.0f, 0.0f);
 		glVertex3f(
-			(model->vertices[face->indices[1]].x * opt->scale) + opt->pos.x,
-			(model->vertices[face->indices[1]].y * opt->scale) + opt->pos.y,
-			(model->vertices[face->indices[1]].z * opt->scale) + opt->pos.z
+			(model->vertices[face->indices[1]].x * opt->scale),
+			(model->vertices[face->indices[1]].y * opt->scale),
+			(model->vertices[face->indices[1]].z * opt->scale)
 		);
 		// glTexCoord2f(1.0f, 1.0f);
 		glVertex3f(
-			(model->vertices[face->indices[2]].x * opt->scale) + opt->pos.x,
-			(model->vertices[face->indices[2]].y * opt->scale) + opt->pos.y,
-			(model->vertices[face->indices[2]].z * opt->scale) + opt->pos.z
+			(model->vertices[face->indices[2]].x * opt->scale),
+			(model->vertices[face->indices[2]].y * opt->scale),
+			(model->vertices[face->indices[2]].z * opt->scale)
 		);
 	}
 	
 	GL(glEnd());
+	GL(glPopMatrix());
 }
 
 void Backend_DrawTexture(

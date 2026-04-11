@@ -4,8 +4,11 @@
 #include "model.h"
 #include "video.h"
 #include "stream.h"
+#include "resources.h"
 
 #define EOF_ERROR(p) Error("Hit end of file '%s' too early on line %u", (p), __LINE__)
+
+#define FLAG_TEXTURE 1
 
 void Model_Load(Model* model, Stream* file, const char* path) {
 	char magic[3];
@@ -20,7 +23,7 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 	uint8_t ver;
 	if (Stream_Read(file, 1, &ver) != 1) EOF_ERROR(path);
 
-	if (ver != 0) {
+	if (ver > 1) {
 		Error("Model '%s' is out of date or too new", path);
 	}
 
@@ -28,8 +31,24 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 	if (Stream_Read(file, 4, &model->facesNum) != 4) EOF_ERROR(path);
 	// TODO: swap these ^ on big endian
 
+	model->uvNum = 0;
+	if (ver >= 1) {
+		if (Stream_Read(file, 4, &model->uvNum) != 4) EOF_ERROR(path);
+	}
+
+	model->texNum = 0;
+	if (ver >= 1) {
+		if (Stream_Read(file, 4, &model->texNum) != 4) EOF_ERROR(path);
+	}
+
+	uint32_t flags = 0;
+	if (ver >= 1) {
+		if (Stream_Read(file, 4, &flags) != 4) EOF_ERROR(path);
+	}
+
 	model->vertices = SafeMalloc(model->verticesNum * sizeof(*model->vertices));
 	model->faces    = SafeMalloc(model->facesNum    * sizeof(*model->faces));
+	model->uv       = SafeMalloc(model->uvNum       * sizeof(*model->uv));
 
 	for (uint32_t i = 0; i < model->verticesNum; ++i) {
 		model->vertices[i].x = Stream_ReadFloat(file);
@@ -41,9 +60,66 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 		assert((model->faces[i].indices[0] = Stream_Read32(file)) < model->verticesNum);
 		assert((model->faces[i].indices[1] = Stream_Read32(file)) < model->verticesNum);
 		assert((model->faces[i].indices[2] = Stream_Read32(file)) < model->verticesNum);
-		model->faces[i].colour.r           = Stream_Read8(file);
-		model->faces[i].colour.g           = Stream_Read8(file);
-		model->faces[i].colour.b           = Stream_Read8(file);
+
+		if (ver == 0) {
+			// skip colour data
+			Stream_Read8(file);
+			Stream_Read8(file);
+			Stream_Read8(file);
+		}
+		else if (ver >= 1) {
+			for (int j = 0; j < 3; ++ j) {
+				model->faces[i].uv[j] = Stream_Read32(file);
+
+				if (model->uvNum && (model->faces[i].uv[j] >= model->uvNum)) {
+					Log("Value: %d", model->faces[i].uv[j]);
+					Log("Limit: %d", model->faces[i].uv[j]);
+					Error("Broken model: %s", path);
+				}
+			}
+
+			for (int j = 0; j < 3; ++ j) {
+				model->faces[i].normal[j].x = Stream_ReadFloat(file);
+				model->faces[i].normal[j].y = Stream_ReadFloat(file);
+				model->faces[i].normal[j].z = Stream_ReadFloat(file);
+			}
+
+			printf("Reading %d/%d\n", i + 1, model->facesNum);
+			model->faces[i].texture = Stream_Read32(file);
+		}
+	}
+
+	if (ver >= 1) {
+		for (uint32_t i = 0; i < model->uvNum; ++ i) {
+			model->uv[i].y = Stream_ReadFloat(file);
+			model->uv[i].x = Stream_ReadFloat(file);
+		}
+	}
+
+	if (ver >= 1) {
+		for (uint32_t i = 0; i < model->texNum; ++ i) {
+			uint8_t type = Stream_Read8(file);
+
+			if (type > 2) {
+				Error("Invalid texture type: %d", type);
+			}
+
+			if (type == 0) {
+				char* path = Stream_ReadNTString(file);
+
+				model->textures[i] = Texture_LoadFile(path);
+			}
+			else {
+				uint32_t size = Stream_Read32(file);
+				uint8_t* data = SafeMalloc(size);
+
+				if (Stream_Read(file, size, data) != size) {
+					Error("Failed to load texture %d from model", i);
+				}
+
+				model->textures[i] = Texture_LoadMem(data, size);
+			}
+		}
 	}
 
     Stream_Close(file);

@@ -568,6 +568,7 @@ static void Command_SaveConfig(size_t argc, char** argv) {
 
 static void Command_SpawnProp(size_t argc, char** argv) {
 	const char* path;
+	float       scale = 1.0f;
 
 	if (argc == 0) {
 		path = "base:models/pq/generic_person.zkm";
@@ -575,8 +576,12 @@ static void Command_SpawnProp(size_t argc, char** argv) {
 	else if (argc == 1) {
 		path = argv[0];
 	}
+	else if (argc == 2) {
+		path  = argv[0];
+		scale = (float) atof(argv[1]);
+	}
 	else {
-		Log("spawn-prop only accepts 0 or 1 arguments");
+		Log("spawn-prop only accepts 0, 1, or 2 arguments");
 		return;
 	}
 
@@ -585,6 +590,7 @@ static void Command_SpawnProp(size_t argc, char** argv) {
 			player.pitch, player.yaw, 0.0f
 		}, Resources_GetRes(path, 0), false
 	);
+	entity->modelScale = scale;
 
 	Map_AddEntity(entity);
 }
