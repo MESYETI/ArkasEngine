@@ -685,7 +685,7 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 
 		//glColor3ub(face->colour.r, face->colour.g, face->colour.b);
 
-		#if 1
+		#if 0
 			int ci = (face->indices[0] * 0x10492851) ^ face->indices[1];
 			// uint8_t c[3] = {ci >> 16, ci >> 8, ci};
 			ci = 192 + (ci & 0xBF);
@@ -693,19 +693,32 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 			glColor3ub(c[0], c[1], c[2]);
 		#endif
 
+
 		// glTexCoord2f(0.0f, 0.0f);
+		float c = (
+			face->normal[0].x + face->normal[0].y + face->normal[0].z
+		) / 3;
+		glColor3f(c, c, c);
 		glVertex3f(
 			(model->vertices[face->indices[0]].x * opt->scale),
 			(model->vertices[face->indices[0]].y * opt->scale),
 			(model->vertices[face->indices[0]].z * opt->scale)
 		);
 		// glTexCoord2f(1.0f, 0.0f);
+		c = (
+			face->normal[1].x + face->normal[1].y + face->normal[1].z
+		) / 3;
+		glColor3f(c, c, c);
 		glVertex3f(
 			(model->vertices[face->indices[1]].x * opt->scale),
 			(model->vertices[face->indices[1]].y * opt->scale),
 			(model->vertices[face->indices[1]].z * opt->scale)
 		);
 		// glTexCoord2f(1.0f, 1.0f);
+		c = (
+			face->normal[2].x + face->normal[2].y + face->normal[2].z
+		) / 3;
+		glColor3f(c, c, c);
 		glVertex3f(
 			(model->vertices[face->indices[2]].x * opt->scale),
 			(model->vertices[face->indices[2]].y * opt->scale),

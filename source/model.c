@@ -84,7 +84,6 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 				model->faces[i].normal[j].z = Stream_ReadFloat(file);
 			}
 
-			printf("Reading %d/%d\n", i + 1, model->facesNum);
 			model->faces[i].texture = Stream_Read32(file);
 		}
 	}
