@@ -49,6 +49,7 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 	model->vertices = SafeMalloc(model->verticesNum * sizeof(*model->vertices));
 	model->faces    = SafeMalloc(model->facesNum    * sizeof(*model->faces));
 	model->uv       = SafeMalloc(model->uvNum       * sizeof(*model->uv));
+	model->textures = SafeMalloc(model->texNum      * sizeof(*model->textures));
 
 	for (uint32_t i = 0; i < model->verticesNum; ++i) {
 		model->vertices[i].x = Stream_ReadFloat(file);
@@ -85,13 +86,17 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 			}
 
 			model->faces[i].texture = Stream_Read32(file);
+
+			model->faces[i].colour.r = Stream_Read8(file);
+			model->faces[i].colour.g = Stream_Read8(file);
+			model->faces[i].colour.b = Stream_Read8(file);
 		}
 	}
 
 	if (ver >= 1) {
 		for (uint32_t i = 0; i < model->uvNum; ++ i) {
-			model->uv[i].y = Stream_ReadFloat(file);
 			model->uv[i].x = Stream_ReadFloat(file);
+			model->uv[i].y = Stream_ReadFloat(file);
 		}
 	}
 

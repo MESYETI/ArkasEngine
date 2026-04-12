@@ -39,6 +39,7 @@ All integers are little endian
 | 2nd normal    | 12                 | Last 3 entries repeated for the 2nd normal vector  |
 | 3rd normal    | 12                 | Ditto                                              |
 | Texture index | 4                  | Texture index                                      |
+| RGB colour    | 3                  | Colour of face                                     | 
 
 * UV coordinates, normal vector, and texture added in version 1.
 

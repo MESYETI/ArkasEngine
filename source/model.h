@@ -11,6 +11,7 @@ typedef struct {
 	uint32_t uv[3];
 	FVec3    normal[3];
 	uint32_t texture;
+	Colour   colour;
 } ModelFace;
 
 typedef struct Model {

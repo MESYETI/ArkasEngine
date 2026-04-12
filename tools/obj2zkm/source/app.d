@@ -17,6 +17,9 @@ struct Face {
 	uint[3] uv;
 	uint[3] normals;
 	uint    texture;
+	ubyte   r;
+	ubyte   g;
+	ubyte   b;
 }
 
 enum TexType {
@@ -39,6 +42,9 @@ struct Texture {
 struct Material {
 	string  name;
 	Texture texture;
+	ubyte   r = 0xFF;
+	ubyte   g = 0xFF;
+	ubyte   b = 0xFF;
 }
 
 struct UV {
@@ -69,13 +75,16 @@ int main(string[] args) {
 		return 1;
 	}
 
-	Vertices[] vertices;
-	Face[]     faces;
-	Material[] materials;
-	UV[]       uv;
-	Normal[]   normals;
+	Vertices[]     vertices;
+	Face[]         faces;
+	Material[]     materials;
+	UV[]           uv;
+	Normal[]       normals;
+	size_t[string] texIdx;
 
-	string thisMat;
+	Material thisMat;
+	bool     add = false;
+
 	foreach (ref string line ; File(args[1].setExtension("mtl")).lines()) {
 		auto parts = line.split();
 
@@ -83,27 +92,49 @@ int main(string[] args) {
 
 		switch (parts[0]) {
 			case "newmtl": {
-				thisMat = parts[1];
+				if (add) {
+					materials ~= thisMat;
+				}
+
+				thisMat      = Material.init;
+				thisMat.name = parts[1];
+				add          = true;
+				break;
+			}
+			case "Ka": {
+				writeln(parts);
+				float r = parse!float(parts[1]);
+				float g = parse!float(parts[2]);
+				float b = parse!float(parts[3]);
+
+				thisMat.r = cast(ubyte) (r * 255);
+				thisMat.g = cast(ubyte) (g * 255);
+				thisMat.b = cast(ubyte) (b * 255);
 				break;
 			}
 			case "map_Ka": {
 				string ext = parts[1].extension();
 
-				if ((ext != "png") && (ext != "art")) {
+				if ((ext != ".png") && (ext != ".art")) {
 					stderr.writefln("ERROR: Unsupported extension: '%s'", ext);
 					return 1;
 				}
 
 				Texture tex;
-				tex.type      = ext == "art"? TexType.Art : TexType.Png;
-				tex.embedded  = cast(ubyte[]) std.file.read(parts[1]);
-				materials    ~= Material(thisMat, tex);
+				tex.type             = ext == "art"? TexType.Art : TexType.Png;
+				tex.embedded         = cast(ubyte[]) std.file.read(parts[1]);
+				thisMat.texture      = tex;
+				texIdx[thisMat.name] = materials.length;
 				break;
 			}
 			default: {
 				stderr.writefln("Unsupported MTL command: '%s'", parts[0]);
 			}
 		}
+	}
+
+	if (add) {
+		materials ~= thisMat;
 	}
 
 	size_t currentMat;
@@ -153,7 +184,17 @@ int main(string[] args) {
 						face.indices[i] = parts[i + 1].parse!uint() - 1;
 					}
 				}
-				face.texture = cast(uint) currentMat;
+
+				if (materials[currentMat].name in texIdx) {
+					face.texture = cast(uint) texIdx[materials[currentMat].name];
+				}
+				else {
+					face.texture = 0xFFFFFFFF;
+				}
+
+				face.r       = materials[currentMat].r;
+				face.g       = materials[currentMat].g;
+				face.b       = materials[currentMat].b;
 
 				faces ~= face;
 				break;
@@ -195,7 +236,7 @@ int main(string[] args) {
 	zkm.rawWrite(ToLittleEndian(cast(uint) vertices.length));
 	zkm.rawWrite(ToLittleEndian(cast(uint) faces.length));
 	zkm.rawWrite(ToLittleEndian(cast(uint) uv.length));
-	zkm.rawWrite(ToLittleEndian(cast(uint) materials.length));
+	zkm.rawWrite(ToLittleEndian(cast(uint) texIdx.length));
 	zkm.rawWrite(ToLittleEndian(materials.length? 1 : 0));
 
 	// write vertices
@@ -223,13 +264,22 @@ int main(string[] args) {
 		zkm.rawWrite(ToLittleEndian(face.uv[2]));
 
 		foreach (ref normal ; face.normals) {
-			Normal value = normals[normal];
+			Normal value;
+
+			if (normal >= normals.length) {
+				value = Normal(0, 0, 0);
+			}
+			else {
+				value = normals[normal];
+			}
+
 			zkm.rawWrite(ToLittleEndian(*(cast(uint*) &value.x)));
 			zkm.rawWrite(ToLittleEndian(*(cast(uint*) &value.y)));
 			zkm.rawWrite(ToLittleEndian(*(cast(uint*) &value.z)));
 		}
 
 		zkm.rawWrite(ToLittleEndian(face.texture));
+		zkm.rawWrite([face.r, face.g, face.b]);
 	}
 
 	// write uv
@@ -240,6 +290,8 @@ int main(string[] args) {
 
 	// write textures
 	foreach (ref texture ; materials) {
+		if (texture.texture.type == TexType.None) continue;
+
 		zkm.rawWrite([cast(ubyte) texture.texture.type]);
 
 		if (texture.texture.type == 0) {
