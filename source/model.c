@@ -64,9 +64,16 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 
 		if (ver == 0) {
 			// skip colour data
-			Stream_Read8(file);
-			Stream_Read8(file);
-			Stream_Read8(file);
+			model->faces[i].colour.r = Stream_Read8(file);
+			model->faces[i].colour.g = Stream_Read8(file);
+			model->faces[i].colour.b = Stream_Read8(file);
+			model->faces[i].colour.a = 0xFF;
+
+			model->faces[i].texture = (uint32_t) -1;
+
+			model->faces[i].normal[0] = (FVec3) {0.0f, 0.0f, 0.0f};
+			model->faces[i].normal[1] = (FVec3) {0.0f, 0.0f, 0.0f};
+			model->faces[i].normal[2] = (FVec3) {0.0f, 0.0f, 0.0f};
 		}
 		else if (ver >= 1) {
 			for (int j = 0; j < 3; ++ j) {
@@ -132,4 +139,32 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 void Model_Free(Model* model) {
 	free(model->vertices);
 	free(model->faces);
+}
+
+void Model_Print(Model* model) {
+	for (uint32_t i = 0; i < model->facesNum; ++ i) {
+		ModelFace* face = &model->faces[i];
+
+		FVec3* v[3] = {
+			&model->vertices[face->indices[0]],
+			&model->vertices[face->indices[1]],
+			&model->vertices[face->indices[2]]
+		};
+
+		printf("FACE %d\n", i);
+
+		for (int j = 0; j < 3; ++ j) {
+			printf("vert %g %g %g\n", v[j]->x, v[j]->y, v[j]->z);
+		}
+
+		FVec2* uv[3] = {
+			&model->uv[face->uv[0]],
+			&model->uv[face->uv[1]],
+			&model->uv[face->uv[2]]
+		};
+
+		for (int j = 0; j < 3; ++ j) {
+			printf("uv %g %g\n", uv[j]->x, uv[j]->y);
+		}
+	}
 }

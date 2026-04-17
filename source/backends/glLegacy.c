@@ -682,12 +682,15 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 	
 	for (size_t i = 0; i < model->facesNum; ++ i) {
 		ModelFace* face = &model->faces[i];
+		bool       tex;
 
 		if (face->texture == 0xFFFFFFFF) {
 			glBindTexture(GL_TEXTURE_2D, 0);
+			tex = false;
 		}
 		else {
 			glBindTexture(GL_TEXTURE_2D, model->textures[face->texture]->name);
+			tex = true;
 		}
 
 		glBegin(GL_TRIANGLES);
@@ -702,48 +705,26 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 		#endif
 
 		// TODO: check bounds for uv
-		glTexCoord2f(model->uv[face->uv[0]].x, model->uv[face->uv[0]].y);
+		if (tex) glTexCoord2f(model->uv[face->uv[0]].x, model->uv[face->uv[0]].y);
 		glColor3ub(face->colour.r, face->colour.g, face->colour.b);
 		glVertex3f(
-			(model->vertices[face->indices[0]].x * opt->scale),
+			-(model->vertices[face->indices[0]].x * opt->scale),
 			(model->vertices[face->indices[0]].y * opt->scale),
 			(model->vertices[face->indices[0]].z * opt->scale)
 		);
-		int idx;
-		idx = 0;
-		printf("face 1: %g %g %g = %g, %g\n",
-			(model->vertices[face->indices[idx]].x * opt->scale),
-			(model->vertices[face->indices[idx]].y * opt->scale),
-			(model->vertices[face->indices[idx]].z * opt->scale),
-			model->uv[face->uv[idx]].x, model->uv[face->uv[idx]].y
-		);
 
-		glTexCoord2f(model->uv[face->uv[1]].x, model->uv[face->uv[1]].y);
+		if (tex) glTexCoord2f(model->uv[face->uv[1]].x, model->uv[face->uv[1]].y);
 		glVertex3f(
-			(model->vertices[face->indices[1]].x * opt->scale),
+			-(model->vertices[face->indices[1]].x * opt->scale),
 			(model->vertices[face->indices[1]].y * opt->scale),
 			(model->vertices[face->indices[1]].z * opt->scale)
 		);
-		idx = 1;
-		printf("face 2: %g %g %g = %g, %g\n",
-			(model->vertices[face->indices[idx]].x * opt->scale),
-			(model->vertices[face->indices[idx]].y * opt->scale),
-			(model->vertices[face->indices[idx]].z * opt->scale),
-			model->uv[face->uv[idx]].x, model->uv[face->uv[idx]].y
-		);
 
-		glTexCoord2f(model->uv[face->uv[2]].x, model->uv[face->uv[2]].y);
+		if (tex) glTexCoord2f(model->uv[face->uv[2]].x, model->uv[face->uv[2]].y);
 		glVertex3f(
-			(model->vertices[face->indices[2]].x * opt->scale),
+			-(model->vertices[face->indices[2]].x * opt->scale),
 			(model->vertices[face->indices[2]].y * opt->scale),
 			(model->vertices[face->indices[2]].z * opt->scale)
-		);
-		idx = 2;
-		printf("face 3: %g %g %g = %g, %g\n",
-			(model->vertices[face->indices[idx]].x * opt->scale),
-			(model->vertices[face->indices[idx]].y * opt->scale),
-			(model->vertices[face->indices[idx]].z * opt->scale),
-			model->uv[face->uv[idx]].x, model->uv[face->uv[idx]].y
 		);
 
 		GL(glEnd());

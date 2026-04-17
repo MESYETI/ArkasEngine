@@ -69,10 +69,31 @@ size_t GetMaterial(ref Material[] mats, string name) {
 	return 0;
 }
 
+static const string usage = "
+Usage: %s <file.obj> <file.zkm> [flags]
+
+Flags:
+	-nf - Don't flip UV coordinates, assume they originate at top left
+";
+
 int main(string[] args) {
-	if (args.length != 3) {
+	if (args.length < 3) {
 		stderr.writefln("Expected parameters: %s <file.obj> <file.zkm>", args[0]);
 		return 1;
+	}
+
+	bool flipUV = true;
+
+	for (size_t i = 3; i < args.length; ++ i) {
+		switch (args[i]) {
+			case "-nf": {
+				flipUV = false;
+				break;
+			}
+			default: {
+				stderr.writefln("Unknown flag: '%s'", args[i]);
+			}
+		}
 	}
 
 	Vertices[]     vertices;
@@ -185,16 +206,26 @@ int main(string[] args) {
 					}
 				}
 
-				if (materials[currentMat].name in texIdx) {
+				if (currentMat == cast(size_t) - 1) {
+					face.texture = 0xFFFFFFFF;
+				}
+				else if (materials[currentMat].name in texIdx) {
 					face.texture = cast(uint) texIdx[materials[currentMat].name];
 				}
 				else {
 					face.texture = 0xFFFFFFFF;
 				}
 
-				face.r       = materials[currentMat].r;
-				face.g       = materials[currentMat].g;
-				face.b       = materials[currentMat].b;
+				if (currentMat == cast(size_t) -1) {
+					face.r = 255;
+					face.g = 255;
+					face.b = 255;
+				}
+				else {
+					face.r = materials[currentMat].r;
+					face.g = materials[currentMat].g;
+					face.b = materials[currentMat].b;
+				}
 
 				faces ~= face;
 				break;
@@ -210,6 +241,10 @@ int main(string[] args) {
 					parse!float(parts[1]),
 					parts.length > 2? parse!float(parts[2]) : 0.0
 				);
+
+				if (flipUV) {
+					uv[$ - 1].v = 1.0 - uv[$ - 1].v;
+				}
 				break;
 			}
 			case "usemtl": {
@@ -248,7 +283,7 @@ int main(string[] args) {
 
 	// write faces
 	foreach (ref face ; faces) {
-		if (1 /*TODO: make this a cli option*/) {
+		if (0 /*TODO: make this a cli option*/) {
 			// reverse
 			zkm.rawWrite(ToLittleEndian(face.indices[0]));
 			zkm.rawWrite(ToLittleEndian(face.indices[2]));

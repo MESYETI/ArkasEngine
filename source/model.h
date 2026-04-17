@@ -33,5 +33,6 @@ typedef struct ModelRenderOpt {
 
 void Model_Load(Model* model, Stream* file, const char* path);
 void Model_Free(Model* model);
+void Model_Print(Model* model);
 
 #endif
