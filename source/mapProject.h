@@ -4,7 +4,9 @@
 #include "types.h"
 
 typedef struct {
-	FVec2 pos;
+	FVec2  pos;
+	bool   portal;
+	size_t portalIdx;
 } MProjPoint;
 
 typedef struct {

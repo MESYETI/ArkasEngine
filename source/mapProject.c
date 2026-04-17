@@ -44,10 +44,13 @@ void MapProj_Export(MProject* proj) {
 		};
 
 		for (size_t j = 0; j < proj->sectors[i].pointsLen; ++ j, ++ pointsNum) {
-			map.points[pointsNum] = (MapPoint) {proj->sectors[i].points[j].pos};
+			MProjPoint* point = &proj->sectors[i].points[j];
+
+			// TODO: bound checking
+			map.points[pointsNum] = (MapPoint) {point->pos};
 			map.walls[pointsNum]  = (Wall) {
-				false, false, 0, Resources_GetRes("base:3p_textures/brick1.png", 0),
-				(FVec2) {0, 0}
+				false, point->portal, point->portalIdx,
+				Resources_GetRes("base:3p_textures/brick1.png", 0), (FVec2) {0, 0}
 			};
 		}
 	}

@@ -23,7 +23,8 @@
 
 enum {
 	ME_MODE_EDIT = 0,
-	ME_MODE_SECTOR
+	ME_MODE_SECTOR,
+	ME_MODE_AUTO_PORTAL
 };
 
 static MProject project;
@@ -69,8 +70,15 @@ static void NewSectorButton(uint8_t button) {
 static void FinishSectorButton(uint8_t button) {
 	if (button != 0) return;
 
-	thisSect = NULL;
+	thisSect   = NULL;
 	editorMode = ME_MODE_EDIT;
+}
+
+static void AutoPortalButton(uint8_t button) {
+	if (button != 0) return;
+
+	thisSect   = NULL;
+	editorMode = ME_MODE_AUTO_PORTAL;
 }
 
 static void PlayButton(UI_Button* this, uint8_t button) {
@@ -124,13 +132,14 @@ static void Init(Scene* scene) {
 
 	static UI_DropDownButton sectorButtons[] = {
 		{"New", &NewSectorButton},
-		{"Finish", &FinishSectorButton}
+		{"Finish", &FinishSectorButton},
+		{"Auto Portal", &AutoPortalButton}
 	};
 
 	UI_RowAddElement(row, UI_NewLabel(&engine.font, "Arkas Map Editor", 0));
 	UI_RowAddElement(row, UI_NewDropDown("File", fileButtons, 4, false));
 	UI_RowAddElement(row, UI_NewDropDown("Edit", editButtons, 1, false));
-	UI_RowAddElement(row, UI_NewDropDown("Sector", sectorButtons, 2, false));
+	UI_RowAddElement(row, UI_NewDropDown("Sector", sectorButtons, 3, false));
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));
 	UI_RowUpdate(row);
 
@@ -154,6 +163,20 @@ static void Free(Scene* scene) {
 	MapProj_Free(&project);
 }
 
+static FVec2 CursorOnMap(void) {
+	FVec2 ret = {
+		(((float) input.mousePos.x) / 32.0) + mCamera.x,
+		(((float) input.mousePos.y) / 32.0) + mCamera.y
+	};
+
+	if (align) {
+		ret.x = roundf(ret.x);
+		ret.y = roundf(ret.y);
+	}
+
+	return ret;
+}
+
 static bool HandleEvent(Scene* scene, Event* e) {
 	if (UI_ManagerHandleEvent(scene->ui, e)) return true;
 
@@ -164,15 +187,54 @@ static bool HandleEvent(Scene* scene, Event* e) {
 					if (e->mouseButton.button != 0) break;
 
 					MProjPoint point;
-					point.pos.x = (((float) input.mousePos.x) / 32.0) + mCamera.x;
-					point.pos.y = (((float) input.mousePos.y) / 32.0) + mCamera.y;
 
-					if (align) {
-						point.pos.x = roundf(point.pos.x);
-						point.pos.y = roundf(point.pos.y);
-					}
+					point.pos    = CursorOnMap();
+					point.portal = false;
 
 					MapProj_AddPoint(thisSect, point);
+					break;
+				}
+				case ME_MODE_AUTO_PORTAL: {
+					if (e->mouseButton.button != 0) break;
+
+					MProjPoint point;
+					point.pos = CursorOnMap();
+
+					MProjSector* firstSector = NULL;
+					MProjPoint*  firstPoint  = NULL;
+
+					for (size_t i = 0; i < project.sectorsLen; ++ i) {
+						MProjSector* sect = &project.sectors[i];
+
+						for (size_t j = 0; j < sect->pointsLen; ++ j) {
+							MProjPoint* mPoint = &sect->points[j];
+
+							FVec2 a = mPoint->pos;
+							FVec2 b = j == sect->pointsLen - 1?
+								sect->points[0].pos : sect->points[j + 1].pos;
+
+							if (
+								(LinePointDistance(a, b, point.pos) < 10.0f / 32.0f) &&
+								PointInLine(point.pos, a, b)
+							) {
+								if (firstPoint) {
+									firstPoint->portal    = true;
+									firstPoint->portalIdx = i;
+
+									mPoint->portal    = true;
+									mPoint->portalIdx = firstSector - project.sectors;
+									goto endAutoPortal;
+								}
+								else {
+									firstPoint  = &sect->points[j];
+									firstSector = sect;
+									break; // no portals within sectors
+								}
+							}
+						}
+					}
+
+					endAutoPortal:
 					break;
 				}
 				default: break;
@@ -197,15 +259,7 @@ static bool HandleEvent(Scene* scene, Event* e) {
 							};
 
 							if (DistanceI(input.mousePos, onScreen) < 15.0) {
-								point->pos.x =
-									(((float) input.mousePos.x) / 32.0) + mCamera.x;
-								point->pos.y =
-									(((float) input.mousePos.y) / 32.0) + mCamera.y;
-
-								if (align) {
-									point->pos.x = roundf(point->pos.x);
-									point->pos.y = roundf(point->pos.y);
-								}
+								point->pos = CursorOnMap();
 							}
 						}
 					}
@@ -261,8 +315,9 @@ static void Render(Scene* scene) {
 	}
 
 	for (size_t i = 0; i < project.sectorsLen; ++ i) {
+		MProjSector* sect = &project.sectors[i];
 		for (size_t j = 0; j < project.sectors[i].pointsLen; ++ j) {
-			MProjPoint* point = &project.sectors[i].points[j];
+			MProjPoint* point = &sect->points[j];
 
 			Rect rect = (Rect) {
 				.x = ((int) ((point->pos.x - mCamera.x) * unitPx)) - 2,
@@ -271,18 +326,30 @@ static void Render(Scene* scene) {
 			};
 			Backend_RenderRect(rect, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
 
-			size_t next = (j == project.sectors[i].pointsLen - 1)?
+			size_t next = (j == sect->pointsLen - 1)?
 				0 : j + 1;
-			point = &project.sectors[i].points[next];
+			point = &sect->points[next];
 
+			Vec2 a = (Vec2) {rect.x + 2, rect.y + 2};
 			Vec2 b = (Vec2) {
 				.x = ((int) ((point->pos.x - mCamera.x) * unitPx)),
 				.y = ((int) ((point->pos.y - mCamera.y) * unitPx))
 			};
 
-			Backend_RenderLine(
-				(Vec2) {rect.x + 2, rect.y + 2}, b, (Colour) {0x80, 0x80, 0x80, 0xFF}
-			);
+			Colour wallColour = point->portal?
+				(Colour) {0xFF, 0x8C, 0x00, 255} : (Colour) {255, 255, 255, 255};
+
+			FVec2 cursor = CursorOnMap();
+			if (
+				(LinePointDistance(
+					sect->points[j].pos, sect->points[next].pos, cursor
+				) < 10.0f / 32.0f) &&
+				PointInLine(cursor, sect->points[j].pos, sect->points[next].pos)
+			) {
+				wallColour = (Colour) {0x88, 0x88, 0xFF, 0xFF};
+			}
+
+			Backend_RenderLine(a, b, wallColour);
 		}
 	}
 

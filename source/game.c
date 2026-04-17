@@ -33,53 +33,53 @@ void GameBase_Init(void) {
 	camera.yaw   = 0.0;
 	camera.roll  = 0.0;
 
-	setAudioEnv(
-		AUDIOENVMASK_REVERB,
-		&(struct audioenv) {.reverb = {0.07, 0.65, 1.0, 0.1, 0.25, 0.25}},
-		AUDIOENVMASK_ALL
-	);
+	// setAudioEnv(
+	// 	AUDIOENVMASK_REVERB,
+	// 	&(struct audioenv) {.reverb = {0.07, 0.65, 1.0, 0.1, 0.25, 0.25}},
+	// 	AUDIOENVMASK_ALL
+	// );
 
-	emitters2d[0] = new2DAudioEmitter(
-		AUDIOPRIO_DEFAULT, -1, 0,
-		0, NULL
-	);
-	Resource* resource = Resources_GetRes("base:sfx/air1.ogg", 0);
-	if (resource) {
-		Audio_Play2DSound(
-			emitters2d[0], resource,
-			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
-			AUDIOFXMASK_SPEED | AUDIOFXMASK_VOL,
-			&(struct audiofx) {.speed = 0.3f, .vol = {0.65f, 0.65f}}
-		);
-		Resources_FreeRes(resource);
-	}
-
-	emitters3d[0] = new3DAudioEmitter(
-		AUDIOPRIO_DEFAULT, -1, 0,
-		0, NULL,
-		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {-5.0f, -0.3f, 9.0f}}
-	);
-	emitters3d[1] = new3DAudioEmitter(
-		AUDIOPRIO_DEFAULT, -1, 0,
-		0, NULL,
-		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {6.0f, -0.3f, 4.0f}}
-	);
-
-	resource = Resources_GetRes("base:sfx/drip1.ogg", 0);
-
-	if (resource) {
-		Audio_Play3DSound(
-			emitters3d[0], resource,
-			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
-			AUDIOFXMASK_SPEED, &(struct audiofx){.speed = 1.56521f}
-		);
-		Audio_Play3DSound(
-			emitters3d[1], resource,
-			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
-			AUDIOFXMASK_SPEED, &(struct audiofx){.speed = 1.10435f}
-		);
-		Resources_FreeRes(resource);
-	}
+// 	emitters2d[0] = new2DAudioEmitter(
+// 		AUDIOPRIO_DEFAULT, -1, 0,
+// 		0, NULL
+// 	);
+// 	Resource* resource = Resources_GetRes("base:sfx/air1.ogg", 0);
+// 	if (resource) {
+// 		Audio_Play2DSound(
+// 			emitters2d[0], resource,
+// 			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
+// 			AUDIOFXMASK_SPEED | AUDIOFXMASK_VOL,
+// 			&(struct audiofx) {.speed = 0.3f, .vol = {0.65f, 0.65f}}
+// 		);
+// 		Resources_FreeRes(resource);
+// 	}
+// 
+// 	emitters3d[0] = new3DAudioEmitter(
+// 		AUDIOPRIO_DEFAULT, -1, 0,
+// 		0, NULL,
+// 		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {-5.0f, -0.3f, 9.0f}}
+// 	);
+// 	emitters3d[1] = new3DAudioEmitter(
+// 		AUDIOPRIO_DEFAULT, -1, 0,
+// 		0, NULL,
+// 		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {6.0f, -0.3f, 4.0f}}
+// 	);
+// 
+// 	resource = Resources_GetRes("base:sfx/drip1.ogg", 0);
+// 
+// 	if (resource) {
+// 		Audio_Play3DSound(
+// 			emitters3d[0], resource,
+// 			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
+// 			AUDIOFXMASK_SPEED, &(struct audiofx){.speed = 1.56521f}
+// 		);
+// 		Audio_Play3DSound(
+// 			emitters3d[1], resource,
+// 			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
+// 			AUDIOFXMASK_SPEED, &(struct audiofx){.speed = 1.10435f}
+// 		);
+// 		Resources_FreeRes(resource);
+// 	}
 
 	gameBaseConfig.sensitivity = 7.5;
 
@@ -175,7 +175,7 @@ void GameBase_Update(bool top) {
 			if (PointLineSide(a2, b1, b2) < 0) continue;
 
 			// add a check for the wall line if you want to support concave sectors
-			if (PointInLine(intersect, a1, a2)) {
+			if (PointInLine(intersect, a1, a2) && PointInLine(intersect, b1, b2)) {
 				player.sector = &map.sectors[wall->portalSector];
 				camera.sector = &map.sectors[wall->portalSector];
 
@@ -212,6 +212,10 @@ void GameBase_Update(bool top) {
 
 			wallPoint.x = player.pos.x + (CosDeg(angleToWall) * dist);
 			wallPoint.y = player.pos.z + (SinDeg(angleToWall) * dist);
+
+			if (!PointInLine(wallPoint, a, b)) {
+				continue;
+			}
 
 			float angleToPlayer = GetAngle(
 				wallPoint, (FVec2) {player.pos.x, player.pos.z}
