@@ -236,6 +236,7 @@ extern struct audiostate {
 	SDL_AudioDeviceID output;
 	unsigned vol;
 	unsigned freq;
+	unsigned fakefreq;
 	unsigned channels;
 	float soundspeedmul;
 	unsigned buflen;

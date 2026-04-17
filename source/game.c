@@ -33,7 +33,6 @@ void GameBase_Init(void) {
 	camera.yaw   = 0.0;
 	camera.roll  = 0.0;
 
-/*
 	setAudioEnv(
 		AUDIOENVMASK_REVERB,
 		&(struct audioenv) {.reverb = {0.07, 0.65, 1.0, 0.1, 0.25, 0.25}},
@@ -81,7 +80,6 @@ void GameBase_Init(void) {
 		);
 		Resources_FreeRes(resource);
 	}
-*/
 
 	gameBaseConfig.sensitivity = 7.5;
 

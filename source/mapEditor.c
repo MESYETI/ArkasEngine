@@ -7,6 +7,7 @@
 #include "camera.h"
 #include "player.h"
 #include "backend.h"
+#include "mapProject.h"
 #include "ui/label.h"
 #include "ui/button.h"
 #include "ui/spacer.h"
@@ -25,25 +26,16 @@ enum {
 	ME_MODE_SECTOR
 };
 
-static int editorMode;
+static MProject project;
 
-typedef struct {
-	FVec2 pos;
-} EPoint;
-
-typedef struct {
-	EPoint* points;
-	size_t  pointsLen;
-} ESector;
-
-static ESector* thisSect;
-static ESector* sectors;
-static size_t   sectorsLen;
+static int          editorMode;
+static MProjSector* thisSect;
 
 static UI_Container* topCont;
 static UI_Container* bottomCont;
 
 static FVec2 mCamera;
+static bool  align = true;
 
 static const char* CoordLabel(void) {
 	static char buf[64];
@@ -60,17 +52,18 @@ static const char* ModeLabel(void) {
 	}
 }
 
+static void ToggleAlignButton(uint8_t button) {
+	if (button != 0) return;
+
+	align = !align;
+}
+
 static void NewSectorButton(uint8_t button) {
 	if (button != 0) return;
 
 	editorMode = ME_MODE_SECTOR;
 
-	sectors  = SafeRealloc(sectors, sizeof(ESector) * (sectorsLen + 1));
-	thisSect = &sectors[sectorsLen];
-	++ sectorsLen;
-
-	thisSect->points    = NULL;
-	thisSect->pointsLen = 0;
+	thisSect = MapProj_NewSector(&project);
 }
 
 static void FinishSectorButton(uint8_t button) {
@@ -85,39 +78,7 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 
 	if (button != 0) return;
 
-	Map_Free();
-	Map_Init();
-
-	size_t pointsNum = 0;
-	for (size_t i = 0; i < sectorsLen; ++ i) {
-		pointsNum += sectors[i].pointsLen;
-	}
-
-	map.active     = true;
-	map.points     = SafeMalloc(sizeof(MapPoint) * pointsNum);
-	map.pointsLen  = pointsNum;
-	map.walls      = SafeMalloc(sizeof(Wall) * pointsNum);
-	map.wallsLen   = pointsNum;
-	map.sectors    = SafeMalloc(sizeof(Sector) * sectorsLen);
-	map.sectorsLen = sectorsLen;
-
-	pointsNum = 0;
-	for (size_t i = 0; i < sectorsLen; ++ i) {
-		map.sectors[i] = (Sector) {
-			pointsNum, sectors[i].pointsLen, 0.5, -0.5,
-			(FVec2) {0, 0}, (FVec2) {0, 0}, false, false,
-			Resources_GetRes("base:3p_textures/grass2.png", 0),
-			Resources_GetRes("base:3p_textures/wood3.png", 0),
-			NULL, 0 // entities
-		};
-		for (size_t j = 0; j < sectors[i].pointsLen; ++ j, ++ pointsNum) {
-			map.points[pointsNum] = (MapPoint) {sectors[i].points[j].pos};
-			map.walls[pointsNum]  = (Wall) {
-				false, false, 0, Resources_GetRes("base:3p_textures/brick1.png", 0),
-				(FVec2) {0, 0}
-			};
-		}
-	}
+	MapProj_Export(&project);
 
 	SceneManager_Free();
 	SceneManager_AddScene((Scene) {
@@ -138,8 +99,8 @@ static void Unimplemented(uint8_t button) {
 static void Init(Scene* scene) {
 	editorMode = ME_MODE_EDIT;
 	thisSect   = NULL;
-	sectors    = NULL;
-	sectorsLen = 0;
+
+	MapProj_Init(&project);
 
 	scene->ui = UI_ManagerInit(4);
 
@@ -157,6 +118,10 @@ static void Init(Scene* scene) {
 		{"Save as (c+D)", &Unimplemented}
 	};
 
+	static UI_DropDownButton editButtons[] = {
+		{"Toggle align", &ToggleAlignButton}
+	};
+
 	static UI_DropDownButton sectorButtons[] = {
 		{"New", &NewSectorButton},
 		{"Finish", &FinishSectorButton}
@@ -164,7 +129,7 @@ static void Init(Scene* scene) {
 
 	UI_RowAddElement(row, UI_NewLabel(&engine.font, "Arkas Map Editor", 0));
 	UI_RowAddElement(row, UI_NewDropDown("File", fileButtons, 4, false));
-	UI_RowAddElement(row, UI_NewButton("Edit", false, NULL));
+	UI_RowAddElement(row, UI_NewDropDown("Edit", editButtons, 1, false));
 	UI_RowAddElement(row, UI_NewDropDown("Sector", sectorButtons, 2, false));
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));
 	UI_RowUpdate(row);
@@ -186,6 +151,7 @@ static void Init(Scene* scene) {
 
 static void Free(Scene* scene) {
 	UI_ManagerFree(scene->ui);
+	MapProj_Free(&project);
 }
 
 static bool HandleEvent(Scene* scene, Event* e) {
@@ -197,15 +163,16 @@ static bool HandleEvent(Scene* scene, Event* e) {
 				case ME_MODE_SECTOR: {
 					if (e->mouseButton.button != 0) break;
 
-					++ thisSect->pointsLen;
-					thisSect->points = SafeRealloc(
-						thisSect->points, sizeof(EPoint) * thisSect->pointsLen
-					);
+					MProjPoint point;
+					point.pos.x = (((float) input.mousePos.x) / 32.0) + mCamera.x;
+					point.pos.y = (((float) input.mousePos.y) / 32.0) + mCamera.y;
 
-					EPoint* point = &thisSect->points[thisSect->pointsLen - 1];
+					if (align) {
+						point.pos.x = roundf(point.pos.x);
+						point.pos.y = roundf(point.pos.y);
+					}
 
-					point->pos.x = (((float) input.mousePos.x) / 32.0) + mCamera.x;
-					point->pos.y = (((float) input.mousePos.y) / 32.0) + mCamera.y;
+					MapProj_AddPoint(thisSect, point);
 					break;
 				}
 				default: break;
@@ -220,9 +187,9 @@ static bool HandleEvent(Scene* scene, Event* e) {
 			}
 			else if (input.mouseBtn[0]) {
 				if (editorMode == ME_MODE_EDIT) {
-					for (size_t i = 0; i < sectorsLen; ++ i) {
-						for (size_t j = 0; j < sectors[i].pointsLen; ++ j) {
-							EPoint* point = &sectors[i].points[j];
+					for (size_t i = 0; i < project.sectorsLen; ++ i) {
+						for (size_t j = 0; j < project.sectors[i].pointsLen; ++ j) {
+							MProjPoint* point = &project.sectors[i].points[j];
 
 							Vec2 onScreen = (Vec2) {
 								.x = ((int) ((point->pos.x - mCamera.x) * 32.0)),
@@ -234,6 +201,11 @@ static bool HandleEvent(Scene* scene, Event* e) {
 									(((float) input.mousePos.x) / 32.0) + mCamera.x;
 								point->pos.y =
 									(((float) input.mousePos.y) / 32.0) + mCamera.y;
+
+								if (align) {
+									point->pos.x = roundf(point->pos.x);
+									point->pos.y = roundf(point->pos.y);
+								}
 							}
 						}
 					}
@@ -288,9 +260,9 @@ static void Render(Scene* scene) {
 		}
 	}
 
-	for (size_t i = 0; i < sectorsLen; ++ i) {
-		for (size_t j = 0; j < sectors[i].pointsLen; ++ j) {
-			EPoint* point = &sectors[i].points[j];
+	for (size_t i = 0; i < project.sectorsLen; ++ i) {
+		for (size_t j = 0; j < project.sectors[i].pointsLen; ++ j) {
+			MProjPoint* point = &project.sectors[i].points[j];
 
 			Rect rect = (Rect) {
 				.x = ((int) ((point->pos.x - mCamera.x) * unitPx)) - 2,
@@ -299,9 +271,9 @@ static void Render(Scene* scene) {
 			};
 			Backend_RenderRect(rect, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
 
-			size_t next = (j == sectors[i].pointsLen - 1)?
+			size_t next = (j == project.sectors[i].pointsLen - 1)?
 				0 : j + 1;
-			point = &sectors[i].points[next];
+			point = &project.sectors[i].points[next];
 
 			Vec2 b = (Vec2) {
 				.x = ((int) ((point->pos.x - mCamera.x) * unitPx)),
@@ -314,14 +286,26 @@ static void Render(Scene* scene) {
 		}
 	}
 
+	Vec2 renderCursor = input.mousePos;
+	if (align) {
+		FVec2 point;
+		point.x = (((float) input.mousePos.x) / 32.0) + mCamera.x;
+		point.y = (((float) input.mousePos.y) / 32.0) + mCamera.y;
+
+		FVec2 offset;
+		offset.x = roundf(point.x) - point.x;
+		offset.y = roundf(point.y) - point.y;
+
+		renderCursor.x += (int) (offset.x * ((float) unitPx));
+		renderCursor.y += (int) (offset.y * ((float) unitPx));
+	}
+
 	Rect cursor = (Rect) {
-		.x = input.mousePos.x - 5,
-		.y = input.mousePos.y - 5,
+		.x = renderCursor.x - 5,
+		.y = renderCursor.y - 5,
 		.w = 10, .h = 10
 	};
-	if (editorMode == ME_MODE_EDIT) {
-		Backend_RenderRectOL(cursor, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
-	}
+	Backend_RenderRectOL(cursor, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
 
 	UI_ManagerRender(scene->ui);
 }
