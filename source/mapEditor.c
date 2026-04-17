@@ -93,6 +93,7 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 		pointsNum += sectors[i].pointsLen;
 	}
 
+	map.active     = true;
 	map.points     = SafeMalloc(sizeof(MapPoint) * pointsNum);
 	map.pointsLen  = pointsNum;
 	map.walls      = SafeMalloc(sizeof(Wall) * pointsNum);
@@ -106,7 +107,8 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 			pointsNum, sectors[i].pointsLen, 0.5, -0.5,
 			(FVec2) {0, 0}, (FVec2) {0, 0}, false, false,
 			Resources_GetRes("base:3p_textures/grass2.png", 0),
-			Resources_GetRes("base:3p_textures/wood3.png", 0)
+			Resources_GetRes("base:3p_textures/wood3.png", 0),
+			NULL, 0 // entities
 		};
 		for (size_t j = 0; j < sectors[i].pointsLen; ++ j, ++ pointsNum) {
 			map.points[pointsNum] = (MapPoint) {sectors[i].points[j].pos};

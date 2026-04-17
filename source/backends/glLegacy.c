@@ -607,7 +607,7 @@ void Backend_RenderScene(void) {
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	// glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 	glDisable(GL_CULL_FACE);
 
 	if (state.sectorsRendered == NULL) {
