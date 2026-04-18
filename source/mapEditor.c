@@ -223,11 +223,16 @@ static bool HandleEvent(Scene* scene, Event* e) {
 
 									mPoint->portal    = true;
 									mPoint->portalIdx = firstSector - project.sectors;
+
+									printf("second line A: %g %g\n", a.x, a.y);
+									printf("second line B: %g %g\n", b.x, b.y);
 									goto endAutoPortal;
 								}
 								else {
 									firstPoint  = &sect->points[j];
 									firstSector = sect;
+									printf("first line A: %g %g\n", a.x, a.y);
+									printf("first line B: %g %g\n", b.x, b.y);
 									break; // no portals within sectors
 								}
 							}
@@ -336,7 +341,7 @@ static void Render(Scene* scene) {
 				.y = ((int) ((point->pos.y - mCamera.y) * unitPx))
 			};
 
-			Colour wallColour = point->portal?
+			Colour wallColour = sect->points[j].portal?
 				(Colour) {0xFF, 0x8C, 0x00, 255} : (Colour) {255, 255, 255, 255};
 
 			FVec2 cursor = CursorOnMap();
