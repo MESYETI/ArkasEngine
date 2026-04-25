@@ -35,8 +35,10 @@ void MapProj_Export(MProject* proj) {
 
 	pointsNum = 0;
 	for (size_t i = 0; i < proj->sectorsLen; ++ i) {
+		MProjSector* sect = &proj->sectors[i];
+
 		map.sectors[i] = (Sector) {
-			pointsNum, proj->sectors[i].pointsLen, 0.5, -0.5,
+			pointsNum, sect->pointsLen, sect->ceiling, sect->floor,
 			(FVec2) {0, 0}, (FVec2) {0, 0}, false, false,
 			Resources_GetRes("base:3p_textures/grass2.png", 0),
 			Resources_GetRes("base:3p_textures/wood3.png", 0),
@@ -63,6 +65,8 @@ MProjSector* MapProj_NewSector(MProject* proj) {
 	MProjSector* sect = &proj->sectors[proj->sectorsLen - 1];
 	sect->points      = NULL;
 	sect->pointsLen   = 0;
+	sect->floor       = -0.5;
+	sect->ceiling     =  0.5;
 	return sect;
 }
 
@@ -85,27 +89,26 @@ FVec2 MapProj_SectorCenter(MProjSector* sect) {
 }
 
 bool MapProj_PointInSector(MProjSector* sect, FVec2 point) {
-	FVec2 center = MapProj_SectorCenter(sect);
-	float angle  = GetAngle(point, center);
+	bool inside = false;
 
-	FVec2 pointB = {
-		point.x + (CosDeg(angle) * 5000.0f), point.y + (SinDeg(angle) * 5000.0f)
-	};
-
-	int collisions = 0;
 	for (size_t i = 0; i < sect->pointsLen; ++ i) {
 		FVec2 a = sect->points[i].pos;
 		FVec2 b = i == sect->pointsLen - 1?
 			sect->points[0].pos : sect->points[i + 1].pos;
 
-		FVec2 intersection = LineIntersect(point, pointB, a, b);
+		if (
+			(point.y > MIN(a.y, b.y)) && (point.y <= MAX(a.y, b.y)) &&
+			(point.x <= MAX(a.x, b.x))
+		) {
+			float intersect = (point.y - a.y) * (b.x - a.x) / (b.y - a.y) + a.x;
 
-		if (PointInLine(intersection, a, b) && PointInLine(intersection, point, pointB)) {
-			++ collisions;
+			if ((a.x == b.x) || (point.x <= intersect)) {
+				inside = !inside;
+			}
 		}
 	}
 
-	return collisions <= 1;
+	return inside;
 }
 
 void MapProj_AddPoint(MProjSector* sect, MProjPoint point) {

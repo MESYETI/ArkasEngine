@@ -31,6 +31,8 @@ enum {
 typedef struct {
 	char floor[32];
 	char ceiling[32];
+	char x[32];
+	char y[32];
 } Options;
 
 static Options options;
@@ -39,6 +41,7 @@ static MProject project;
 
 static int          editorMode;
 static MProjSector* thisSect;
+static MProjPoint*  thisPoint;
 
 static UI_Container* topCont;
 static UI_Container* bottomCont;
@@ -125,19 +128,65 @@ static void Unimplemented(uint8_t button) {
 	Log("Unimplemented");
 }
 
-static Vec2 Resizer(UI_Container* cont) {
+static Vec2 BarResizer(UI_Container* cont) {
 	return (Vec2) {video.windows[UI_WIN].width, cont->h};
+}
+
+static Vec2 OptionsResizer(UI_Container* cont) {
+	return (Vec2) {
+		cont->w, video.windows[UI_WIN].height - UI_ContainerGetRect(topCont).h -
+		UI_ContainerGetRect(bottomCont).h
+	};
+}
+
+static void SectorTabButton(UI_Button* this, uint8_t button) {
+	(void) this;
+
+	if (button != 0) return;
+
+	UI_ContainerRestoreSet(rightCont, 0);
+}
+
+static void PointTabButton(UI_Button* this, uint8_t button) {
+	(void) this;
+
+	if (button != 0) return;
+
+	UI_ContainerRestoreSet(rightCont, 1);
+}
+
+static void SectorApplyChangesButton(UI_Button* this, uint8_t button) {
+	(void) this;
+
+	if (button != 0) return;
+
+	// TODO: check NULL
+
+	thisSect->floor   = atof(options.floor);
+	thisSect->ceiling = atof(options.ceiling);
+}
+
+static void PointApplyChangesButton(UI_Button* this, uint8_t button) {
+	(void) this;
+
+	if (button != 0) return;
+
+	// TODO: check NULL
+
+	thisPoint->pos.x = atof(options.x);
+	thisPoint->pos.y = atof(options.y);
 }
 
 static void Init(Scene* scene) {
 	editorMode = ME_MODE_EDIT;
 	thisSect   = NULL;
+	thisPoint  = NULL;
 
 	MapProj_Init(&project);
 
 	scene->ui = UI_ManagerInit(4);
 
-	topCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, &Resizer);
+	topCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, &BarResizer);
 	UI_ContainerAlignLeft(topCont, 0);
 	UI_ContainerAlignTop(topCont, 0);
 	UI_ContainerSetPadding(topCont, 5, 5, 5, 5);
@@ -168,7 +217,7 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));
 	UI_RowUpdate(row);
 
-	bottomCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, &Resizer);
+	bottomCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, &BarResizer);
 	UI_ContainerAlignLeft(bottomCont, 0);
 	UI_ContainerAlignBottom(bottomCont, 0);
 	UI_ContainerSetPadding(bottomCont, 5, 5, 5, 5);
@@ -180,13 +229,19 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewButton("Play", false, &PlayButton));
 	UI_RowUpdate(row);
 
-	rightCont = UI_ManagerAddContainer(scene->ui, 128, NULL);
+	rightCont = UI_ManagerAddContainer(scene->ui, 128, &OptionsResizer);
+
+	rightCont->fixedHeight = video.windows[UI_WIN].height
+		- UI_ContainerGetRect(topCont).h - UI_ContainerGetRect(bottomCont).h;
+
 	UI_ContainerAlignRight(rightCont, 0);
 	UI_ContainerCenterY(rightCont);
 	UI_ContainerSetPadding(rightCont, 5, 5, 5, 5);
+	UI_ContainerAllocRowSets(rightCont, 2);
 
 	row = UI_ContainerAddRow(rightCont, 0);
-	UI_RowAddElement(row, UI_NewLabel(&engine.font, "Options", 0));
+	UI_RowAddElement(row, UI_NewButton("Sector", false, &SectorTabButton));
+	UI_RowAddElement(row, UI_NewButton("Wall", false, &PointTabButton));
 	// UI_RowAddElement(row, UI_NewButton("-", true, &RightContMinimise));
 	UI_RowUpdate(row);
 
@@ -219,9 +274,45 @@ static void Init(Scene* scene) {
 	);
 	UI_RowUpdate(row);
 	row = UI_ContainerAddSingleElemRow(
-		rightCont, 0, UI_NewButton("Apply changes", false, NULL)
+		rightCont, 0, UI_NewButton("Apply changes", false, &SectorApplyChangesButton)
 	);
 	UI_RowUpdate(row);
+
+	UI_ContainerSaveSet(rightCont, 0);
+	UI_ContainerRestoreSet(rightCont, 1);
+
+	row = UI_ContainerAddRow(rightCont, 0);
+	UI_RowAddElement(row, UI_NewButton("Sector", false, &SectorTabButton));
+	UI_RowAddElement(row, UI_NewButton("Wall", false, &PointTabButton));
+	UI_RowUpdate(row);
+
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewLabel(&engine.font, "Start X", 0)
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewTextInput(options.x, sizeof(options.x))
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewLabel(&engine.font, "Start Y", 0)
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewTextInput(options.y, sizeof(options.y))
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewButton("Wall texture", false, NULL)
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewButton("Apply changes", false, &PointApplyChangesButton)
+	);
+	UI_RowUpdate(row);
+
+	UI_ContainerSaveSet(rightCont, 1);
+	UI_ContainerRestoreSet(rightCont, 0);
 
 	mCamera    = (FVec2) {0, 0};
 	mCamera.x -= ((float) video.windows[UI_WIN].width)  / 32.0f / 2.0f;
@@ -255,6 +346,27 @@ static bool HandleEvent(Scene* scene, Event* e, bool top) {
 	switch (e->type) {
 		case AE_EVENT_MOUSE_BUTTON_DOWN: {
 			switch (editorMode) {
+				case ME_MODE_EDIT: {
+					for (size_t i = 0; i < project.sectorsLen; ++ i) {
+						FVec2        point = CursorOnMap();
+						MProjSector* sect  = &project.sectors[i];
+
+						if (MapProj_PointInSector(sect, point)) {
+							thisSect = sect;
+
+							snprintf(
+								options.floor, sizeof(options.floor), "%g",
+								sect->floor
+							);
+							snprintf(
+								options.ceiling, sizeof(options.ceiling), "%g",
+								sect->ceiling
+							);
+							break;
+						}
+					}
+					break;
+				}
 				case ME_MODE_SECTOR: {
 					if (e->mouseButton.button != 0) break;
 
@@ -337,6 +449,14 @@ static bool HandleEvent(Scene* scene, Event* e, bool top) {
 
 							if (DistanceI(input.mousePos, onScreen) < 15.0) {
 								point->pos = CursorOnMap();
+								thisPoint  = point;
+
+								snprintf(
+									options.x, sizeof(options.x), "%g", point->pos.x
+								);
+								snprintf(
+									options.y, sizeof(options.y), "%g", point->pos.y
+								);
 							}
 						}
 					}
@@ -394,6 +514,7 @@ static void Render(Scene* scene, bool top) {
 
 	for (size_t i = 0; i < project.sectorsLen; ++ i) {
 		MProjSector* sect = &project.sectors[i];
+
 		for (size_t j = 0; j < project.sectors[i].pointsLen; ++ j) {
 			MProjPoint* point = &sect->points[j];
 
@@ -414,8 +535,11 @@ static void Render(Scene* scene, bool top) {
 				.y = ((int) ((point->pos.y - mCamera.y) * unitPx))
 			};
 
-			Colour wallColour = sect->points[j].portal?
-				(Colour) {0xFF, 0x8C, 0x00, 255} : (Colour) {255, 255, 255, 255};
+			Colour wallColour = sect == thisSect?
+				(Colour) {0xFF, 0x88, 0xFF, 255} : (Colour) {255, 255, 255, 255};
+
+			wallColour = sect->points[j].portal?
+				(Colour) {0xFF, 0x8C, 0x00, 255} : wallColour;
 
 			FVec2 cursor = CursorOnMap();
 			if (

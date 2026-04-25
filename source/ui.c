@@ -490,6 +490,28 @@ void UI_ClearContainer(UI_Container* container) {
 	container->rows      = NULL;
 }
 
+void UI_ContainerAllocRowSets(UI_Container* container, size_t amount) {
+	container->rowSets       = SafeMalloc(amount * sizeof(UI_RowSet));
+	container->rowSetsAmount = amount;
+
+	for (size_t i = 0; i < amount; ++ i) {
+		container->rowSets[i] = (UI_RowSet) {NULL, 0};
+	}
+}
+
+void UI_ContainerSaveSet(UI_Container* container, size_t set) {
+	assert(set < container->rowSetsAmount);
+
+	container->rowSets[set] = (UI_RowSet) {container->rows, container->rowAmount};
+}
+
+void UI_ContainerRestoreSet(UI_Container* container, size_t set) {
+	assert(set < container->rowSetsAmount);
+
+	container->rows      = container->rowSets[set].rows;
+	container->rowAmount = container->rowSets[set].rowAmount;
+}
+
 UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element) {
 	row->elems = SafeRealloc(row->elems, (row->elemAmount + 1) * sizeof(UI_Element));
 	++ row->elemAmount;

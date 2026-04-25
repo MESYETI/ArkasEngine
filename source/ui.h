@@ -45,6 +45,11 @@ typedef struct UI_Manager UI_Manager;
 
 typedef Vec2 (*UI_ContainerResizer)(UI_Container* container);
 
+typedef struct {
+	UI_Row* rows;
+	size_t  rowAmount;
+} UI_RowSet;
+
 struct UI_Container {
 	bool    active;
 	int     x;
@@ -62,6 +67,9 @@ struct UI_Container {
 	UI_Mode xMode;
 	UI_Row* rows;
 	size_t  rowAmount;
+
+	UI_RowSet* rowSets;
+	size_t     rowSetsAmount;
 
 	UI_Element* focus;
 	UI_Manager* manager;
@@ -109,6 +117,9 @@ void    UI_ContainerRender(UI_Container* container, bool focus);
 Rect    UI_ContainerGetRect(UI_Container* container);
 int     UI_ContainerTotalRowHeight(UI_Container* container);
 void    UI_ClearContainer(UI_Container* container);
+void    UI_ContainerAllocRowSets(UI_Container* container, size_t amount);
+void    UI_ContainerSaveSet(UI_Container* container, size_t set);
+void    UI_ContainerRestoreSet(UI_Container* container, size_t set);
 
 UI_Element* UI_RowAddElement(UI_Row* row, UI_Element element);
 void        UI_RowUpdate(UI_Row* row);

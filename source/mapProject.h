@@ -12,6 +12,8 @@ typedef struct {
 typedef struct {
 	MProjPoint* points;
 	size_t      pointsLen;
+	float       floor;
+	float       ceiling;
 } MProjSector;
 
 typedef struct {
