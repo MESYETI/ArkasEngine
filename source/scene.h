@@ -21,9 +21,9 @@ struct Scene {
 
 	FUNCTION_POINTER(void, init, Scene*);
 	FUNCTION_POINTER(void, free, Scene*);
-	FUNCTION_POINTER(bool, handleEvent, Scene*, Event* e);
+	FUNCTION_POINTER(bool, handleEvent, Scene*, Event* e, bool top);
 	FUNCTION_POINTER(void, update, Scene*, bool top);
-	FUNCTION_POINTER(void, render, Scene*);
+	FUNCTION_POINTER(void, render, Scene*, bool top);
 };
 
 typedef struct {

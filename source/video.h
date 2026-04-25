@@ -16,6 +16,10 @@ typedef struct {
 	uint8_t r, g, b, a;
 } Colour;
 
+// on 3DS:
+// window 0 = top
+// window 1 = bottom
+
 typedef struct {
 	Window windows[WIN_NUM];
 	bool   fog;

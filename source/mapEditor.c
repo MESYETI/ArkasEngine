@@ -13,6 +13,7 @@
 #include "ui/spacer.h"
 #include "ui/dynLabel.h"
 #include "ui/dropDown.h"
+#include "ui/textInput.h"
 #include "testScene.h"
 
 #ifdef PLATFORM_3DS
@@ -27,6 +28,13 @@ enum {
 	ME_MODE_AUTO_PORTAL
 };
 
+typedef struct {
+	char floor[32];
+	char ceiling[32];
+} Options;
+
+static Options options;
+
 static MProject project;
 
 static int          editorMode;
@@ -34,13 +42,20 @@ static MProjSector* thisSect;
 
 static UI_Container* topCont;
 static UI_Container* bottomCont;
+static UI_Container* rightCont;
 
-static FVec2 mCamera;
+static FVec2 mCamera; // in world coordinates
 static bool  align = true;
 
 static const char* CoordLabel(void) {
 	static char buf[64];
-	snprintf(buf, sizeof(buf), "X: %.2f, Y: %.2f", mCamera.x, mCamera.y);
+
+	FVec2 centerPos = {
+		mCamera.x + (((float) video.windows[UI_WIN].width)  / 32.0f / 2.0f),
+		mCamera.y + (((float) video.windows[UI_WIN].height) / 32.0f / 2.0f)
+	};
+
+	snprintf(buf, sizeof(buf), "X: %.2f, Y: %.2f", centerPos.x, centerPos.y);
 
 	return (const char*) buf;
 }
@@ -98,10 +113,20 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 	player.sector = &map.sectors[0];
 }
 
+static void RightContMinimise(UI_Button* this, uint8_t button) {
+	if (button != 0) return;
+
+	rightCont->fixedHeight = rightCont->fixedHeight? 0 : 256;
+}
+
 static void Unimplemented(uint8_t button) {
 	(void) button;
 
 	Log("Unimplemented");
+}
+
+static Vec2 Resizer(UI_Container* cont) {
+	return (Vec2) {video.windows[UI_WIN].width, cont->h};
 }
 
 static void Init(Scene* scene) {
@@ -112,7 +137,7 @@ static void Init(Scene* scene) {
 
 	scene->ui = UI_ManagerInit(4);
 
-	topCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, NULL);
+	topCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, &Resizer);
 	UI_ContainerAlignLeft(topCont, 0);
 	UI_ContainerAlignTop(topCont, 0);
 	UI_ContainerSetPadding(topCont, 5, 5, 5, 5);
@@ -143,7 +168,7 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewButton("Portal", false, NULL));
 	UI_RowUpdate(row);
 
-	bottomCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, NULL);
+	bottomCont = UI_ManagerAddContainer(scene->ui, video.windows[UI_WIN].width, &Resizer);
 	UI_ContainerAlignLeft(bottomCont, 0);
 	UI_ContainerAlignBottom(bottomCont, 0);
 	UI_ContainerSetPadding(bottomCont, 5, 5, 5, 5);
@@ -155,7 +180,52 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewButton("Play", false, &PlayButton));
 	UI_RowUpdate(row);
 
-	mCamera = (FVec2) {0, 0};
+	rightCont = UI_ManagerAddContainer(scene->ui, 128, NULL);
+	UI_ContainerAlignRight(rightCont, 0);
+	UI_ContainerCenterY(rightCont);
+	UI_ContainerSetPadding(rightCont, 5, 5, 5, 5);
+
+	row = UI_ContainerAddRow(rightCont, 0);
+	UI_RowAddElement(row, UI_NewLabel(&engine.font, "Options", 0));
+	// UI_RowAddElement(row, UI_NewButton("-", true, &RightContMinimise));
+	UI_RowUpdate(row);
+
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewLabel(&engine.font, "Floor", 0)
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewTextInput(options.floor, sizeof(options.floor))
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewLabel(&engine.font, "Ceiling", 0)
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewTextInput(options.ceiling, sizeof(options.ceiling))
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewButton("Floor texture", false, NULL)
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewButton("Ceiling texture", false, NULL)
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewButton("Wall texture", false, NULL)
+	);
+	UI_RowUpdate(row);
+	row = UI_ContainerAddSingleElemRow(
+		rightCont, 0, UI_NewButton("Apply changes", false, NULL)
+	);
+	UI_RowUpdate(row);
+
+	mCamera    = (FVec2) {0, 0};
+	mCamera.x -= ((float) video.windows[UI_WIN].width)  / 32.0f / 2.0f;
+	mCamera.y -= ((float) video.windows[UI_WIN].height) / 32.0f / 2.0f;
 }
 
 static void Free(Scene* scene) {
@@ -177,7 +247,9 @@ static FVec2 CursorOnMap(void) {
 	return ret;
 }
 
-static bool HandleEvent(Scene* scene, Event* e) {
+static bool HandleEvent(Scene* scene, Event* e, bool top) {
+	if (!top) return false;
+
 	if (UI_ManagerHandleEvent(scene->ui, e)) return true;
 
 	switch (e->type) {
@@ -282,9 +354,10 @@ static void Update(Scene* scene, bool top) {
 	(void) top;
 }
 
-static void Render(Scene* scene) {
+static void Render(Scene* scene, bool top) {
 	Backend_Begin2D();
 	Backend_Clear(0, 0, 0);
+	Backend_EnableAlpha(true);
 
 	const int unitPx = 32;
 
@@ -372,12 +445,25 @@ static void Render(Scene* scene) {
 		renderCursor.y += (int) (offset.y * ((float) unitPx));
 	}
 
+	// render camera lines
+	Colour lineColour = {64, 64, 255, 128};
+	Backend_HLine(
+		0, video.windows[UI_WIN].height / 2, 1, video.windows[UI_WIN].width,
+		lineColour
+	);
+	Backend_VLine(
+		video.windows[UI_WIN].width / 2, 0, 1, video.windows[UI_WIN].height,
+		lineColour
+	);
+
 	Rect cursor = (Rect) {
 		.x = renderCursor.x - 5,
 		.y = renderCursor.y - 5,
 		.w = 10, .h = 10
 	};
-	Backend_RenderRectOL(cursor, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
+	if (top) {
+		Backend_RenderRectOL(cursor, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
+	}
 
 	UI_ManagerRender(scene->ui);
 }

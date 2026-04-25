@@ -19,6 +19,7 @@
 #include "variables.h"
 #include "testScene.h"
 #include "mapEditor.h"
+#include "messageBox.h"
 #include "fileBrowser.h"
 #include "imageViewer.h"
 #include "splashScreen.h"
@@ -595,6 +596,12 @@ static void Command_SpawnProp(size_t argc, char** argv) {
 	Map_AddEntity(entity);
 }
 
+static void Command_Message(size_t argc, char** argv) {
+	ASSERT_ARGC(2);
+
+	SceneManager_AddScene(NewMessageBoxScene(argv[0], argv[1]));
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "test-map2",          &Command_Test2);
@@ -633,4 +640,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "splash",             &Command_Splash);
 	Console_AddCommand(true,  "save-config",        &Command_SaveConfig);
 	Console_AddCommand(true,  "spawn-prop",         &Command_SpawnProp);
+	Console_AddCommand(true,  "message",            &Command_Message);
 }

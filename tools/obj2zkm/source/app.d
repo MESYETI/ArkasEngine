@@ -8,6 +8,8 @@ import std.stdio;
 import std.bitmanip;
 import std.algorithm;
 
+extern(C) int rand();
+
 struct Vertices {
 	float[3] vertices;
 }
@@ -206,7 +208,7 @@ int main(string[] args) {
 					}
 				}
 
-				if (currentMat == cast(size_t) - 1) {
+				if ((currentMat == cast(size_t) - 1) || (materials.length == 0)) {
 					face.texture = 0xFFFFFFFF;
 				}
 				else if (materials[currentMat].name in texIdx) {
@@ -216,10 +218,11 @@ int main(string[] args) {
 					face.texture = 0xFFFFFFFF;
 				}
 
-				if (currentMat == cast(size_t) -1) {
-					face.r = 255;
-					face.g = 255;
-					face.b = 255;
+				if ((currentMat == cast(size_t) -1) || (materials.length == 0)) {
+					ubyte c = (rand() % 55) + 200;
+					face.r = c;
+					face.g = c;
+					face.b = c;
 				}
 				else {
 					face.r = materials[currentMat].r;

@@ -20,8 +20,10 @@ static void Free(Scene* scene) {
 	free(data);
 }
 
-static bool HandleEvent(Scene* scene, Event* e) {
+static bool HandleEvent(Scene* scene, Event* e, bool top) {
 	(void) scene;
+
+	if (!top) return false;
 
 	if ((e->type == AE_EVENT_KEY_DOWN) && (e->key.key == AE_KEY_Q)) {
 		SceneManager_PopScene();
@@ -36,7 +38,9 @@ static void Update(Scene* scene, bool top) {
 	(void) top;
 }
 
-static void Render(Scene* scene) {
+static void Render(Scene* scene, bool top) {
+	(void) top;
+
 	Data* data = (Data*) scene->data;
 
 	Backend_Begin2D();

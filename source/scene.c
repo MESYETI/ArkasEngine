@@ -94,7 +94,7 @@ void SceneManager_HandleEvent(Event* e) {
 	for (size_t i = sm.activeScenes; i -- > 0;) {
 		if (sm.scenes[i].handleEvent == NULL) continue;
 
-		if (sm.scenes[i].handleEvent(&sm.scenes[i], e)) {
+		if (sm.scenes[i].handleEvent(&sm.scenes[i], e, i == sm.activeScenes - 1)) {
 			return;
 		}
 	}
@@ -136,6 +136,6 @@ void SceneManager_Render(void) {
 		}
 
 		if (sm.scenes[i].render == NULL) continue;
-		sm.scenes[i].render(&sm.scenes[i]);
+		sm.scenes[i].render(&sm.scenes[i], i == sm.activeScenes - 1);
 	}
 }

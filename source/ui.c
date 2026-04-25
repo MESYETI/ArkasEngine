@@ -307,8 +307,10 @@ void UI_RenderBorder(size_t depth, Rect rect, bool swap) {
 	Backend_VLine(rect.x + rect.w - width, rect.y, width, rect.h, dark);
 
 	// bright edges
-	Backend_HLine(rect.x, rect.y, width, rect.w, bright);
-	Backend_VLine(rect.x, rect.y, width, rect.h, bright);
+	Backend_HLine(rect.x,     rect.y,     1, rect.w,     bright);
+	Backend_HLine(rect.x,     rect.y + 1, 1, rect.w - 1, bright);
+	Backend_VLine(rect.x,     rect.y,     1, rect.h,     bright);
+	Backend_VLine(rect.x + 1, rect.y,     1, rect.h - 1, bright);
 }
 
 void UI_ContainerSetWindow(UI_Container* container, int window) {

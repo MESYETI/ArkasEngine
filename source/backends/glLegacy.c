@@ -608,7 +608,6 @@ void Backend_RenderScene(void) {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
-	glDisable(GL_CULL_FACE);
 
 	if (state.sectorsRendered == NULL) {
 		state.sectorsRendered = SafeMalloc(map.sectorsLen * sizeof(bool));
@@ -706,7 +705,8 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 
 		// TODO: check bounds for uv
 		if (tex) glTexCoord2f(model->uv[face->uv[0]].x, model->uv[face->uv[0]].y);
-		glColor3ub(face->colour.r, face->colour.g, face->colour.b);
+		// glColor3ub(face->colour.r, face->colour.g, face->colour.b);
+
 		glVertex3f(
 			-(model->vertices[face->indices[0]].x * opt->scale),
 			(model->vertices[face->indices[0]].y * opt->scale),

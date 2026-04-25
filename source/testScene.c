@@ -58,7 +58,9 @@ static void Free(Scene* scene) {
 	UI_ManagerFree(scene->ui);
 }
 
-static bool HandleEvent(Scene* scene, Event* e) {
+static bool HandleEvent(Scene* scene, Event* e, bool top) {
+	if (!top) return false;
+
 	return UI_ManagerHandleEvent(scene->ui, e);
 }
 
@@ -67,7 +69,9 @@ static void Update(Scene* scene, bool top) {
 	(void) top;
 }
 
-static void Render(Scene* scene) {
+static void Render(Scene* scene, bool top) {
+	(void) top;
+
 	Backend_Begin2D();
 	UI_ManagerRender(scene->ui);
 }

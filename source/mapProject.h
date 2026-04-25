@@ -24,6 +24,8 @@ void MapProj_Free(MProject* proj);
 void MapProj_Export(MProject* proj);
 
 MProjSector* MapProj_NewSector(MProject* proj);
+FVec2        MapProj_SectorCenter(MProjSector* sect);
+bool         MapProj_PointInSector(MProjSector* sect, FVec2 point);
 
 void MapProj_AddPoint(MProjSector* sect, MProjPoint point);
 

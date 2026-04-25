@@ -16,14 +16,17 @@ static void Init(Scene* scene) {
 }
 
 static void Free(Scene* scene) {
+	(void) scene;
+
 	if (image) {
 		Resources_FreeRes(image);
 	}
 }
 
-static bool HandleEvent(Scene* scene, Event* e) {
+static bool HandleEvent(Scene* scene, Event* e, bool top) {
 	(void) scene;
 	(void) e;
+	(void) top;
 	return false;
 }
 
@@ -34,7 +37,10 @@ static void Update(Scene* scene, bool top) {
 	timer += engine.delta;
 }
 
-static void Render(Scene* scene) {
+static void Render(Scene* scene, bool top) {
+	(void) scene;
+	(void) top;
+
 	Backend_Begin2D();
 
 	if (!image) return;

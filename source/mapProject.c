@@ -66,6 +66,48 @@ MProjSector* MapProj_NewSector(MProject* proj) {
 	return sect;
 }
 
+FVec2 MapProj_SectorCenter(MProjSector* sect) {
+	FVec2 min = sect->points[0].pos;
+	FVec2 max = sect->points[0].pos;
+
+	for (size_t i = 1; i < sect->pointsLen; ++ i) {
+		FVec2 point = sect->points[i].pos;
+
+		if (point.x < min.x) min.x = point.x;
+		if (point.y < min.y) min.y = point.y;
+		if (point.x > max.x) max.x = point.x;
+		if (point.y > max.y) max.y = point.y;
+	}
+
+	return (FVec2) {
+		Lerp(min.x, max.x, 0.5), Lerp(min.y, max.y, 0.5)
+	};
+}
+
+bool MapProj_PointInSector(MProjSector* sect, FVec2 point) {
+	FVec2 center = MapProj_SectorCenter(sect);
+	float angle  = GetAngle(point, center);
+
+	FVec2 pointB = {
+		point.x + (CosDeg(angle) * 5000.0f), point.y + (SinDeg(angle) * 5000.0f)
+	};
+
+	int collisions = 0;
+	for (size_t i = 0; i < sect->pointsLen; ++ i) {
+		FVec2 a = sect->points[i].pos;
+		FVec2 b = i == sect->pointsLen - 1?
+			sect->points[0].pos : sect->points[i + 1].pos;
+
+		FVec2 intersection = LineIntersect(point, pointB, a, b);
+
+		if (PointInLine(intersection, a, b) && PointInLine(intersection, point, pointB)) {
+			++ collisions;
+		}
+	}
+
+	return collisions <= 1;
+}
+
 void MapProj_AddPoint(MProjSector* sect, MProjPoint point) {
 	++ sect->pointsLen;
 	sect->points = SafeRealloc(sect->points, sect->pointsLen * sizeof(MProjPoint));

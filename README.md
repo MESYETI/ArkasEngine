@@ -1,6 +1,8 @@
 # Arkas Engine
 WIP 3D engine with build-like maps
 
+Written without the use of a hyper-thirsty super-hot slop machine
+
 Currently has a demo map with two sectors and a team fortress 2 model
 
 Controls:
