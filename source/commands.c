@@ -375,7 +375,7 @@ static void Command_Editor(size_t argc, char** argv) {
 
 	Log("Starting map editor");
 
-	SceneManager_AddScene(MapEditorScene());
+	SceneManager_AddScene(MapEditor_Scene());
 	engine.console = false;
 }
 

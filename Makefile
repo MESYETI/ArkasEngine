@@ -91,10 +91,13 @@ bin/platform:
 bin/audio:
 	mkdir -p bin/audio
 
-bin/PlatinumSrc_%.o: lib/PlatinumSrc/%.c $(call deps,lib/PlatinumSrc/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio
+bin/mapEditor:
+	mkdir -p bin/mapEditor
+
+bin/PlatinumSrc_%.o: lib/PlatinumSrc/%.c $(call deps,lib/PlatinumSrc/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio bin/mapEditor
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio
+bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio bin/mapEditor
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 clean:

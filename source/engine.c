@@ -19,6 +19,7 @@
 #include "backend.h"
 #include "console.h"
 #include "platform.h"
+#include "mapEditor.h"
 #include "resources.h"
 #include "variables.h"
 
@@ -109,6 +110,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Audio_Init();
 	Theme_Init();
 	UI_Init();
+	MapEditor_Init();
 
 	bool success;
 	engine.font    = Text_LoadFont("builtin:font.png", &success);
