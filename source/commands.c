@@ -472,7 +472,7 @@ static void Command_Browser(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
 	(void) argv;
 
-	SceneManager_AddScene(FileBrowserScene());
+	SceneManager_AddScene(FileBrowserScene(FILE_BROWSE_OPEN, NULL));
 	engine.console = false;
 }
 

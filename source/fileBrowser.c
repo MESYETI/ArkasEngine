@@ -26,6 +26,9 @@ static UI_Element*     filesElem;
 static ResourceFile* files     = NULL;
 static size_t        filesSize = 0;
 
+static int                 mode;
+static FileBrowserCallback callback;
+
 static const char* CWDLabel() {
 	return cwd;
 }
@@ -46,7 +49,10 @@ static void FileClick(void) {
 
 	for (size_t i = 0; i < filesSize; ++ i) {
 		if (strcmp(BaseName(files[i].fullPath), fileSelected) == 0) {
-			if (!files[i].dir) return;
+			if (!files[i].dir) {
+				strncpy(fileName, BaseName(files[i].fullPath), sizeof(fileName));
+				return;
+			}
 		}
 	}
 
@@ -65,6 +71,7 @@ static void FileClick(void) {
 	}
 
 	UpdateFiles();
+	strcpy(fileName, "");
 }
 
 static void DriveClick(void) {
@@ -77,6 +84,8 @@ static void DriveClick(void) {
 	strncpy(cwd, driveSelected, sizeof(cwd) - 2);
 	strcat(cwd, ":");
 	UpdateFiles();
+
+	strcpy(fileName, "");
 }
 
 static void UpButton(UI_Button* this, uint8_t button) {
@@ -101,6 +110,37 @@ static void UpButton(UI_Button* this, uint8_t button) {
 	else {
 		cwd[0] = 0;
 		UI_UpdateListBox(filesElem, NULL, 0);
+	}
+}
+
+static void SelectButton(UI_Button* this, uint8_t button) {
+	(void) this;
+
+	if (button != 0) return;
+
+	SceneManager_SchedulePop();
+
+	if (callback) {
+		// path = cwd + fileName
+		char* path = ConcatString(cwd, "/");
+		char* path2 = ConcatString(path, fileName);
+		free(path);
+
+		Log("Selected path '%s'", path2);
+		callback(path2);
+		free(path2);
+	}
+}
+
+static void CancelButton(UI_Button* this, uint8_t button) {
+	(void) this;
+
+	if (button != 0) return;
+
+	SceneManager_SchedulePop();
+
+	if (callback) {
+		callback(NULL);
 	}
 }
 
@@ -152,8 +192,17 @@ static void Init(Scene* scene) {
 	row = UI_ContainerAddRow(container, 0);
 	UI_RowAddElement(row, UI_NewSpacer(0));
 	UI_RowAddElement(row, UI_NewSpacer(0));
-	UI_RowAddElement(row, UI_NewButton("Save", false, NULL));
-	UI_RowAddElement(row, UI_NewButton("Cancel", false, NULL));
+
+	const char* buttonName;
+	switch (mode) {
+		case FILE_BROWSE_OPEN: buttonName = "Open"; break;
+		case FILE_BROWSE_SAVE: buttonName = "Save"; break;
+		default:               assert(0);
+	}
+
+	UI_RowAddElement(row, UI_NewButton(buttonName, false, &SelectButton));
+
+	UI_RowAddElement(row, UI_NewButton("Cancel", false, &CancelButton));
 	UI_RowUpdate(row);
 }
 
@@ -177,10 +226,16 @@ static void Render(Scene* scene, bool top) {
 	(void) top;
 
 	Backend_Begin2D();
+	Backend_EnableAlpha(true);
+	Backend_RenderRect(
+		(Rect) {0, 0, video.windows[UI_WIN].width, video.windows[UI_WIN].height},
+		(Colour) {0, 0, 0, 128}
+	);
+
 	UI_ManagerRender(scene->ui);
 }
 
-Scene FileBrowserScene(void) {
+Scene FileBrowserScene(int p_mode, FileBrowserCallback p_callback) {
 	Scene ret;
 	ret.type        = SCENE_TYPE_OTHER;
 	ret.name        = "File Browser";
@@ -189,5 +244,9 @@ Scene FileBrowserScene(void) {
 	ret.handleEvent = &HandleEvent;
 	ret.update      = &Update;
 	ret.render      = &Render;
+
+	mode     = p_mode;
+	callback = p_callback;
+
 	return ret;
 }

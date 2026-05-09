@@ -57,8 +57,14 @@ static ResourceFile* DriveList(ResourceDrive* drive, const char* folder, size_t*
 	return ret;
 }
 
-static Stream DriveOpen(ResourceDrive* drive, const char* path, bool* success) {
+static Stream DriveOpen(ResourceDrive* drive, const char* path, bool* success, bool write) {
 	(void) drive;
+
+	if (write) {
+		*success = false;
+		return Stream_Blank();
+	}
+
 	*success = false;
 
 	for (size_t i = 0; i < sizeof(files) / sizeof(File); ++ i) {

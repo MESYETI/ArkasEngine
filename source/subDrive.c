@@ -78,7 +78,7 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	return sub->list(sub, drivePath, sz);
 }
 
-static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success) {
+static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success, bool write) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
 	ResourceDrive* sub = GetSubDrive(drive, path);
@@ -92,7 +92,7 @@ static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success)
 
 	const char* drivePath = strchr(path, '/') + 1;
 
-	return sub->open(sub, drivePath, success);
+	return sub->open(sub, drivePath, success, write);
 }
 
 static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* size) {

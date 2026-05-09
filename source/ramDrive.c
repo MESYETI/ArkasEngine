@@ -147,7 +147,12 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	return ret;
 }
 
-static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success) {
+static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success, bool write) {
+	if (write) {
+		*success = false;
+		return Stream_Blank();
+	}
+
 	RamDrive* drive = (RamDrive*) p_drive;
 	File*     file  = GetFile(&drive->fs, path);
 

@@ -4,12 +4,6 @@
 #include "scene.h"
 #include "mapProject.h"
 
-#ifdef PLATFORM_3DS
-	#define ME_UI_WIN 1
-#else
-	#define ME_UI_WIN 0
-#endif
-
 enum {
 	ME_MODE_EDIT = 0,
 	ME_MODE_SECTOR,
@@ -41,6 +35,8 @@ typedef struct {
 
 	UI_Container* topCont;
 	UI_Container* bottomCont;
+
+	char* savePath;
 } MapEditor;
 
 extern MapEditor mapEditor;

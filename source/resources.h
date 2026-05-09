@@ -22,7 +22,7 @@ struct ResourceDrive {
 	FUNCTION_POINTER(bool,          fileExists, ResourceDrive*, const char* path);
 	FUNCTION_POINTER(void,          printList, ResourceDrive*, const char* folder);
 	FUNCTION_POINTER(ResourceFile*, list, ResourceDrive*, const char* folder, size_t* sz);
-	FUNCTION_POINTER(Stream,        open, ResourceDrive*, const char* path, bool* success);
+	FUNCTION_POINTER(Stream,        open, ResourceDrive*, const char* path, bool* success, bool write);
 
 	FUNCTION_POINTER(void*, readFile, ResourceDrive*, const char* path, size_t* size);
 
@@ -92,7 +92,7 @@ void*         Resources_ReadFile(const char* path, size_t* size);
 bool          Resources_MakeDir(const char* path);
 bool          Resources_Delete(const char* path);
 bool          Resources_WriteFile(const char* path, void* contents, size_t size);
-Stream        Resources_Open(const char* path, bool* success);
+Stream        Resources_Open(const char* path, bool* success, bool write);
 Resource*     Resources_GetRes(const char* path, uint32_t opt);
 void          Resources_FreeRes(Resource* resource);
 

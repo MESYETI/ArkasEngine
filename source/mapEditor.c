@@ -9,6 +9,8 @@
 #include "backend.h"
 #include "mapEditor.h"
 #include "mapProject.h"
+#include "messageBox.h"
+#include "fileBrowser.h"
 #include "ui/label.h"
 #include "ui/button.h"
 #include "ui/spacer.h"
@@ -27,8 +29,8 @@ static const char* CoordLabel(void) {
 	static char buf[64];
 
 	FVec2 centerPos = {
-		mapEditor.mCamera.x + (((float) video.windows[ME_UI_WIN].width)  / 32.0f / 2.0f),
-		mapEditor.mCamera.y + (((float) video.windows[ME_UI_WIN].height) / 32.0f / 2.0f)
+		mapEditor.mCamera.x + (((float) video.windows[UI_WIN].width)  / 32.0f / 2.0f),
+		mapEditor.mCamera.y + (((float) video.windows[UI_WIN].height) / 32.0f / 2.0f)
 	};
 
 	snprintf(buf, sizeof(buf), "X: %.2f, Y: %.2f", centerPos.x, centerPos.y);
@@ -95,6 +97,88 @@ static void PlayButton(UI_Button* this, uint8_t button) {
 // 	rightCont->fixedHeight = rightCont->fixedHeight? 0 : 256;
 // }
 
+static void NewButton(uint8_t button) {
+	if (button != 0) return;
+
+	MapProj_Free(&mapEditor.project);
+	MapProj_Init(&mapEditor.project);
+
+	mapEditor.mCamera    = (FVec2) {0, 0};
+	mapEditor.mCamera.x -= ((float) video.windows[UI_WIN].width)  / 32.0f / 2.0f;
+	mapEditor.mCamera.y -= ((float) video.windows[UI_WIN].height) / 32.0f / 2.0f;
+}
+
+static void OpenCallback(const char* path) {
+	if (!path) return;
+
+	bool   success;
+	Stream file = Resources_Open(path, &success, false);
+
+	if (!success) {
+		SceneManager_ScheduleAdd(NewMessageBoxScene(
+			"Error", "Failed to open file"
+		));
+		return;
+	}
+
+	MapProj_Free(&mapEditor.project);
+	MapProj_Init(&mapEditor.project);
+
+	if (!MapProj_Open(&mapEditor.project, &file)) {
+		SceneManager_ScheduleAdd(NewMessageBoxScene(
+			"Error", "Failed to open file"
+		));
+		return;
+	}
+	Stream_Close(&file);
+
+	mapEditor.mCamera    = (FVec2) {0, 0};
+	mapEditor.mCamera.x -= ((float) video.windows[UI_WIN].width)  / 32.0f / 2.0f;
+	mapEditor.mCamera.y -= ((float) video.windows[UI_WIN].height) / 32.0f / 2.0f;
+}
+
+static void OpenButton(uint8_t button) {
+	if (button != 0) return;
+
+	SceneManager_ScheduleAdd(FileBrowserScene(FILE_BROWSE_OPEN, &OpenCallback));
+}
+
+static void SaveProject(void) {
+	bool   success;
+	Stream file = Resources_Open(mapEditor.savePath, &success, true);
+
+	if (!success) {
+		SceneManager_ScheduleAdd(NewMessageBoxScene(
+			"Error", "Failed to save project"
+		));
+		return;
+	}
+
+	MapProj_Save(&mapEditor.project, &file);
+}
+
+static void SaveCallback(const char* path) {
+	mapEditor.savePath = NewString(path);
+	SaveProject();
+}
+
+static void SaveButton(uint8_t button) {
+	if (button != 0) return;
+
+	if (mapEditor.savePath) {
+		SaveProject();
+		return;
+	}
+
+	SceneManager_ScheduleAdd(FileBrowserScene(FILE_BROWSE_SAVE, &SaveCallback));
+}
+
+static void SaveAsButton(uint8_t button) {
+	if (button != 0) return;
+
+	SceneManager_ScheduleAdd(FileBrowserScene(FILE_BROWSE_SAVE, &SaveCallback));
+}
+
 static void Unimplemented(uint8_t button) {
 	(void) button;
 
@@ -102,20 +186,21 @@ static void Unimplemented(uint8_t button) {
 }
 
 static Vec2 BarResizer(UI_Container* cont) {
-	return (Vec2) {video.windows[ME_UI_WIN].width, cont->h};
+	return (Vec2) {video.windows[UI_WIN].width, cont->h};
 }
 
 static void Init(Scene* scene) {
 	mapEditor.editorMode = ME_MODE_EDIT;
 	mapEditor.thisSect   = NULL;
 	mapEditor.thisPoint  = NULL;
+	mapEditor.savePath   = NULL;
 
 	MapProj_Init(&mapEditor.project);
 
 	scene->ui = UI_ManagerInit(4);
 
 	mapEditor.topCont = UI_ManagerAddContainer(
-		scene->ui, video.windows[ME_UI_WIN].width, &BarResizer
+		scene->ui, video.windows[UI_WIN].width, &BarResizer
 	);
 
 	UI_ContainerAlignLeft(mapEditor.topCont, 0);
@@ -125,10 +210,10 @@ static void Init(Scene* scene) {
 	UI_Row* row = UI_ContainerAddRow(mapEditor.topCont, 18);
 
 	static UI_DropDownButton fileButtons[] = {
-		{"New (c+N)", &Unimplemented},
-		{"Open (c+O)", &Unimplemented},
-		{"Save (c+S)", &Unimplemented},
-		{"Save as (c+D)", &Unimplemented}
+		{"New (c+N)",     &NewButton},
+		{"Open (c+O)",    &OpenButton},
+		{"Save (c+S)",    &SaveButton},
+		{"Save as (c+D)", &SaveAsButton}
 	};
 
 	static UI_DropDownButton editButtons[] = {
@@ -149,7 +234,7 @@ static void Init(Scene* scene) {
 	UI_RowUpdate(row);
 
 	mapEditor.bottomCont = UI_ManagerAddContainer(
-		scene->ui, video.windows[ME_UI_WIN].width, &BarResizer
+		scene->ui, video.windows[UI_WIN].width, &BarResizer
 	);
 
 	UI_ContainerAlignLeft(mapEditor.bottomCont, 0);
@@ -164,8 +249,8 @@ static void Init(Scene* scene) {
 	UI_RowUpdate(row);
 
 	mapEditor.mCamera    = (FVec2) {0, 0};
-	mapEditor.mCamera.x -= ((float) video.windows[ME_UI_WIN].width)  / 32.0f / 2.0f;
-	mapEditor.mCamera.y -= ((float) video.windows[ME_UI_WIN].height) / 32.0f / 2.0f;
+	mapEditor.mCamera.x -= ((float) video.windows[UI_WIN].width)  / 32.0f / 2.0f;
+	mapEditor.mCamera.y -= ((float) video.windows[UI_WIN].height) / 32.0f / 2.0f;
 
 	for (size_t i = 0; i < mapEditor.extAmount; ++ i) {
 		MapEditorExt* ext = &mapEditor.extensions[i];
@@ -183,6 +268,10 @@ static void Free(Scene* scene) {
 
 	UI_ManagerFree(scene->ui);
 	MapProj_Free(&mapEditor.project);
+
+	if (mapEditor.savePath) {
+		free(mapEditor.savePath);
+	}
 }
 
 static FVec2 CursorOnMap(void) {
@@ -364,8 +453,8 @@ static void Render(Scene* scene, bool top) {
 		(int) (mapEditor.mCamera.y * unitPx)
 	};
 
-	for (int i = 0; i < video.windows[ME_UI_WIN].height; ++ i) {
-		int w = video.windows[ME_UI_WIN].width;
+	for (int i = 0; i < video.windows[UI_WIN].height; ++ i) {
+		int w = video.windows[UI_WIN].width;
 
 		if ((i + cam.y) % (unitPx * 4) == 0) {
 			Backend_HLine(0, i, 1, w, (Colour) {0x80, 0x80, 0x80, 0xFF});
@@ -375,16 +464,16 @@ static void Render(Scene* scene, bool top) {
 		}
 	}
 
-	for (int i = 0; i < video.windows[ME_UI_WIN].width; ++ i) {
+	for (int i = 0; i < video.windows[UI_WIN].width; ++ i) {
 		if ((i + cam.x) % (unitPx * 4) == 0) {
 			Backend_VLine(
-				i, 0, 1, video.windows[ME_UI_WIN].height,
+				i, 0, 1, video.windows[UI_WIN].height,
 				(Colour) {0x80, 0x80, 0x80, 0xFF}
 			);
 		}
 		else if ((i + cam.x) % unitPx == 0) {
 			Backend_VLine(
-				i, 0, 1, video.windows[ME_UI_WIN].height,
+				i, 0, 1, video.windows[UI_WIN].height,
 				(Colour) {0x40, 0x40, 0x40, 0xFF}
 			);
 		}
@@ -450,11 +539,11 @@ static void Render(Scene* scene, bool top) {
 	// render camera lines
 	Colour lineColour = {64, 64, 255, 128};
 	Backend_HLine(
-		0, video.windows[ME_UI_WIN].height / 2, 1, video.windows[ME_UI_WIN].width,
+		0, video.windows[UI_WIN].height / 2, 1, video.windows[UI_WIN].width,
 		lineColour
 	);
 	Backend_VLine(
-		video.windows[ME_UI_WIN].width / 2, 0, 1, video.windows[ME_UI_WIN].height,
+		video.windows[UI_WIN].width / 2, 0, 1, video.windows[UI_WIN].height,
 		lineColour
 	);
 

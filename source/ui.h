@@ -6,6 +6,12 @@
 #include "event.h"
 #include "common.h"
 
+#ifdef PLATFORM_3DS
+	#define UI_WIN 1
+#else
+	#define UI_WIN 0
+#endif
+
 typedef struct UI_Container UI_Container;
 typedef struct UI_Element UI_Element;
 

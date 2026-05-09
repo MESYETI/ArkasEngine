@@ -66,7 +66,7 @@ static void PointTabButton(UI_Button* this, uint8_t button) {
 
 static Vec2 OptionsResizer(UI_Container* cont) {
 	return (Vec2) {
-		cont->w, video.windows[ME_UI_WIN].height -
+		cont->w, video.windows[UI_WIN].height -
 		UI_ContainerGetRect(mapEditor.topCont).h -
 		UI_ContainerGetRect(mapEditor.bottomCont).h
 	};
@@ -75,7 +75,7 @@ static Vec2 OptionsResizer(UI_Container* cont) {
 static void Init(UI_Manager* ui) {
 	rightCont = UI_ManagerAddContainer(ui, 128, &OptionsResizer);
 
-	rightCont->fixedHeight = video.windows[ME_UI_WIN].height -
+	rightCont->fixedHeight = video.windows[UI_WIN].height -
 		UI_ContainerGetRect(mapEditor.topCont).h -
 		UI_ContainerGetRect(mapEditor.bottomCont).h;
 

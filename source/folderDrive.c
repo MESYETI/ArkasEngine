@@ -120,7 +120,7 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	return ret;
 }
 
-static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success) {
+static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success, bool write) {
 	FolderDrive* drive = (FolderDrive*) p_drive;
 
 	*success = true;
@@ -134,7 +134,7 @@ static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success)
 	strncat(pathAdd, "/", 4096 - strlen(pathAdd));
 	strncat(pathAdd, path, 4096 - strlen(pathAdd));
 
-	FILE* file = fopen(pathAdd, "rb+");
+	FILE* file = fopen(pathAdd, write? "wb" : "rb");
 
 	if (file) {
 		return Stream_File(file, true);

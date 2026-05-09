@@ -56,7 +56,7 @@ typedef union {
 } SocketValue;
 
 struct Socket {
-	SocketValue value; // field ‘value’ has incomplete type
+	SocketValue value;
 	Socket*     next;
 	Socket*     prev;
 };

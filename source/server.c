@@ -116,7 +116,7 @@ static bool ClientSendMap(ServerClient* this) {
 	Socket_Send(this->relSock, mapName, sizeof(mapName));
 
 	bool success;
-	this->mapStream = Resources_Open(server.mapPath, &success);
+	this->mapStream = Resources_Open(server.mapPath, &success, false);
 
 	if (!success) {
 		Log("Failed to open map");

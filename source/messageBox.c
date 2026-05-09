@@ -8,12 +8,6 @@
 static char* title;
 static char* message;
 
-#ifdef PLATFORM_3DS
-	#define UI_WIN 1
-#else
-	#define UI_WIN 0
-#endif
-
 static void OKButton(UI_Button* this, uint8_t button) {
 	(void) this;
 

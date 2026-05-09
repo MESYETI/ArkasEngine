@@ -2,6 +2,7 @@
 #define AE_MAP_PROJECT_H
 
 #include "types.h"
+#include "stream.h"
 
 typedef struct {
 	FVec2  pos;
@@ -24,6 +25,9 @@ typedef struct {
 void MapProj_Init(MProject* proj);
 void MapProj_Free(MProject* proj);
 void MapProj_Export(MProject* proj);
+
+bool MapProj_Open(MProject* proj, Stream* stream);
+void MapProj_Save(MProject* proj, Stream* stream);
 
 MProjSector* MapProj_NewSector(MProject* proj);
 FVec2        MapProj_SectorCenter(MProjSector* sect);

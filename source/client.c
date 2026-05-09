@@ -171,7 +171,7 @@ void Client_Update(void) {
 
 				if (strcmp(client.fileName, "map.arm") == 0) {
 					bool   success;
-					Stream file = Resources_Open("net:map.arm", &success);
+					Stream file = Resources_Open("net:map.arm", &success, false);
 
 					if (!success) {
 						Error("Failed to open server map");

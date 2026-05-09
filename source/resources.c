@@ -343,7 +343,7 @@ bool Resources_WriteFile(const char* path, void* contents, size_t size) {
 	return drive->writeFile(drive, drivePath, contents, size);
 }
 
-Stream Resources_Open(const char* path, bool* success) {
+Stream Resources_Open(const char* path, bool* success, bool write) {
 	ResourceDrive* drive = GetDrive(path);
 
 	if (!drive) {
@@ -364,7 +364,7 @@ Stream Resources_Open(const char* path, bool* success) {
 		++ drivePath;
 	}
 
-	return drive->open(drive, drivePath, success);
+	return drive->open(drive, drivePath, success, write);
 }
 
 static Resource* AllocResource(void) {
