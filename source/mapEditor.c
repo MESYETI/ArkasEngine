@@ -74,21 +74,23 @@ static void AutoPortalButton(uint8_t button) {
 	mapEditor.editorMode = ME_MODE_AUTO_PORTAL;
 }
 
-static void PlayButton(UI_Button* this, uint8_t button) {
+static void SwapViewButton(UI_Button* this, uint8_t button) {
 	(void) this;
 
 	if (button != 0) return;
 
-	MapProj_Export(&mapEditor.project);
+	if (mapEditor.editorMode == ME_MODE_VIEWER) {
+		mapEditor.editorMode = ME_MODE_EDIT;
+	}
+	else {
+		MapProj_Export(&mapEditor.project);
+		Backend_OnMapLoad();
 
-	SceneManager_Free();
-	SceneManager_AddScene((Scene) {
-		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
-		NULL, NULL
-	});
+		camera.sector = &map.sectors[0];
+		player.sector = &map.sectors[0];
 
-	camera.sector = &map.sectors[0];
-	player.sector = &map.sectors[0];
+		mapEditor.editorMode = ME_MODE_VIEWER;
+	}
 }
 
 // static void RightContMinimise(UI_Button* this, uint8_t button) {
@@ -245,7 +247,7 @@ static void Init(Scene* scene) {
 
 	UI_RowAddElement(row, UI_NewDynLabel(&engine.font, &CoordLabel, 0));
 	UI_RowAddElement(row, UI_NewDynLabel(&engine.font, &ModeLabel, UI_LABEL_CENTERED));
-	UI_RowAddElement(row, UI_NewButton("Play", false, &PlayButton));
+	UI_RowAddElement(row, UI_NewButton("Swap View", false, &SwapViewButton));
 	UI_RowUpdate(row);
 
 	mapEditor.mCamera    = (FVec2) {0, 0};
@@ -292,6 +294,8 @@ static bool HandleEvent(Scene* scene, Event* e, bool top) {
 	if (!top) return false;
 
 	if (UI_ManagerHandleEvent(scene->ui, e)) return true;
+
+	if (mapEditor.editorMode == ME_MODE_VIEWER) return false;
 
 	switch (e->type) {
 		case AE_EVENT_MOUSE_BUTTON_DOWN: {
@@ -442,6 +446,13 @@ static void Update(Scene* scene, bool top) {
 }
 
 static void Render(Scene* scene, bool top) {
+	if (mapEditor.editorMode == ME_MODE_VIEWER) {
+		Backend_RenderScene();
+		Backend_Begin2D();
+		UI_ManagerRender(scene->ui);
+		return;
+	}
+
 	Backend_Begin2D();
 	Backend_Clear(0, 0, 0);
 	Backend_EnableAlpha(true);

@@ -179,13 +179,13 @@ void GameBase_Update(bool top) {
 				player.sector = &map.sectors[wall->portalSector];
 				camera.sector = &map.sectors[wall->portalSector];
 
-				if (
-					(player.sector->floor > player.pos.y) ||
-					(player.sector->floor - player.pos.y <= 0.6)
-				) {
-					player.pos.y = player.sector->floor;
-					player.vel.y = 0.0;
-				}
+				// if (
+				// 	(player.sector->floor > player.pos.y) ||
+				// 	(player.sector->floor - player.pos.y <= 0.6)
+				// ) {
+				// 	player.pos.y = player.sector->floor;
+				// 	player.vel.y = 0.0;
+				// }
 
 				player.pos.x -= wall->portalOff.x;
 				player.pos.z -= wall->portalOff.y;

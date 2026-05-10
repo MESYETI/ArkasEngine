@@ -7,7 +7,8 @@
 enum {
 	ME_MODE_EDIT = 0,
 	ME_MODE_SECTOR,
-	ME_MODE_AUTO_PORTAL
+	ME_MODE_AUTO_PORTAL,
+	ME_MODE_VIEWER
 };
 
 typedef struct {
