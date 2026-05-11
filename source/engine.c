@@ -23,205 +23,350 @@
 #include "resources.h"
 #include "variables.h"
 
+#include <string.h>
+
 Engine engine;
 
+static bool Engine_InitCore(void);
+static bool Engine_InitClient(const char* gameName);
+static bool Engine_InitFilesystem(void);
+static void Engine_InitVariables(void);
+static void Engine_ProcessEvents(void);
+static void Engine_UpdateTiming(void);
+
 void Engine_Init(const char* gameName, int argc, const char** argv) {
-	Platform_Init();
-	Log_Init();
+	memset(&engine, 0, sizeof(engine));
 
-	Variables_Add(VAR_FLOAT, "player.ground-friction",  &player.groundFriction, 0);
-	Variables_Add(VAR_FLOAT, "player.gravity",          &player.gravity, 0);
-	Variables_Add(VAR_FLOAT, "player.speed",            &player.speed, 0);
-	Variables_Add(VAR_FLOAT, "player.air-speed",        &player.airSpeed, 0);
-	Variables_Add(VAR_FLOAT, "player.jump-speed",       &player.jumpSpeed, 0);
-	Variables_Add(VAR_FLOAT, "game.sensitivity",        &gameBaseConfig.sensitivity, 0);
-	Variables_Add(VAR_FLOAT, "game.music-volume",       &gameBaseConfig.musicVolume, 0);
-	Variables_Add(VAR_BOOL,  "echo",                    &console.echo, 0);
-	Variables_Add(VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D, 0);
-	Variables_Add(VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering, 0);
-	Variables_Add(VAR_STR,   "engine.backend",          &backendOptions.name, 20);
-	Variables_Add(VAR_INT,   "engine.debug-level",      &gameBaseConfig.debugInfoLevel, 0);
-	Variables_Add(VAR_BOOL,  "engine.noclip",           &gameBaseConfig.noclip, 0);
-	Variables_Add(VAR_BOOL,  "server.inet",             &serverConf.inet, 0);
-	Variables_Add(VAR_INT,   "server.inet-port",        &serverConf.inetPort, 0);
-	Variables_Add(VAR_BOOL,  "server.local",            &serverConf.local, 0);
-	Variables_Add(VAR_STR,   "client.username",         &client.name, sizeof(client.name));
-
-	engine.server = false;
-	for (int i = 1; i < argc; ++ i) {
+	for (int i = 1; i < argc; ++i) {
 		if (strcmp(argv[i], "--server") == 0) {
 			engine.server = true;
 		}
 	}
 
-	// make game engine folders
-	MakeDir(AE_LOCATION "game",        true);
-	MakeDir(AE_LOCATION "game/extra",  true);
-	MakeDir(AE_LOCATION "game/net",    true);
-	MakeDir(AE_LOCATION "game/maps",   true);
-	MakeDir(AE_LOCATION "screenshots", true);
+	if (!Engine_InitCore()) {
+		Error("Failed to initialize engine core");
+		return;
+	}
+
+	Engine_InitVariables();
+
+	if (!Engine_InitFilesystem()) {
+		Error("Failed to initialize filesystem");
+		return;
+	}
 
 	Console_Init();
+
 	Log("Arkas Engine WIP");
-	Log("Made by MESYETI in 2025");
+	Log("Made by MESYETI");
+
 	Resources_Init();
-
-	Window_Init();
-
-	if (!FileExists(AE_LOCATION "startup.cmd")) {
-		Log("Generating startup.cmd");
-
-		WriteFile_(AE_LOCATION "startup.cmd",
-			"@set echo false\n"
-			"run gen_options.cmd\n"
-			"@set echo true\n"
-		);
-	}
-	if (!FileExists(AE_LOCATION "gen_options.cmd")) {
-		Log("Generating gen_options.cmd");
-
-		SaveDefaultConfig();
-	}
-
-	// run script
-
-	Log("Arkas Engine is now running as a server");
 
 	engine.running = true;
 
 	if (engine.server) {
-		Log("Running server startup...");
+		Log("Arkas Engine is running in dedicated server mode");
 
 		if (!Console_RunFile(AE_LOCATION "server.cmd")) {
-			Log("Failed to run server startup");
+			Log("Failed to run server.cmd");
 		}
+
 		return;
 	}
-	else {
-		Log("Running game startup...");
 
-		if (!Console_RunFile(AE_LOCATION "startup.cmd")) {
-			Log("Failed to run startup");
+	if (!Engine_InitClient(gameName)) {
+		Error("Failed to initialize client");
+		engine.running = false;
+		return;
+	}
+
+	Log("Running startup script...");
+
+	if (!Console_RunFile(AE_LOCATION "startup.cmd")) {
+		Log("Failed to run startup.cmd");
+	}
+}
+
+static bool Engine_InitCore(void) {
+	Platform_Init();
+	Log_Init();
+
+	return true;
+}
+
+static void Engine_InitVariables(void) {
+	Variables_Add(VAR_FLOAT, "player.ground-friction",
+		&player.groundFriction, 0);
+
+	Variables_Add(VAR_FLOAT, "player.gravity",
+		&player.gravity, 0);
+
+	Variables_Add(VAR_FLOAT, "player.speed",
+		&player.speed, 0);
+
+	Variables_Add(VAR_FLOAT, "player.air-speed",
+		&player.airSpeed, 0);
+
+	Variables_Add(VAR_FLOAT, "player.jump-speed",
+		&player.jumpSpeed, 0);
+
+	Variables_Add(VAR_FLOAT, "game.sensitivity",
+		&gameBaseConfig.sensitivity, 0);
+
+	Variables_Add(VAR_FLOAT, "game.music-volume",
+		&gameBaseConfig.musicVolume, 0);
+
+	Variables_Add(VAR_BOOL, "echo",
+		&console.echo, 0);
+
+	Variables_Add(VAR_INT, "engine.scale-2D",
+		&globalConfig.scale2D, 0);
+
+	Variables_Add(VAR_BOOL, "engine.skybox-filtering",
+		&gameBaseConfig.skyboxFiltering, 0);
+
+	Variables_Add(VAR_STR, "engine.backend",
+		backendOptions.name,
+		sizeof(backendOptions.name));
+
+	Variables_Add(VAR_INT, "engine.debug-level",
+		&gameBaseConfig.debugInfoLevel, 0);
+
+	Variables_Add(VAR_BOOL, "engine.noclip",
+		&gameBaseConfig.noclip, 0);
+
+	Variables_Add(VAR_BOOL, "server.inet",
+		&serverConf.inet, 0);
+
+	Variables_Add(VAR_INT, "server.inet-port",
+		&serverConf.inetPort, 0);
+
+	Variables_Add(VAR_BOOL, "server.local",
+		&serverConf.local, 0);
+
+	Variables_Add(VAR_STR, "client.username",
+		client.name,
+		sizeof(client.name));
+}
+
+static bool Engine_InitFilesystem(void) {
+	MakeDir(AE_LOCATION "game", true);
+	MakeDir(AE_LOCATION "game/extra", true);
+	MakeDir(AE_LOCATION "game/net", true);
+	MakeDir(AE_LOCATION "game/maps", true);
+	MakeDir(AE_LOCATION "screenshots", true);
+
+	if (!FileExists(AE_LOCATION "startup.cmd")) {
+		Log("Generating startup.cmd");
+
+		if (!WriteFile_(
+			AE_LOCATION "startup.cmd",
+
+			"@set echo false\n"
+			"run gen_options.cmd\n"
+			"@set echo true\n"
+		)) {
+			Log("Failed to generate startup.cmd");
+			return false;
 		}
 	}
 
-	Video_Init(gameName);
+	if (!FileExists(AE_LOCATION "gen_options.cmd")) {
+		Log("Generating gen_options.cmd");
+		SaveDefaultConfig();
+	}
+
+	return true;
+}
+
+static bool Engine_InitClient(const char* gameName) {
+	if (!Window_Init()) {
+		Log("Window_Init failed");
+		return false;
+	}
+
+	if (!Video_Init(gameName)) {
+		Log("Video_Init failed");
+		return false;
+	}
+
 	SceneManager_Init();
-	Audio_Init();
+
+	if (!Audio_Init()) {
+		Log("Audio_Init failed");
+		return false;
+	}
+
 	Theme_Init();
 	UI_Init();
 	MapEditor_Init();
 
-	bool success;
-	engine.font    = Text_LoadFont("builtin:font.png", &success);
-	engine.fps     = 0;
+	bool success = false;
+
+	engine.font = Text_LoadFont(
+		"builtin:font.png",
+		&success
+	);
+
+	engine.fps = 0;
 
 	if (!success) {
-		Error("Failed to load font");
+		Log("Failed to load builtin font");
+		return false;
 	}
+
+	return true;
 }
 
 void Engine_Free(void) {
-	Log("Goodbye!");
-
-	Window_Quit();
+	Log("Shutting down engine...");
 
 	if (server.running) {
 		Server_Free();
 	}
 
-	if (engine.server) return;
+	if (client.running) {
+		Client_Free();
+	}
 
-	Input_Free();
-	Audio_Free();
-	SceneManager_Free();
-	Text_FreeFont(&engine.font);
+	if (!engine.server) {
+		Input_Free();
+		Audio_Free();
+		SceneManager_Free();
+		Text_FreeFont(&engine.font);
+		Video_Free();
+		Window_Quit();
+	}
+
 	Resources_Free();
-	Video_Free();
 	Event_Free();
+	Console_Free();
 	Platform_Quit();
+
+	memset(&engine, 0, sizeof(engine));
+
+	Log("Goodbye!");
+}
+
+static void Engine_UpdateTiming(void) {
+	static bool initialized = false;
+	static uint64_t oldFrameTime = 0;
+
+	uint64_t newFrameTime = Platform_GetTime();
+
+	if (!initialized) {
+		oldFrameTime = newFrameTime;
+		initialized = true;
+	}
+
+	uint64_t frameTimeDiff = newFrameTime - oldFrameTime;
+
+	engine.delta = (float)frameTimeDiff / 1000000.0f;
+
+	/* Prevent unstable simulation */
+	if (engine.delta < 0.000001f) {
+		engine.delta = 0.000001f;
+	}
+
+	if (engine.delta > 0.25f) {
+		engine.delta = 0.25f;
+	}
+
+	static float fpsTimer = 0.0f;
+	static int frames = 0;
+
+	++frames;
+	fpsTimer += engine.delta;
+
+	if (fpsTimer >= 1.0f) {
+		fpsTimer -= 1.0f;
+		engine.fps = frames;
+		frames = 0;
+	}
+
+	oldFrameTime = newFrameTime;
+}
+
+static void Engine_ProcessEvents(void) {
+	Event e;
+
+	while (Event_Poll(&e)) {
+		if (e.type == AE_EVENT_QUIT) {
+			engine.running = false;
+			continue;
+		}
+
+		Input_HandleEvent(&e);
+
+		if (e.type == AE_EVENT_KEY_DOWN) {
+			switch (e.key.key) {
+				case AE_KEY_GRAVE: {
+					if (engine.console) {
+						Console_End();
+					}
+					else {
+						Console_Begin();
+					}
+
+					engine.console = !engine.console;
+					break;
+				}
+
+				case AE_KEY_ESCAPE: {
+					if (engine.console) {
+						Console_End();
+						engine.console = false;
+					}
+					break;
+				}
+
+				default:
+					break;
+			}
+		}
+
+		if (engine.server) {
+			continue;
+		}
+
+		/* Console captures input first */
+		if (engine.console) {
+			Console_HandleEvent(&e);
+			continue;
+		}
+
+		SceneManager_HandleEvent(&e);
+	}
 }
 
 void Engine_Update(void) {
-	static uint64_t oldFrameTime = 0;
+	Engine_UpdateTiming();
 
-	uint64_t newFrameTime  = Platform_GetTime();
-	uint64_t frameTimeDiff = newFrameTime - oldFrameTime;
-	engine.delta           = frameTimeDiff / 1000000.0f;
-
-	static float fpsTimer = 0.0;
-	static int   frames   = 0;
-
-	++ frames;
-	fpsTimer += engine.delta;
-
-	if (fpsTimer >= 1.0) {
-		fpsTimer = 0.0;
-		engine.fps  = frames;
-		frames   = 0;
-	}
-
-	Event e;
-	while (Event_Poll(&e)) {
-		Input_HandleEvent(&e);
-
-		switch (e.type) {
-			case AE_EVENT_KEY_DOWN: {
-				switch (e.key.key) {
-					case AE_KEY_GRAVE: {
-						if (!engine.console) {
-							Console_Begin();
-							engine.console = true;
-						}
-						break;
-					}
-					case AE_KEY_ESCAPE: {
-						if (engine.console) {
-							Console_End();
-							engine.console = false;
-						}
-						break;
-					}
-					default: break;
-				}
-				break;
-			}
-			case AE_EVENT_QUIT: engine.running = false; break;
-		}
-
-		if (engine.server) continue;
-
-		SceneManager_HandleEvent(&e);
-
-		if (engine.console) {
-			Console_HandleEvent(&e);
-		}
-	}
+	Engine_ProcessEvents();
 
 	if (server.running) {
 		Server_Update();
 	}
+
 	if (client.running) {
 		Client_Update();
 	}
 
-	if (engine.server) return;
+	if (engine.server) {
+		return;
+	}
 
 	SceneManager_Update();
 
 	Audio_Update();
 
 	Backend_Begin();
+
 	SceneManager_Render();
 
 	if (engine.console) {
 		Console_Render();
 	}
 
-	// Backend_Clear(0, 0, 50);
-	// Backend_Begin2D();
-	// Backend_DrawTexture(engine.font.texture, NULL, NULL, NULL);
-
 	Backend_FinishRender();
-	oldFrameTime = newFrameTime;
 }
