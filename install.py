@@ -1,19 +1,24 @@
 import os
 import shutil
+from pathlib import Path
 
-install = "/usr/include/Arkas/"
+SOURCE_DIR = Path("source")
+INSTALL_DIR = Path("/usr/include/Arkas")
 
-if not os.path.isdir(install):
-    os.mkdir(install)
+# Create installation root safely
+INSTALL_DIR.mkdir(parents=True, exist_ok=True)
 
-for subDir, dirs, files in os.walk("source"):
-    for d in dirs:
-        os.mkdir(os.path.join(subDir, d).replace("source/", install))
+for src_path in SOURCE_DIR.rglob("*.h"):
+    # Compute relative path inside source/
+    relative_path = src_path.relative_to(SOURCE_DIR)
 
-    for file in files:
-        src  = os.path.join(subDir, file)
-        dest = src.replace("source/", install)
+    # Destination path
+    dest_path = INSTALL_DIR / relative_path
 
-        if not src.endswith(".h"):
-            continue
-        shutil.copyfile(src, dest)
+    # Ensure parent directories exist
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Copy file with metadata
+    shutil.copy2(src_path, dest_path)
+
+    print(f"Installed: {dest_path}")
