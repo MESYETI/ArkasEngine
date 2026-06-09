@@ -255,7 +255,10 @@ void Backend_Begin(void) {
 	state.done2D = false;
 }
 
-void Backend_Begin2D(void) {
+void Backend_Begin2D(bool originTop) {
+	// TODO: support originTop
+	(void) originTop;
+
 	C2D_Prepare();
 	C2D_SceneBegin(state.target);
 

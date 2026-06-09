@@ -41,40 +41,6 @@ void Player_Physics(void) {
 	if (!player.skipFriction) {
 		player.vel.x += player.acc.x;
 		player.vel.z += player.acc.z;
-
-// 		if (player.acc.x > 0) {
-// 			if (player.vel.x + player.acc.x > player.maxSpeed) {
-// 				player.vel.x = player.maxSpeed;
-// 			}
-// 			else {
-// 				player.vel.x += player.acc.x;
-// 			}
-// 		}
-// 		else if (player.acc.x < 0) {
-// 			if (player.vel.x + player.acc.x < -player.maxSpeed) {
-// 				player.vel.x = -player.maxSpeed;
-// 			}
-// 			else {
-// 				player.vel.x += player.acc.x;
-// 			}
-// 		}
-// 
-// 		if (player.acc.z > 0) {
-// 			if (player.vel.z + player.acc.z > player.maxSpeed) {
-// 				player.vel.z = player.maxSpeed;
-// 			}
-// 			else {
-// 				player.vel.z += player.acc.z;
-// 			}
-// 		}
-// 		else if (player.acc.z < 0) {
-// 			if (player.vel.z + player.acc.z < -player.maxSpeed) {
-// 				player.vel.z = -player.maxSpeed;
-// 			}
-// 			else {
-// 				player.vel.z += player.acc.z;
-// 			}
-// 		}
 	}
 	player.vel.y += player.acc.y;
 

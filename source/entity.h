@@ -9,10 +9,13 @@
 typedef struct Entity {
 	uint32_t   type;
 	FVec3      pos;
+	FVec3      vel;
+	bool       grounded;
 	Sector*    sector;
 	Direction  dir;
 	Resource*  model;
 	float      modelScale;
+	bool       modelVisible;
 
 	void  (*free)(struct Entity* ent);
 	void* (*getComponent)(struct Entity* ent, int id);
@@ -23,7 +26,9 @@ typedef struct Entity {
 // built in entity types
 enum {
 	AE_ENTITY_PROP = 0,
-	AE_ENTITY_LIGHT
+	AE_ENTITY_LIGHT,
+	AE_ENTITY_PLAYER_INFO,
+	AE_ENTITY_PLAYER
 };
 // games should start their entity types at 0x100
 
@@ -31,7 +36,8 @@ enum {
 enum {
 	AE_COMPONENT_MOVABLE = 0,
 	AE_COMPONENT_SOUND,
-	AE_COMPONENT_FOLLOW
+	AE_COMPONENT_FOLLOW,
+	AE_COMPONENT_PLAYER_INFO
 };
 
 typedef struct {
@@ -43,6 +49,11 @@ typedef struct {
 	Entity* entity;
 	FVec3   update;
 } EntityFollow;
+
+typedef struct {
+	FVec3 acc;
+	bool  skipFriction;
+} EntityPlayerInfo;
 
 // built in entities
 Entity* PropEntity_New(

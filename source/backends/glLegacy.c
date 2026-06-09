@@ -802,7 +802,7 @@ void Backend_Begin(void) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Backend_Begin2D(void) {
+void Backend_Begin2D(bool originTop) {
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -810,10 +810,16 @@ void Backend_Begin2D(void) {
 	GL(glLoadIdentity());
 	GL(glMatrixMode(GL_PROJECTION));
 	GL(glLoadIdentity());
-	GL(glOrtho(
-		0.0, (float) video.windows[0].width, (float) video.windows[0].height,
-		0.0, -1.0, 1.0
-	));
+
+	float floatW = (float) video.windows[0].width;
+	float floatH = (float) video.windows[0].height;
+
+	if (originTop) {
+		GL(glOrtho(0.0, floatW, floatH, 0.0, -1.0, 1.0));
+	}
+	else {
+		GL(glOrtho(0.0, floatW, 0.0, floatH, -1.0, 1.0));
+	}
 }
 
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {
