@@ -77,6 +77,7 @@ bool Event_PollExternal(Event* event) {
 						.width  = e.window.data1,
 						.height = e.window.data2
 					};
+					return true;
 				}
 
 				continue;
