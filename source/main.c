@@ -15,7 +15,7 @@
 		}
 
 		ModelRenderOpt opt;
-		opt.scale = 0.2f;
+		opt.scale = 0.4f;
 		opt.pos   = (FVec3) {0.2f, -0.3f, 0.4f};
 		opt.rot   = 0.0f;
 		Backend_UseHoldModel("base:models/yeti/fly-swatter.zkm", opt);

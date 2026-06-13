@@ -105,6 +105,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 		}
 	}
 
+	Event_Init();
 	Video_Init(gameName);
 	SceneManager_Init();
 	Audio_Init();

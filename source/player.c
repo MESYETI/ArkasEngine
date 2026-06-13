@@ -22,7 +22,7 @@ void Player_Init(void) {
 }
 
 void Player_FPCamera(void) {
-	camera.pos    = (FVec3) {player.pos.x, player.pos.y + 0.5, player.pos.z};
+	camera.pos    = (FVec3) {player.pos.x, player.pos.y + 0.5f, player.pos.z};
 	camera.pitch  = player.pitch;
 
 	// TODO: camera direction is handled by App so i commented this out until i change

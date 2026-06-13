@@ -22,7 +22,7 @@ static int GetWindow(uint32_t id) {
 bool Event_PollExternal(Event* event) {
 	SDL_Event e;
 
-	if (SDL_PollEvent(&e)) {
+	while (SDL_PollEvent(&e)) {
 		switch (e.type) {
 			case SDL_MOUSEMOTION: {
 				event->mouseMove = (Event_MouseMove) {
@@ -88,7 +88,7 @@ bool Event_PollExternal(Event* event) {
 				event->textInput = textInput;
 				break;
 			}
-			default: break;
+			default: continue;
 		}
 
 		return true;

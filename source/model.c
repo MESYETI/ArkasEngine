@@ -10,6 +10,43 @@
 
 #define FLAG_TEXTURE 1
 
+static void Height(Model* model, float* minY, float* maxY) {
+	for (size_t i = 1; i < model->verticesNum; ++ i) {
+		if (model->vertices[i].y < *minY) {
+			*minY = model->vertices[i].y;
+		}
+
+		if (model->vertices[i].y > *maxY) {
+			*maxY = model->vertices[i].y;
+		}
+	}
+}
+
+static void Scaling(Model* model) {
+	float minY = model->vertices[0].y;
+	float maxY = model->vertices[0].y;
+	Height(model, &minY, &maxY);
+
+	float height = maxY - minY;
+
+	if (minY < 0) {
+		for (size_t i = 0; i < model->verticesNum; ++ i) {
+			model->vertices[i].y += -minY;
+		}
+
+		Height(model, &minY, &maxY);
+		height = maxY - minY;
+	}
+
+	float scale = 1.0f / maxY;
+
+	for (size_t i = 0; i < model->verticesNum; ++ i) {
+		model->vertices[i].x *= scale;
+		model->vertices[i].y *= scale;
+		model->vertices[i].z *= scale;
+	}
+}
+
 void Model_Load(Model* model, Stream* file, const char* path) {
 	char magic[3];
 
@@ -134,6 +171,8 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 	}
 
     Stream_Close(file);
+
+    Scaling(model);
 }
 
 void Model_Free(Model* model) {
