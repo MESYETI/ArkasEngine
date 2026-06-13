@@ -78,7 +78,8 @@ bool Event_PollExternal(Event* event) {
 						.height = e.window.data2
 					};
 				}
-				break;
+
+				continue;
 			}
 			case SDL_TEXTINPUT: {
 				Event_TextInput textInput;

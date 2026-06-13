@@ -19,8 +19,8 @@ void Resources_Init(void) {
 		Error("Failed to open directory 'game'");
 	}
 
-	resources.drives          = SafeMalloc(sizeof(ResourceDrive*) * 4);
-	resources.drivesNum       = 4;
+	resources.drives          = SafeMalloc(sizeof(ResourceDrive*) * 5);
+	resources.drivesNum       = 5;
 	resources.drives[0]       = BuiltIn_GetDrive();
 	resources.drives[0]->name = NewString("builtin");
 	resources.drives[1]       = NewFolderDrive(AE_LOCATION "game/extra");
@@ -29,6 +29,8 @@ void Resources_Init(void) {
 	resources.drives[2]->name = NewString("maps");
 	resources.drives[3]       = NewFolderDrive(AE_LOCATION "screenshots");
 	resources.drives[3]->name = NewString("screenshots");
+	resources.drives[4]       = NewFolderDrive(AE_LOCATION "game/projects");
+	resources.drives[4]->name = NewString("projects");
 
 	struct dirent* entry;
 	while ((entry = readdir(dir)) != NULL) {

@@ -55,11 +55,12 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	}
 
 	// make game engine folders
-	MakeDir(AE_LOCATION "game",        true);
-	MakeDir(AE_LOCATION "game/extra",  true);
-	MakeDir(AE_LOCATION "game/net",    true);
-	MakeDir(AE_LOCATION "game/maps",   true);
-	MakeDir(AE_LOCATION "screenshots", true);
+	MakeDir(AE_LOCATION "game",          true);
+	MakeDir(AE_LOCATION "game/extra",    true);
+	MakeDir(AE_LOCATION "game/net",      true);
+	MakeDir(AE_LOCATION "game/maps",     true);
+	MakeDir(AE_LOCATION "game/projects", true);
+	MakeDir(AE_LOCATION "screenshots",   true);
 
 	Console_Init();
 	Log("Arkas Engine WIP");
