@@ -161,7 +161,7 @@ static bool ClientWorker(ServerClient* this) {
 					Socket_Receive(this->relSock, &username, 32);
 					Log("server: %s has joined the server", username);
 
-					strcpy(this->username, username);
+					memcpy(this->username, username, sizeof(this->username));
 
 					// now send response
 					uint16_t id             = 0;
