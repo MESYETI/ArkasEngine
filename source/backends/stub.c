@@ -49,6 +49,11 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 	(void) opt;
 }
 
+void Backend_UseHoldModel(const char* path, ModelRenderOpt opt) {
+	(void) path;
+	(void) opt;
+}
+
 void Backend_DrawTexture(
 	Texture* texture, TextureRenderOpt* p_opt, Rect* p_src, Rect* p_dest
 ) {

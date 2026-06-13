@@ -497,6 +497,14 @@ void Resources_FreeRes(Resource* resource) {
 				free(resource->v.audio.data);
 				break;
 			}
+			case RESOURCE_TYPE_FONT: {
+				Text_FreeFont(&resource->v.font);
+				break;
+			}
+			case RESOURCE_TYPE_MODEL: {
+				Model_Free(&resource->v.model);
+				break;
+			}
 			default: assert(0);
 		}
 

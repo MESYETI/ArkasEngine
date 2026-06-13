@@ -49,6 +49,7 @@ void     Backend_OnMapLoad(void);
 void     Backend_OnMapFree(void);
 void     Backend_OnWindowResize(void);
 void     Backend_RenderModel(struct Model* model, struct ModelRenderOpt* opt);
+void     Backend_UseHoldModel(const char* path, struct ModelRenderOpt opt);
 
 void Backend_DrawTexture(
 	Texture* texture, TextureRenderOpt* p_opt, Rect* p_src, Rect* p_dest

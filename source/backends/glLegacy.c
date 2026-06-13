@@ -12,6 +12,7 @@
 #include "../camera.h"
 #include "../stream.h"
 #include "../backend.h"
+#include "../resources.h"
 
 #ifdef AE_BACKEND_GL_LEGACY
 #include "glLegacy.h"
@@ -67,6 +68,9 @@ typedef struct {
 	float aspect;
 	Model model;
 	bool  alpha;
+
+	Resource*      heldModel;
+	ModelRenderOpt heldModelOpt;
 
 	BackendViewport viewport;
 
@@ -274,6 +278,7 @@ void Backend_Init(bool beforeWindow) {
 	state.viewMatrix[3][3] = 1.0f;
 	state.projMatrix[2][3] = -1.0f;
 	state.sectorsRendered  = NULL; // set this later
+	state.heldModel        = NULL;
 
 	CalcProjMatrix();
 
@@ -632,12 +637,21 @@ void Backend_RenderScene(void) {
 
 	RenderSector(camera.sector, (FVec2) {0.0, 0.0});
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	// now render held model
+	Camera oldCam = camera;
+	camera.pos    = (FVec3) {0.0f, 0.0f, 0.0f};
+	camera.pitch  = 0.0f;
+	camera.yaw    = 0.0f;
+	camera.roll   = 0.0f;
 
-	ModelRenderOpt opt;
-	opt.scale = 0.01;
-	opt.pos   = (FVec3) {0.0, -0.5, 0.0};
-	// Backend_RenderModel(&state.model, &opt);
+	GL(glMatrixMode(GL_MODELVIEW));
+	CalcViewMatrix();
+	GL(glLoadMatrixf((float*) state.viewMatrix));
+
+	glClear(GL_DEPTH_BUFFER_BIT);
+	Backend_RenderModel(&state.heldModel->v.model, &state.heldModelOpt);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// now do 2D stuff
 	Backend_Begin2D(true);
@@ -661,6 +675,11 @@ void Backend_OnMapFree(void) {
 	if (state.sectorsRendered) {
 		free(state.sectorsRendered);
 		state.sectorsRendered = NULL;
+	}
+
+	if (state.heldModel) {
+		Resources_FreeRes(state.heldModel);
+		state.heldModel = NULL;
 	}
 }
 
@@ -731,6 +750,15 @@ void Backend_RenderModel(Model* model, ModelRenderOpt* opt) {
 	}
 	
 	GL(glPopMatrix());
+}
+
+void Backend_UseHoldModel(const char* path, ModelRenderOpt opt) {
+	if (state.heldModel) {
+		Resources_FreeRes(state.heldModel);
+	}
+
+	state.heldModel    = Resources_GetRes(path, 0);
+	state.heldModelOpt = opt;
 }
 
 void Backend_DrawTexture(

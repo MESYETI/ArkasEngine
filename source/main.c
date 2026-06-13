@@ -1,4 +1,5 @@
 #include "fs.h"
+#include "model.h"
 #include "event.h"
 #include "engine.h"
 #include "console.h"
@@ -12,6 +13,12 @@
 		if (Console_RunFile(AE_LOCATION "game.cmd")) {
 			Log("Ran game.cmd");
 		}
+
+		ModelRenderOpt opt;
+		opt.scale = 0.2f;
+		opt.pos   = (FVec3) {0.2f, -0.3f, 0.4f};
+		opt.rot   = 0.0f;
+		Backend_UseHoldModel("base:models/yeti/fly-swatter.zkm", opt);
 
 		while (engine.running) {
 			Engine_Update();

@@ -135,6 +135,7 @@ int main(string[] args) {
 				thisMat.b = cast(ubyte) (b * 255);
 				break;
 			}
+			case "map_Kd":
 			case "map_Ka": {
 				string ext = parts[1].extension();
 
