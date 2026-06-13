@@ -638,18 +638,21 @@ void Backend_RenderScene(void) {
 	RenderSector(camera.sector, (FVec2) {0.0, 0.0});
 
 	// now render held model
-	Camera oldCam = camera;
-	camera.pos    = (FVec3) {0.0f, 0.0f, 0.0f};
-	camera.pitch  = 0.0f;
-	camera.yaw    = 0.0f;
-	camera.roll   = 0.0f;
+	if (state.heldModel) {
+		Camera oldCam = camera;
+		camera.pos    = (FVec3) {0.0f, 0.0f, 0.0f};
+		camera.pitch  = 0.0f;
+		camera.yaw    = 0.0f;
+		camera.roll   = 0.0f;
 
-	GL(glMatrixMode(GL_MODELVIEW));
-	CalcViewMatrix();
-	GL(glLoadMatrixf((float*) state.viewMatrix));
+		GL(glMatrixMode(GL_MODELVIEW));
+		CalcViewMatrix();
+		GL(glLoadMatrixf((float*) state.viewMatrix));
 
-	glClear(GL_DEPTH_BUFFER_BIT);
-	Backend_RenderModel(&state.heldModel->v.model, &state.heldModelOpt);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		Backend_RenderModel(&state.heldModel->v.model, &state.heldModelOpt);
+		camera = oldCam;
+	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
