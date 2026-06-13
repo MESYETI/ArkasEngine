@@ -640,7 +640,7 @@ void Backend_RenderScene(void) {
 	// Backend_RenderModel(&state.model, &opt);
 
 	// now do 2D stuff
-	Backend_Begin2D();
+	Backend_Begin2D(true);
 }
 
 void Backend_OnMapLoad(void) {

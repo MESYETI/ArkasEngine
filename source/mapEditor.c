@@ -276,10 +276,18 @@ static void Free(Scene* scene) {
 	}
 }
 
+static Vec2 FixMousePos(void) {
+	Vec2 ret = input.mousePos;
+	ret.y    = video.windows[UI_WIN].height - ret.y;
+	return ret;
+}
+
 static FVec2 CursorOnMap(void) {
+	int mouseY = video.windows[UI_WIN].height - input.mousePos.y;
+
 	FVec2 ret = {
 		(((float) input.mousePos.x) / 32.0) + mapEditor.mCamera.x,
-		(((float) input.mousePos.y) / 32.0) + mapEditor.mCamera.y
+		(((float) mouseY)           / 32.0) + mapEditor.mCamera.y
 	};
 
 	if (mapEditor.align) {
@@ -383,7 +391,7 @@ static bool HandleEvent(Scene* scene, Event* e, bool top) {
 		case AE_EVENT_MOUSE_MOVE: {
 			if (input.mouseBtn[2]) {
 				mapEditor.mCamera.x += ((float) -e->mouseMove.xRel) / 32.0;
-				mapEditor.mCamera.y += ((float) -e->mouseMove.yRel) / 32.0;
+				mapEditor.mCamera.y -= ((float) -e->mouseMove.yRel) / 32.0;
 				return true;
 			}
 			else if (input.mouseBtn[0]) {
@@ -397,7 +405,7 @@ static bool HandleEvent(Scene* scene, Event* e, bool top) {
 								.y = ((int) ((point->pos.y - mapEditor.mCamera.y) * 32.0))
 							};
 
-							if (DistanceI(input.mousePos, onScreen) < 15.0) {
+							if (DistanceI(FixMousePos(), onScreen) < 15.0) {
 								point->pos          = CursorOnMap();
 
 								MProjPoint* oldSelect = mapEditor.thisPoint;
@@ -448,12 +456,13 @@ static void Update(Scene* scene, bool top) {
 static void Render(Scene* scene, bool top) {
 	if (mapEditor.editorMode == ME_MODE_VIEWER) {
 		Backend_RenderScene();
-		Backend_Begin2D();
+		Backend_Begin2D(true);
 		UI_ManagerRender(scene->ui);
 		return;
 	}
 
-	Backend_Begin2D();
+	// use Y up for the map view to match Z forward
+	Backend_Begin2D(false);
 	Backend_Clear(0, 0, 0);
 	Backend_EnableAlpha(true);
 
@@ -533,11 +542,11 @@ static void Render(Scene* scene, bool top) {
 		}
 	}
 
-	Vec2 renderCursor = input.mousePos;
+	Vec2 renderCursor = FixMousePos();
 	if (mapEditor.align) {
 		FVec2 point;
-		point.x = (((float) input.mousePos.x) / 32.0) + mapEditor.mCamera.x;
-		point.y = (((float) input.mousePos.y) / 32.0) + mapEditor.mCamera.y;
+		point.x = (((float) renderCursor.x) / 32.0) + mapEditor.mCamera.x;
+		point.y = (((float) renderCursor.y) / 32.0) + mapEditor.mCamera.y;
 
 		FVec2 offset;
 		offset.x = roundf(point.x) - point.x;
@@ -575,6 +584,8 @@ static void Render(Scene* scene, bool top) {
 		}
 	}
 
+	// back to top left origin
+	Backend_Begin2D(true);
 	UI_ManagerRender(scene->ui);
 }
 

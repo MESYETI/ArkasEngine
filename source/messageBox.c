@@ -66,7 +66,7 @@ static void Update(Scene* scene, bool top) {
 static void Render(Scene* scene, bool top) {
 	(void) top;
 
-	Backend_Begin2D();
+	Backend_Begin2D(true);
 	Backend_EnableAlpha(true);
 	Backend_RenderRect(
 		(Rect) {0, 0, video.windows[UI_WIN].width, video.windows[UI_WIN].height},

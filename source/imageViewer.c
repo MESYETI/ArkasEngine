@@ -43,7 +43,7 @@ static void Render(Scene* scene, bool top) {
 
 	Data* data = (Data*) scene->data;
 
-	Backend_Begin2D();
+	Backend_Begin2D(true);
 	Backend_Clear(0, 0, 0);
 
 	Texture* texture = data->res->v.texture;

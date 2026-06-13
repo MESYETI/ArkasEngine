@@ -289,7 +289,7 @@ void Console_HandleEvent(Event* e) {
 
 void Console_Render(void) {
 	Backend_Clear(0, 0, 0);
-	Backend_Begin2D();
+	Backend_Begin2D(true);
 
 	// some issue where SDL2 would give the backtick as text input even though it
 	// was pressed before text input was started

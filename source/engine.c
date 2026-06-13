@@ -219,7 +219,7 @@ void Engine_Update(void) {
 	}
 
 	// Backend_Clear(0, 0, 50);
-	// Backend_Begin2D();
+	// Backend_Begin2D(true);
 	// Backend_DrawTexture(engine.font.texture, NULL, NULL, NULL);
 
 	Backend_FinishRender();

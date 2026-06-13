@@ -83,8 +83,8 @@ void Backend_Begin(void) {
 	
 }
 
-void Backend_Begin2D(void) {
-	
+void Backend_Begin2D(bool originTop) {
+	(void) originTop;
 }
 
 void Backend_Clear(uint8_t r, uint8_t g, uint8_t b) {

@@ -41,7 +41,7 @@ static void Render(Scene* scene, bool top) {
 	(void) scene;
 	(void) top;
 
-	Backend_Begin2D();
+	Backend_Begin2D(true);
 
 	if (!image) return;
 

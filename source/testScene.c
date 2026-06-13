@@ -72,7 +72,7 @@ static void Update(Scene* scene, bool top) {
 static void Render(Scene* scene, bool top) {
 	(void) top;
 
-	Backend_Begin2D();
+	Backend_Begin2D(true);
 	UI_ManagerRender(scene->ui);
 }
 
