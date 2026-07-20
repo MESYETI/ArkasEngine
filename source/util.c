@@ -8,6 +8,30 @@
 #include "common.h"
 #include "console.h"
 
+char* Format(const char* format, ...) {
+	char* ret = NULL;
+
+	int     n    = 0;
+	size_t  size = 0;
+	va_list ap;
+
+	va_start(ap, format);
+	n = vsnprintf(ret, size, format, ap);
+	va_end(ap);
+
+	assert(n >= 0);
+
+	size = n + 1;
+	ret = (char*) SafeMalloc(size);
+
+	va_start(ap, format);
+	n = vsnprintf(ret, size, format, ap);
+	va_end(ap);
+
+	assert(n >= 0);
+	return ret;
+}
+
 float RadToDeg(float rad) {
 	return rad * 180 / PI;
 }

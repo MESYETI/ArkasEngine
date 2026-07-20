@@ -114,6 +114,10 @@ bool Socket_Listen(Socket* sock, int backlog) {
 		case SOCKET_TYPE_LOCAL: return true; // no need to do anything
 		case SOCKET_TYPE_NET: {
 			#ifdef AE_NET_SOCKET
+				if (sock->value.net.protocol == SOCKET_PROTOCOL_UDP) {
+					Error("Called listen on UDP socket");
+				}
+
 				if (listen(sock->value.net.fd, backlog) < 0) {
 					Log("listen failed: %s", strerror(errno));
 					return false;
@@ -159,6 +163,10 @@ Socket* Socket_Accept(Socket* sock) {
 		}
 		case SOCKET_TYPE_NET: {
 			#ifdef AE_NET_SOCKET
+				if (sock->value.net.protocol == SOCKET_PROTOCOL_UDP) {
+					Error("Called accept on UDP socket");
+				}
+
 				struct sockaddr addr;
 				socklen_t len = sizeof(addr);
 
@@ -172,12 +180,12 @@ Socket* Socket_Accept(Socket* sock) {
 					Error("accept error: %s", strerror(errno));
 				}
 
-				Socket* ret             = AllocSocket();
-				ret->value.type         = sock->value.type;
-				ret->value.net.fd       = fd;
-				ret->value.net.protocol = sock->value.net.protocol;
-				ret->value.net.addr     = addr;
-				ret->value.net.addrLen  = (size_t) len;
+				Socket* ret                  = AllocSocket();
+				ret->value.type              = sock->value.type;
+				ret->value.net.fd            = fd;
+				ret->value.net.protocol      = sock->value.net.protocol;
+				ret->value.net.addr.addr     = addr;
+				ret->value.net.addr.addrLen  = (size_t) len;
 
 				fcntl(fd, F_SETFL, O_NONBLOCK);
 				return ret;
@@ -248,6 +256,10 @@ size_t Socket_DataAvailable(Socket* sock) {
 		}
 		case SOCKET_TYPE_NET: {
 			#ifdef AE_NET_SOCKET
+				if (sock->value.net.protocol == SOCKET_PROTOCOL_UDP) {
+					Error("Called DataAvailable on UDP socket");
+				}
+
 				int count;
 				ioctl(sock->value.net.fd, FIONREAD, &count);
 
@@ -259,6 +271,30 @@ size_t Socket_DataAvailable(Socket* sock) {
 	}
 
 	assert(0);
+}
+
+bool Socket_ReceiveUDP(Socket* sock) {
+	if (
+		(sock->value.type != SOCKET_TYPE_NET) ||
+		(sock->value.net.protocol != SOCKET_PROTOCOL_UDP)
+	) {
+		Error("Called ReceiveUDP on non-network or non-UDP socket");
+	}
+
+	size_t          remaining = 506 - sock->value.net.recvLen;
+	struct sockaddr addr;
+	socklen_t       addrLen;
+	uint8_t*        buf = &sock->value.net.recvData[sock->value.net.recvLen];
+
+	ssize_t len = recvfrom(sock->value.net.fd, buf, remaining, 0, &addr, &addrLen);
+
+	if (len <= 0) {
+		return false;
+	}
+
+	sock->value.net.recvLen += (size_t) len;
+
+	return sock->value.net.recvLen >= 506;
 }
 
 size_t Socket_Receive(Socket* sock, void* buf, size_t size) {
@@ -292,6 +328,10 @@ size_t Socket_Receive(Socket* sock, void* buf, size_t size) {
 		}
 		case SOCKET_TYPE_NET: {
 			#ifdef AE_NET_SOCKET
+				if (sock->value.net.protocol == SOCKET_PROTOCOL_UDP) {
+					Error("Called receive on UDP socket");
+				}
+
 				ssize_t ret = recv(sock->value.net.fd, buf, size, 0);
 				if (ret <= 0) return 0;
 				return (size_t) ret;
@@ -302,6 +342,24 @@ size_t Socket_Receive(Socket* sock, void* buf, size_t size) {
 	}
 
 	assert(0);
+}
+
+static ssize_t SendUDP(Socket* sock) {
+	uint16_t len = (uint16_t) sock->value.net.sendLen;
+
+	uint8_t data[506];
+	data[0] = (uint8_t) (len & 0xFF);
+	data[1] = (uint8_t) ((len & 0xFF00) >> 8);
+
+	memcpy(&data[2], sock->value.net.sendData, 504);
+
+	ssize_t ret = sendto(
+		sock->value.net.fd, data, sizeof(data), 0, &sock->value.net.addr.addr,
+		sock->value.net.addr.addrLen
+	);
+
+	sock->value.net.sendLen = 0;
+	return ret;
 }
 
 size_t Socket_Send(Socket* sock, void* buf, size_t size) {
@@ -330,7 +388,24 @@ size_t Socket_Send(Socket* sock, void* buf, size_t size) {
 		}
 		case SOCKET_TYPE_NET: {
 			#ifdef AE_NET_SOCKET
-				ssize_t ret = send(sock->value.net.fd, buf, size, 0);
+				ssize_t ret;
+
+				if (sock->value.net.protocol == SOCKET_PROTOCOL_UDP) {
+					if (sock->value.net.sendLen + size > 504) {
+						SendUDP(sock);
+					}
+
+					memcpy(&sock->value.net.sendData[sock->value.net.sendLen], buf, size);
+					sock->value.net.sendLen += size;
+
+					if (sock->value.net.sendLen == 504) {
+						SendUDP(sock);
+					}
+				}
+				else {
+					ret = send(sock->value.net.fd, buf, size, 0);
+				}
+
 				if (ret <= 0) return 0;
 				return (size_t) ret;
 			#else
@@ -379,7 +454,7 @@ void Socket_Close(Socket* sock) {
 void Socket_StringAddr(Socket* sock, char* dest, size_t size) {
 	switch (sock->value.type) {
 		case SOCKET_TYPE_LOCAL: {
-			snprintf(dest, size, "%p", sock);
+			snprintf(dest, size, "%p", (void*) sock);
 			break;
 		}
 		case SOCKET_TYPE_NET: {

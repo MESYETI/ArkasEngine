@@ -31,19 +31,27 @@ struct LocalSocket {
 };
 
 typedef struct {
+	#ifdef AE_NET_SOCKET
+		struct sockaddr addr;
+		socklen_t       addrLen;
+	#else
+		int nothing;
+	#endif
+} NetSocketAddr;
+
+typedef struct {
 	int type;
 
 	#ifdef AE_NET_SOCKET
 		int fd;
 		int protocol;
 
-		struct sockaddr addr;
-		size_t          addrLen;
+		NetSocketAddr addr;
 
 		// only for UDP sockets
 		uint8_t recvData[506];
 		size_t  recvLen;
-		uint8_t sendData[506];
+		uint8_t sendData[504];
 		size_t  sendLen;
 	#endif
 } NetSocket;
@@ -68,6 +76,7 @@ Socket* Socket_Accept(Socket* sock);
 bool    Socket_ConnectNet(Socket* sock, const char* ip, uint16_t port);
 bool    Socket_ConnectLocal(Socket* sock, Socket* to);
 size_t  Socket_DataAvailable(Socket* sock);
+bool    Socket_ReceiveUDP(Socket* sock);
 size_t  Socket_Receive(Socket* sock, void* buf, size_t size);
 size_t  Socket_Send(Socket* sock, void* buf, size_t size);
 void    Socket_Close(Socket* sock);

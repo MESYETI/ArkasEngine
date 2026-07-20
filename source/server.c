@@ -20,7 +20,6 @@ ServerConfig serverConf = {
 bool Server_Start(void) {
 	server.running   = true;
 	server.clients   = NULL;
-	server.clientNum = 0;
 
 	Log("SERVER CONFIG");
 	Log("=============");
@@ -89,10 +88,17 @@ void Server_Free(void) {
 	}
 
 	if (server.clients) {
-		for (size_t i = 0; i < server.clientNum; ++ i) {
-			Socket_Close(server.clients[i].relSock);
+		ServerClient* client = server.clients;
+
+		while (client) {
+			ServerClient* next = client->next;
+
+			Socket_Close(client->relSock);
+			free(client);
+
+			client = next;
 		}
-		free(server.clients);
+
 		server.clients = NULL;
 	}
 
@@ -183,6 +189,22 @@ static bool ClientWorker(ServerClient* this) {
 					}
 					break;
 				}
+				case 0x02: {
+					size_t size = 128;
+
+					if (available < size) break;
+
+					char message[129];
+					message[129] = 0;
+					Socket_Receive(this->relSock, &message, 128);
+
+					char* msg = Format("%s: %s", this->username, message);
+					Server_SendMessage(msg);
+					free(msg);
+
+					this->relState = SC_WAITING;
+					break;
+				}
 				default: {
 					Log("server: Client sent invalid packet ID: %.4x", this->packetID);
 					return false;
@@ -225,20 +247,39 @@ void Server_Update(void) {
 		Socket_StringAddr(newClient, addr, sizeof(addr));
 		Log("server: Client connected (%s)", addr);
 
-		++ server.clientNum;
-		server.clients = SafeRealloc(
-			server.clients, server.clientNum * sizeof(ServerClient)
-		);
+		ServerClient* client = SafeMalloc(sizeof(ServerClient));
+		client->prev         = NULL;
 
-		ServerClient* client = &server.clients[server.clientNum - 1];
+		if (server.clients) {
+			client->next         = server.clients;
+			server.clients->prev = client;
+			server.clients       = client;
+		}
+		else {
+			server.clients = client;
+			client->next   = NULL;
+		}
 
 		client->relState = SC_WAITING;
 		client->relSock  = newClient;
 	}
 
-	for (size_t i = 0; i < server.clientNum; ++ i) {
-		ServerClient* client = &server.clients[i];
-		ClientWorker(client);
+	ServerClient* client = server.clients;
+	while (client) {
+		if (ClientWorker(client)) {
+			client = server.clients->next;
+		}
+		else {
+			ServerClient* removed = client;
+
+			client = server.clients->next;
+
+			removed->prev->next       = client;
+			removed->prev->next->prev = removed;
+
+			Socket_Close(removed->relSock);
+			free(removed);
+		}
 	}
 }
 
@@ -250,4 +291,27 @@ void Server_SetMap(const char* name) {
 	char* path     = ConcatString("maps:", name);
 	server.mapPath = ConcatString(path, ".arm");
 	free(path);
+}
+
+static void MsgPacket(const char* data) {
+	uint8_t packet[66];
+	packet[0] = 0x02;
+	packet[1] = 0;
+	strncpy((char*) &packet[2], data, 64);
+
+	ServerClient* client = server.clients;
+	while (client) {
+		Socket_Send(client->relSock, packet, sizeof(packet));
+
+		client = client->next;
+	}
+}
+
+void Server_SendMessage(const char* message) {
+	size_t len   = strlen(message);
+	size_t times = (len / 64) + ((len % 64)? 1 : 0);
+
+	for (size_t i = 0; i < times; ++ i, message += 64) {
+		MsgPacket(message);
+	}
 }

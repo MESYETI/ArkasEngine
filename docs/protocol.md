@@ -21,6 +21,13 @@ This WILL change in a future version of the protocol
 | 2    | Integer - protocol version                    |
 | 32   | Username - null terminated string             |
 
+#### 0x02 - Chat message
+| Size | Description                                   |
+| ---- | --------------------------------------------- |
+| 128  | Null terminated chat message - one line       |
+
+Notes: A chat message without a null terminator is 128 characters long
+
 ### Server to client
 #### 0x00 - Identification
 | Size | Description                                   |
@@ -41,7 +48,14 @@ Notes:
 - If the server sends `map.arm`, the client will load that map
 - If the file already exists in the client's memory, the file will be replaced
 
-#### 0x02 - Game packet
+#### 0x02 - Chat message
+| Size | Description                                   |
+| ---- | --------------------------------------------- |
+| 64   | Null terminated chat message - one line       |
+
+Notes: A chat message without a null terminator is 64 characters long
+
+#### 0xFF - Game packet - currently unsupported
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
 | 4    | Packet size                                   |
@@ -52,4 +66,8 @@ All UDP packets contain a 16-bit little endian length at the start, and they may
 contain one or more Arkas Engine packets. If the Arkas Engine packets are sent
 over a reliable connection, this is not the case
 
-There are currently no packets to be sent over an unreliable connection.
+### Client to server
+| Size | Description                                   |
+| ---- | --------------------------------------------- |
+| 4    | Packet size                                   |
+| ?    | Packet data                                   |

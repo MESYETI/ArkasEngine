@@ -14,11 +14,13 @@
 			Log("Ran game.cmd");
 		}
 
-		ModelRenderOpt opt;
-		opt.scale = 0.4f;
-		opt.pos   = (FVec3) {0.2f, -0.3f, 0.4f};
-		opt.rot   = 0.0f;
-		Backend_UseHoldModel("base:models/yeti/fly-swatter.zkm", opt);
+		if (!engine.server) {
+			ModelRenderOpt opt;
+			opt.scale = 0.4f;
+			opt.pos   = (FVec3) {0.2f, -0.3f, 0.4f};
+			opt.rot   = 0.0f;
+			Backend_UseHoldModel("base:models/yeti/fly-swatter.zkm", opt);
+		}
 
 		while (engine.running) {
 			Engine_Update();

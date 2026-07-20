@@ -1,5 +1,6 @@
 #include "mem.h"
 #include "map.h"
+#include "chat.h"
 #include "util.h"
 #include "client.h"
 #include "server.h"
@@ -25,6 +26,9 @@ static void StartClient(void) {
 		Resources_DeleteDrive("net");
 	}
 	Resources_AddDrive(NewRamDrive(), "net");
+
+	Chat_Free();
+	Chat_Init();
 }
 
 bool Client_StartLocal(void) {
@@ -141,6 +145,21 @@ void Client_Update(void) {
 					Log("Receiving '%s' from server...", client.fileName);
 					break;
 				}
+				case 0x02: {
+					size_t size = 64;
+
+					if (available < size) break;
+
+					char message[65];
+					message[65] = 0;
+					Socket_Receive(client.relSock, &message, 64);
+
+					Log("MSG: %s", message);
+					Chat_Add(message);
+
+					client.state = C_WAITING;
+					break;
+				}
 				default: {
 					Log("client: Server sent invalid packet ID: %.4x", client.packetID);
 				}
@@ -186,4 +205,13 @@ void Client_Update(void) {
 			break;
 		}
 	}
+}
+
+void Client_SendMessage(const char* message) {
+	uint8_t data[130];
+	data[0] = 0x02;
+	data[1] = 0;
+
+	strncpy((char*) &data[2], message, 128);
+	Socket_Send(client.relSock, data, sizeof(data));
 }

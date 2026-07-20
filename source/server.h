@@ -5,7 +5,9 @@
 #include "socket.h"
 #include "stream.h"
 
-typedef struct {
+typedef struct ServerClient ServerClient;
+
+struct ServerClient {
 	int     relState;
 	Socket* relSock;
 
@@ -15,7 +17,11 @@ typedef struct {
 
 	// info
 	char username[33];
-} ServerClient;
+
+	// link
+	ServerClient* next;
+	ServerClient* prev;
+};
 
 typedef struct {
 	bool inet;
@@ -33,7 +39,6 @@ typedef struct {
 
 	// clients
 	ServerClient* clients;
-	size_t        clientNum;
 } Server;
 
 extern Server       server;
@@ -43,5 +48,6 @@ bool Server_Start(void);
 void Server_Free(void);
 void Server_Update(void);
 void Server_SetMap(const char* name);
+void Server_SendMessage(const char* message);
 
 #endif

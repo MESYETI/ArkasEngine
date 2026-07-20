@@ -19,6 +19,7 @@
 		*macro##b = macro##tmp; \
 	} while (0);
 
+char*  Format(const char* format, ...);
 bool   FileExists(const char* path);
 float  RadToDeg(float rad);
 float  DegToRad(float deg);

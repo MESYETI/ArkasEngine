@@ -71,9 +71,18 @@ static void Command_Map(size_t argc, char** argv) {
 		Server_SetMap(argv[0]);
 	}
 	else {
-		char* path1 = ConcatString("maps:", argv[0]);
-		char* path2 = ConcatString(path1,   ".arm");
-		free(path1);
+		char* path;
+		bool  freePath;
+
+		if (strchr(argv[0], ':')) {
+			path     = argv[0];
+			freePath = false;
+		}
+		else {
+			char* path1 = ConcatString("maps:", argv[0]);
+			path        = ConcatString(path1,   ".arm");
+			free(path1);
+		}
 
 		SceneManager_AddScene((Scene) {
 			SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
@@ -81,7 +90,7 @@ static void Command_Map(size_t argc, char** argv) {
 		});
 
 		size_t size;
-		void*  res = Resources_ReadFile(path2, &size);
+		void*  res = Resources_ReadFile(path, &size);
 
 		if (!res) {
 			Log("Failed to load map");
@@ -91,7 +100,7 @@ static void Command_Map(size_t argc, char** argv) {
 
 		Stream stream = Stream_Memory(res, size, true);
 
-		if (!Map_LoadFile(&stream, path2)) {
+		if (!Map_LoadFile(&stream, path)) {
 			Log("Failed to load map");
 			SceneManager_PopScene();
 			return;
@@ -99,7 +108,10 @@ static void Command_Map(size_t argc, char** argv) {
 
 		Stream_Close(&stream);
 
-		free(path2);
+		if (freePath) {
+			free(path);
+		}
+
 		engine.console = false;
 	}
 }
@@ -602,6 +614,16 @@ static void Command_Message(size_t argc, char** argv) {
 	SceneManager_AddScene(NewMessageBoxScene(argv[0], argv[1]));
 }
 
+static void Command_Chat(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	if (!client.running) {
+		Log("No client running");
+	}
+
+	Client_SendMessage(argv[0]);
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "test-map2",          &Command_Test2);
@@ -641,4 +663,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "save-config",        &Command_SaveConfig);
 	Console_AddCommand(true,  "spawn-prop",         &Command_SpawnProp);
 	Console_AddCommand(true,  "message",            &Command_Message);
+	Console_AddCommand(true,  "chat",               &Command_Chat);
 }

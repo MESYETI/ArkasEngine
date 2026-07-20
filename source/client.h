@@ -23,5 +23,6 @@ extern Client client;
 bool Client_StartLocal(void);
 bool Client_StartINet(const char* ip, uint16_t port);
 void Client_Update(void);
+void Client_SendMessage(const char* message);
 
 #endif
