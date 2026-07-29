@@ -436,5 +436,7 @@ void Map_DeleteEntity(size_t entityIdx) {
 	Entity* entity = EntityPool_Get(entityIdx);
 
 	entity->free(entity);
+	free(entity->data);
+
 	entity->used = false;
 }

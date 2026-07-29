@@ -166,6 +166,7 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 				}
 
 				model->textures[i] = Texture_LoadMem(data, size);
+				free(data);
 			}
 		}
 	}
@@ -178,6 +179,13 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 void Model_Free(Model* model) {
 	free(model->vertices);
 	free(model->faces);
+	free(model->uv);
+
+	for (size_t i = 0; i < model->texNum; ++ i) {
+		Backend_FreeTexture(model->textures[i]);
+	}
+
+	free(model->textures);
 }
 
 void Model_Print(Model* model) {

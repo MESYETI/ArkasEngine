@@ -7,9 +7,19 @@ EntityPool entityPool;
 void EntityPool_Init(void) {
 	entityPool.pool = SafeMalloc(64 * sizeof(Entity));
 	entityPool.size = 64;
+
+	for (size_t i = 0; i < entityPool.size; ++ i) {
+		entityPool.pool[i].used = false;
+	}
 }
 
 void EntityPool_Free(void) {
+	for (size_t i = 0; i < entityPool.size; ++ i) {
+		if (entityPool.pool[i].used) {
+			EntityPool_FreeEntity(i);
+		}
+	}
+
 	free(entityPool.pool);
 	entityPool.pool = NULL;
 	entityPool.size = 0;
@@ -41,6 +51,16 @@ void EntityPool_FreeEntity(size_t idx) {
 	if (!entity) {
 		Error("Invalid entity %d", (int) idx);
 	}
+
+	entity->used = false;
+
+	entity->free(entity);
+
+	if (entity->model) {
+		Resources_FreeRes(entity->model);
+	}
+
+	free(entity->data);
 }
 
 typedef struct {
@@ -82,7 +102,7 @@ size_t PropEntity_New(Sector* sect, FVec3 pos, Direction dir, Resource* model, b
 	PropEntity* data = NEW(PropEntity);
 
 	ent->used         = true;
-	ent->data         = NEW(PropEntity);
+	ent->data         = data;
 	ent->type         = AE_ENTITY_PROP;
 	ent->pos          = pos;
 	ent->vel          = (FVec3) {0.0f, 0.0f, 0.0f};
