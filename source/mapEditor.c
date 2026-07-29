@@ -181,11 +181,11 @@ static void SaveAsButton(uint8_t button) {
 	SceneManager_ScheduleAdd(FileBrowserScene(FILE_BROWSE_SAVE, &SaveCallback));
 }
 
-static void Unimplemented(uint8_t button) {
-	(void) button;
-
-	Log("Unimplemented");
-}
+// static void Unimplemented(uint8_t button) {
+// 	(void) button;
+// 
+// 	Log("Unimplemented");
+// }
 
 static Vec2 BarResizer(UI_Container* cont) {
 	return (Vec2) {video.windows[UI_WIN].width, cont->h};

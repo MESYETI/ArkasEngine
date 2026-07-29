@@ -32,9 +32,7 @@ void Event_Free(void) {
 }
 
 static Event* FindFree(void) {
-	int i;
-
-	for (i = 0; i < eventsSize; ++ i) {
+	for (size_t i = 0; i < eventsSize; ++ i) {
 		if (events[i].type == AE_EVENT_NONE) return &events[i];
 	}
 

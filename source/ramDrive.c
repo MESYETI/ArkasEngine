@@ -263,7 +263,7 @@ static bool DriveWriteFile(ResourceDrive* p_drive, const char* path, void* conte
 		}
 
 		entry = &drive->fs;
-		slash = path;
+		slash = (char*) path;
 	}
 
 	if (!entry->folder) {

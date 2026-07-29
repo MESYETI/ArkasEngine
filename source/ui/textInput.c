@@ -42,6 +42,8 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 }
 
 static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down) {
+	(void) cont;
+
 	if ((button != 0) || !down) return;
 
 	UI_TextInput* data = (UI_TextInput*) e->data;

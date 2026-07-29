@@ -103,28 +103,28 @@ void GameBase_Update(bool top) {
 		speed = player.airSpeed;
 	}
 
-	bool  moved  = false;
+	// bool  moved  = false;
 	FVec3 oldPos = camera.pos;
 
 	if (Input_BindPressed(gameBaseConfig.forward)) {
 		player.acc.z += CosDeg(player.yaw) * speed * engine.delta;
 		player.acc.x += SinDeg(player.yaw) * speed * engine.delta;
-		moved         = true;
+		// moved         = true;
 	}
 	if (Input_BindPressed(gameBaseConfig.left)) {
 		player.acc.z += CosDeg(player.yaw - 90) * speed * engine.delta;
 		player.acc.x += SinDeg(player.yaw - 90) * speed * engine.delta;
-		moved         = true;
+		// moved         = true;
 	}
 	if (Input_BindPressed(gameBaseConfig.backward)) {
 		player.acc.z += CosDeg(player.yaw + 180) * speed * engine.delta;
 		player.acc.x += SinDeg(player.yaw + 180) * speed * engine.delta;
-		moved         = true;
+		// moved         = true;
 	}
 	if (Input_BindPressed(gameBaseConfig.right)) {
 		player.acc.z += CosDeg(player.yaw + 90) * speed * engine.delta;
 		player.acc.x += SinDeg(player.yaw + 90) * speed * engine.delta;
-		moved         = true;
+		// moved         = true;
 	}
 	// if (Input_KeyPressed(AE_KEY_P)) {
 	// 	SDL_SetRelativeMouseMode(SDL_TRUE);

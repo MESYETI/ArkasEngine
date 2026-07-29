@@ -12,7 +12,7 @@ typedef struct {
 } UI_ScrollBar;
 
 static void Free(UI_Element* e) {
-	UI_ScrollBar* data = (UI_ScrollBar*) e->data;
+	(void) e;
 }
 
 static void Render(UI_Container* container, UI_Element* e, bool focus) {
@@ -43,6 +43,8 @@ static void OnClick(UI_Container* cont, UI_Element* e, uint8_t button, bool down
 	(void) cont;
 
 	if (!down) return;
+
+	if (button != 0) return;
 
 	UI_ScrollBar* data = (UI_ScrollBar*) e->data;
 	Rect          rect = UI_ContainerGetRect(cont);

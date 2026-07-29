@@ -8,6 +8,8 @@
 static UI_Manager* managers;
 
 static void EventHandler(Event* e) {
+	(void) e;
+
 	for (UI_Manager* man = managers; man; man = man->next) {
 		for (size_t i = 0; i < man->containerLen; ++ i) {
 			UI_Container* con = &man->containers[i];
@@ -235,7 +237,7 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 					continue;
 				}
 
-				bool elemFocus = false;
+				// bool elemFocus = false;
 
 				for (size_t j = 0; j < container->rowAmount; ++ j) {
 					UI_Row* row = &container->rows[j];

@@ -27,7 +27,7 @@ static void Scaling(Model* model) {
 	float maxY = model->vertices[0].y;
 	Height(model, &minY, &maxY);
 
-	float height = maxY - minY;
+	// float height = maxY - minY;
 
 	if (minY < 0) {
 		for (size_t i = 0; i < model->verticesNum; ++ i) {
@@ -35,7 +35,7 @@ static void Scaling(Model* model) {
 		}
 
 		Height(model, &minY, &maxY);
-		height = maxY - minY;
+		// height = maxY - minY;
 	}
 
 	float scale = 1.0f / maxY;
