@@ -5,7 +5,7 @@
 #include "common.h"
 #include "resources.h"
 
-typedef struct Entity Entity;
+#define SECTOR_NO_ENTITIES ((size_t) -1)
 
 typedef struct {
 	FVec2 pos;
@@ -32,9 +32,7 @@ typedef struct {
 	Resource* floorTexture;
 	Resource* ceilingTexture;
 
-	// entities
-	Entity** entities;
-	size_t   entitiesNum;
+	size_t entityLink;
 } Sector;
 
 typedef struct {
@@ -59,8 +57,8 @@ void Map_LoadTest2(void);
 bool Map_LoadFile(Stream* file, const char* path);
 bool Map_SaveFile(Stream* file);
 void Map_PointInMap(FVec2 pos);
-void Map_AddEntity(Entity* entity);
-void Map_DetachEntity(Entity* entity);
-void Map_DeleteEntity(Entity* entity);
+void Map_AddEntity(size_t entityIdx);
+void Map_DetachEntity(size_t entityIdx);
+void Map_DeleteEntity(size_t entityIdx);
 
 #endif

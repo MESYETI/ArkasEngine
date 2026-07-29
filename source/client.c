@@ -38,6 +38,7 @@ bool Client_StartLocal(void) {
 	}
 
 	client.relSock = Socket_New(SOCKET_TYPE_LOCAL, 0);
+	client.udpSock = NULL;
 	client.state   = C_IDENT;
 
 	if (!client.relSock) {
@@ -60,6 +61,7 @@ bool Client_StartLocal(void) {
 
 bool Client_StartINet(const char* ip, uint16_t port) {
 	client.relSock = Socket_New(SOCKET_TYPE_NET, SOCKET_PROTOCOL_TCP);
+	client.udpSock = Socket_New(SOCKET_TYPE_NET, SOCKET_PROTOCOL_UDP);
 	client.state   = C_IDENT;
 
 	if (!client.relSock) {
@@ -71,6 +73,13 @@ bool Client_StartINet(const char* ip, uint16_t port) {
 		Log("client: Failed to connect");
 		Socket_Close(client.relSock);
 		client.relSock = NULL;
+		return false;
+	}
+
+	if (!Socket_ConnectNet(client.udpSock, ip, port)) {
+		Log("client: Failed to connect");
+		Socket_Close(client.udpSock);
+		client.udpSock = NULL;
 		return false;
 	}
 

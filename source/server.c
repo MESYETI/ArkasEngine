@@ -195,7 +195,7 @@ static bool ClientWorker(ServerClient* this) {
 					if (available < size) break;
 
 					char message[129];
-					message[129] = 0;
+					message[128] = 0;
 					Socket_Receive(this->relSock, &message, 128);
 
 					char* msg = Format("%s: %s", this->username, message);

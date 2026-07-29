@@ -507,9 +507,13 @@ static void RenderSector(Sector* sector, FVec2 offset) {
 	}
 
 	// render entities
-	for (size_t i = 0; i < sector->entitiesNum; ++ i) {
-		Entity* entity = sector->entities[i];
+	size_t entIdx = sector->entityLink;
+
+	while (entIdx != SECTOR_NO_ENTITIES) {
+		Entity* entity = EntityPool_Get(entIdx);
 		entity->render(entity, offset);
+
+		entIdx = entity->nextSect;
 	}
 
 	// next sectors

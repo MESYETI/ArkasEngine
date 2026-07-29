@@ -6,7 +6,11 @@
 #include "types.h"
 #include "resources.h"
 
-typedef struct Entity {
+typedef struct Entity Entity;
+
+struct Entity {
+	bool       used;
+	void*      data;
 	uint32_t   type;
 	FVec3      pos;
 	FVec3      vel;
@@ -17,11 +21,15 @@ typedef struct Entity {
 	float      modelScale;
 	bool       modelVisible;
 
+	// link
+	size_t nextSect;
+	size_t prevSect;
+
 	void  (*free)(struct Entity* ent);
 	void* (*getComponent)(struct Entity* ent, int id);
 	void  (*update)(struct Entity* ent);
 	void  (*render)(struct Entity* ent, FVec2 portalOff);
-} Entity;
+};
 
 // built in entity types
 enum {
@@ -55,10 +63,22 @@ typedef struct {
 	bool  skipFriction;
 } EntityPlayerInfo;
 
+typedef struct {
+	Entity* pool;
+	size_t  size;
+} EntityPool;
+
+// entity pool
+extern EntityPool entityPool;
+
+void    EntityPool_Init(void);
+void    EntityPool_Free(void);
+size_t  EntityPool_New(void);
+Entity* EntityPool_Get(size_t idx);
+void    EntityPool_FreeEntity(size_t idx);
+
 // built in entities
-Entity* PropEntity_New(
-	Sector* sect, FVec3 pos, Direction dir, Resource* model, bool movable
-);
-void PropEntity_AddSound(Entity* entity, AudioEmitter emitter);
+size_t PropEntity_New(Sector* sect, FVec3 pos, Direction dir, Resource* model, bool movable);
+void   PropEntity_AddSound(Entity* entity, AudioEmitter emitter);
 
 #endif

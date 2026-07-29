@@ -4,17 +4,19 @@
 #include "window.h"
 #include "keyboard.h"
 
-// i don't use an enum because of compiler warnings about missing cases in switch
-// statements for event types
-#define AE_EVENT_NONE              0
-#define AE_EVENT_MOUSE_MOVE        1
-#define AE_EVENT_MOUSE_BUTTON_DOWN 2
-#define AE_EVENT_MOUSE_BUTTON_UP   3
-#define AE_EVENT_KEY_DOWN          4
-#define AE_EVENT_KEY_UP            5
-#define AE_EVENT_QUIT              6
-#define AE_EVENT_WINDOW_RESIZE     7
-#define AE_EVENT_TEXT_INPUT        8
+enum {
+	AE_EVENT_NONE              = 0,
+	AE_EVENT_MOUSE_MOVE        = 1,
+	AE_EVENT_MOUSE_BUTTON_DOWN = 2,
+	AE_EVENT_MOUSE_BUTTON_UP   = 3,
+	AE_EVENT_KEY_DOWN          = 4,
+	AE_EVENT_KEY_UP            = 5,
+	AE_EVENT_QUIT              = 6,
+	AE_EVENT_WINDOW_RESIZE     = 7,
+	AE_EVENT_TEXT_INPUT        = 8,
+	AE_EVENT_ENTITY_SPAWN      = 9,
+	AE_EVENT_ENTITY_REMOVED    = 10
+};
 
 typedef uint8_t Event_Type;
 
@@ -52,6 +54,16 @@ typedef struct {
 	char       input[60];
 } Event_TextInput;
 
+typedef struct {
+	Event_Type type;
+	size_t     idx;
+} Event_EntitySpawn;
+
+typedef struct {
+	Event_Type type;
+	size_t     idx;
+} Event_EntityRemoved;
+
 typedef union {
 	Event_Type         type;
 	Event_MouseMove    mouseMove;
@@ -61,8 +73,8 @@ typedef union {
 	Event_TextInput    textInput;
 } Event;
 
-#define EVENTS_AMOUNT 32
-extern Event events[EVENTS_AMOUNT];
+extern Event* events;
+extern size_t eventsSize;
 
 typedef void (*Event_Handler)(Event* event);
 

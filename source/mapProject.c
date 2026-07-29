@@ -42,7 +42,7 @@ void MapProj_Export(MProject* proj) {
 			(FVec2) {0, 0}, (FVec2) {0, 0}, false, false,
 			Resources_GetRes("base:3p_textures/concrete1.png", 0),
 			Resources_GetRes("base:3p_textures/concrete1.png", 0),
-			NULL, 0 // entities
+			SECTOR_NO_ENTITIES
 		};
 
 		for (size_t j = 0; j < proj->sectors[i].pointsLen; ++ j, ++ pointsNum) {

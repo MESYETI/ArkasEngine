@@ -24,6 +24,8 @@ Map map = {
 // static Resource* texture; // temp
 
 void Map_Init(void) {
+	Map_Free();
+
 	map.active      = false;
 	map.points      = NULL;
 	map.pointsLen   = 0;
@@ -33,6 +35,8 @@ void Map_Init(void) {
 	map.sectorsLen  = 0;
 	map.fogColour   = (Colour) {0x66, 0x66, 0xFF, 0xFF};
 	map.fogDistance = 100.0f;
+
+	EntityPool_Init();
 }
 
 void Map_Free(void) {
@@ -76,9 +80,12 @@ void Map_Free(void) {
 	}
 
 	Backend_OnMapFree();
+	EntityPool_Free();
 }
 
 void Map_LoadTest(void) {
+	Map_Init();
+
 	map.active    = true;
 	map.name      = NewString("ae_test");
 	map.points    = SafeMalloc(12 * sizeof(MapPoint));
@@ -132,10 +139,12 @@ void Map_LoadTest(void) {
 	map.sectorsLen = 2;
 
 	map.sectors[0] = (Sector) {
-		0, 6, 50, -0.5, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL, NULL, 0
+		0, 6, 50, -0.5, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL,
+		SECTOR_NO_ENTITIES
 	};
 	map.sectors[1] = (Sector) {
-		6, 6, 10, -0.3, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL, NULL, 0
+		6, 6, 10, -0.3, (FVec2) {0, 0}, (FVec2) {0, 0}, false, false, NULL, NULL,
+		SECTOR_NO_ENTITIES
 	};
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
@@ -160,6 +169,8 @@ void Map_LoadTest(void) {
 }
 
 void Map_LoadTest2(void) {
+	Map_Init();
+
 	map.active    = true;
 	map.name      = NewString("ae_test2");
 	map.points    = SafeMalloc(4 * sizeof(MapPoint));
@@ -181,7 +192,7 @@ void Map_LoadTest2(void) {
 	map.sectorsLen = 1;
 	map.sectors[0] = (Sector) {
 		0, 4, 50.0, -0.5, (FVec2) {0, 0}, (FVec2) {0, 0}, false, true,
-		Resources_GetRes("base:3p_textures/grass1.png", 0), NULL, NULL, 0
+		Resources_GetRes("base:3p_textures/grass1.png", 0), NULL, SECTOR_NO_ENTITIES
 	};
 
 	camera.sector = &map.sectors[0];
@@ -192,7 +203,7 @@ void Map_LoadTest2(void) {
 }
 
 bool Map_LoadFile(Stream* file, const char* path) {
-	Map_Free();
+	Map_Init();
 
 	char* baseName = strrchr(path, '/');
 	if (baseName == NULL) {
@@ -274,8 +285,7 @@ bool Map_LoadFile(Stream* file, const char* path) {
 		map.sectors[i].ceilingTexOff = (FVec2) {0.0, 0.0};
 		map.sectors[i].floorBlank    = false;
 		map.sectors[i].ceilingBlank  = false;
-		map.sectors[i].entities      = NULL;
-		map.sectors[i].entitiesNum   = 0;
+		map.sectors[i].entityLink    = SECTOR_NO_ENTITIES;
 
 		uint32_t floorTexture = Stream_Read32(file);
 		uint32_t ceilTexture  = Stream_Read32(file);
@@ -379,40 +389,52 @@ bool Map_SaveFile(Stream* file) {
 	return true;
 }
 
-void Map_AddEntity(Entity* entity) {
+void Map_AddEntity(size_t entityIdx) {
+	Entity* entity = EntityPool_Get(entityIdx);
 	Sector* sector = entity->sector;
 
-	++ sector->entitiesNum;
-	sector->entities = SafeRealloc(
-		sector->entities, sector->entitiesNum * sizeof(void*)
-	);
+	size_t  sectEntIdx = sector->entityLink;
+	Entity* sectEnt    = EntityPool_Get(sectEntIdx);
 
-	sector->entities[sector->entitiesNum - 1] = entity;
-}
-
-void Map_DetachEntity(Entity* entity) {
-	int     idx    = -1;
-	Sector* sector = entity->sector;
-
-	for (int i = 0; i < (int) sector->entitiesNum; ++ i) {
-		if (sector->entities[i] == entity) {
-			idx = i;
-			break;
-		}
+	if (sectEnt) {
+		entity->nextSect  = sectEntIdx;
+		sectEnt->prevSect = entityIdx;
 	}
 
-	if (idx == -1) assert(0);
-
-	memmove(
-		&sector->entities[idx], &sector->entities[idx + 1],
-		sector->entitiesNum - idx - 1
-	);
-	entity->sector = NULL;
+	sector->entityLink = entityIdx;
 }
 
-void Map_DeleteEntity(Entity* entity) {
-	Map_DetachEntity(entity);
+void Map_DetachEntity(size_t entityIdx) {
+	Entity* entity = EntityPool_Get(entityIdx);
+	Sector* sector = entity->sector;
+	Entity* prev   = EntityPool_Get(entity->prevSect);
+	Entity* next   = EntityPool_Get(entity->nextSect);
+
+	if (prev) {
+		prev->nextSect = entity->nextSect;
+	}
+	if (next) {
+		next->prevSect = entity->prevSect;
+	}
+
+	if (sector->entityLink == entityIdx) {
+		if (prev) {
+			sector->entityLink = entity->prevSect;
+		}
+		else if (next) {
+			sector->entityLink = entity->nextSect;
+		}
+		else {
+			sector->entityLink = SECTOR_NO_ENTITIES;
+		}
+	}
+}
+
+void Map_DeleteEntity(size_t entityIdx) {
+	Map_DetachEntity(entityIdx);
+
+	Entity* entity = EntityPool_Get(entityIdx);
 
 	entity->free(entity);
-	free(entity);
+	entity->used = false;
 }

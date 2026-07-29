@@ -67,7 +67,11 @@ contain one or more Arkas Engine packets. If the Arkas Engine packets are sent
 over a reliable connection, this is not the case
 
 ### Client to server
+#### 0xFF00 - My current position
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
-| 4    | Packet size                                   |
-| ?    | Packet data                                   |
+| 4    | Float - X position                            |
+| 4    | Float - Y position                            |
+| 4    | Float - Z position                            |
+| 4    | Float - Yaw direction                         |
+| 4    | Float - Pitch direction                       |

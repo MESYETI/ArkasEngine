@@ -5,7 +5,8 @@
 #include "config.h"
 #include "input/sdl.h"
 
-Event events[EVENTS_AMOUNT];
+Event* events;
+size_t eventsSize;
 
 typedef struct {
 	Event_Type    type;
@@ -16,7 +17,10 @@ static Handler* handlers   = NULL;
 static size_t   handlerNum = 0;
 
 void Event_Init(void) {
-	for (size_t i = 0; i < EVENTS_AMOUNT; ++ i) {
+	events     = SafeMalloc(64 * sizeof(Event));
+	eventsSize = 64;
+
+	for (size_t i = 0; i < eventsSize; ++ i) {
 		events[i].type = AE_EVENT_NONE;
 	}
 }
@@ -27,23 +31,26 @@ void Event_Free(void) {
 	}
 }
 
-static int FindFree(void) {
+static Event* FindFree(void) {
 	int i;
 
-	for (i = 0; i < EVENTS_AMOUNT; ++ i) {
-		if (events[i].type == AE_EVENT_NONE) return i;
+	for (i = 0; i < eventsSize; ++ i) {
+		if (events[i].type == AE_EVENT_NONE) return &events[i];
 	}
 
-	for (i = 0; i < EVENTS_AMOUNT; ++ i) {
-		printf("Event %d: %d\n", i, (int) events[i].type);
+	size_t old  = eventsSize;
+	events      = SafeRealloc(events, eventsSize * 2 * sizeof(Event));
+	eventsSize *= 2;
+
+	for (size_t i = old; i < eventsSize; ++ i) {
+		events[i].type = AE_EVENT_NONE;
 	}
 
-	Error("Event pool full");
-	return -1;
+	return &events[old];
 }
 
 void Event_Add(Event e) {
-	events[FindFree()] = e;
+	*FindFree() = e;
 }
 
 void Event_Update(void) {
@@ -51,7 +58,7 @@ void Event_Update(void) {
 
 	Event_PrepareExternal();
 	while (Event_PollExternal(&e)) {
-		events[FindFree()] = e;
+		*FindFree() = e;
 
 		for (size_t i = 0; i < handlerNum; ++ i) {
 			if (handlers[i].type == e.type) {
@@ -62,7 +69,7 @@ void Event_Update(void) {
 }
 
 bool Event_Available(void) {
-	for (size_t i = 0; i < EVENTS_AMOUNT; ++ i) {
+	for (size_t i = 0; i < eventsSize; ++ i) {
 		if (events[i].type != AE_EVENT_NONE) {
 			return true;
 		}
@@ -76,7 +83,7 @@ bool Event_Poll(Event* e) {
 		Event_Update();
 	}
 
-	for (size_t i = 0; i < EVENTS_AMOUNT; ++ i) {
+	for (size_t i = 0; i < eventsSize; ++ i) {
 		if (events[i].type != AE_EVENT_NONE) {
 			*e             = events[i];
 			events[i].type = AE_EVENT_NONE;

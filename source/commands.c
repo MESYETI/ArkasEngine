@@ -598,14 +598,16 @@ static void Command_SpawnProp(size_t argc, char** argv) {
 		return;
 	}
 
-	Entity* entity = PropEntity_New(
+	size_t entityIdx = PropEntity_New(
 		player.sector, player.pos, (Direction) {
 			player.pitch, player.yaw, 0.0f
 		}, Resources_GetRes(path, 0), false
 	);
+
+	Entity* entity = EntityPool_Get(entityIdx);
 	entity->modelScale = scale;
 
-	Map_AddEntity(entity);
+	Map_AddEntity(entityIdx);
 }
 
 static void Command_Message(size_t argc, char** argv) {
