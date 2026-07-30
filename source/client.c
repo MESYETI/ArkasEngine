@@ -2,6 +2,7 @@
 #include "map.h"
 #include "chat.h"
 #include "util.h"
+#include "event.h"
 #include "client.h"
 #include "server.h"
 #include "ramDrive.h"
@@ -209,6 +210,11 @@ void Client_Update(void) {
 					Map_LoadFile(&file, "net:map.arm");
 					Stream_Close(&file);
 					client.state = C_WAITING;
+
+					// send map loaded event
+					Event e;
+					e.type = AE_EVENT_CLIENT_MAP_LOADED;
+					Event_Add(e);
 				}
 			}
 			break;

@@ -6,5 +6,6 @@
 void     Platform_Init(void);
 void     Platform_Quit(void);
 uint64_t Platform_GetTime(void);
+void     Platform_Sleep(uint32_t ms);
 
 #endif

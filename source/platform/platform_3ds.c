@@ -15,4 +15,8 @@ uint64_t Platform_GetTime(void) {
 	return osGetTime() * 1000;
 }
 
+void Platform_Sleep(uint32_t ms) {
+	svcSleepThread(ms * 1000000);
+}
+
 #endif

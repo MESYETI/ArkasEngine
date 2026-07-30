@@ -111,7 +111,7 @@ void Server_Free(void) {
 enum {
 	SC_WAITING = 0, // waiting for a new packet
 	SC_PACKET,      // waiting for the current packet to be finished
-	SC_MAP,
+	SC_MAP
 };
 
 static bool ClientSendMap(ServerClient* this) {
@@ -133,6 +133,8 @@ static bool ClientSendMap(ServerClient* this) {
 	Socket_Send(this->relSock, &mapSize, sizeof(mapSize));
 
 	this->relState = SC_MAP;
+
+	Log("server: Begin sending map");
 	return true;
 }
 
@@ -187,6 +189,7 @@ static bool ClientWorker(ServerClient* this) {
 							this->relState = SC_WAITING;
 						}
 					}
+
 					break;
 				}
 				case 0x02: {
@@ -217,6 +220,8 @@ static bool ClientWorker(ServerClient* this) {
 			size_t  size;
 
 			size = Stream_Read(&this->mapStream, 1024, &chunk);
+
+			Log("server: Sent %d bytes to client", (int) size);
 
 			Socket_Send(this->relSock, chunk, size);
 

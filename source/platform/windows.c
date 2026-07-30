@@ -43,4 +43,8 @@ uint64_t Platform_GetTime(void) {
 	return time.QuadPart * perfctmul / perfFreq.QuadPart;
 }
 
+void Platform_Sleep(uint32_t ms) {
+	Sleep((DWORD) ms);
+}
+
 #endif

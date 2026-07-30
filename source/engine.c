@@ -67,7 +67,9 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Log("Made by MESYETI in 2025");
 	Resources_Init();
 
-	Window_Init();
+	if (!engine.server) {
+		Window_Init();
+	}
 
 	if (!FileExists(AE_LOCATION "startup.cmd")) {
 		Log("Generating startup.cmd");
@@ -126,14 +128,13 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 void Engine_Free(void) {
 	Log("Goodbye!");
 
-	Window_Quit();
-
 	if (server.running) {
 		Server_Free();
 	}
 
 	if (engine.server) return;
 
+	Window_Quit();
 	Input_Free();
 	Audio_Free();
 	SceneManager_Free();
@@ -222,4 +223,8 @@ void Engine_Update(void) {
 
 	Backend_FinishRender();
 	oldFrameTime = newFrameTime;
+
+	if (engine.server) {
+		Platform_Sleep(10);
+	}
 }

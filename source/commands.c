@@ -626,6 +626,33 @@ static void Command_Chat(size_t argc, char** argv) {
 	Client_SendMessage(argv[0]);
 }
 
+static void Command_MapInfo(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+
+	if (!map.active) {
+		Log("No map loaded");
+		return;
+	}
+
+	Log("Map loaded:");
+	Log(" - %d points/walls", (int) map.wallsLen);
+	Log(" - %d sectors", (int) map.sectorsLen);
+}
+
+static void Command_MapView(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+
+	if (!map.active) {
+		Log("No map loaded");
+		return;
+	}
+
+	SceneManager_AddScene((Scene) {
+		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
+		NULL, NULL
+	});
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "test-map2",          &Command_Test2);
@@ -666,4 +693,6 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "spawn-prop",         &Command_SpawnProp);
 	Console_AddCommand(true,  "message",            &Command_Message);
 	Console_AddCommand(true,  "chat",               &Command_Chat);
+	Console_AddCommand(true,  "map-info",           &Command_MapInfo);
+	Console_AddCommand(true,  "map-view",           &Command_MapView);
 }

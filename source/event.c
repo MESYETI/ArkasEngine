@@ -3,6 +3,7 @@
 #include "util.h"
 #include "event.h"
 #include "config.h"
+#include "engine.h"
 #include "input/sdl.h"
 
 Event* events;
@@ -52,6 +53,8 @@ void Event_Add(Event e) {
 }
 
 void Event_Update(void) {
+	if (engine.server) return;
+
 	Event e;
 
 	Event_PrepareExternal();

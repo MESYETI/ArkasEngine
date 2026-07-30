@@ -5,6 +5,7 @@
 #include "keyboard.h"
 
 enum {
+	// external events
 	AE_EVENT_NONE              = 0,
 	AE_EVENT_MOUSE_MOVE        = 1,
 	AE_EVENT_MOUSE_BUTTON_DOWN = 2,
@@ -14,8 +15,11 @@ enum {
 	AE_EVENT_QUIT              = 6,
 	AE_EVENT_WINDOW_RESIZE     = 7,
 	AE_EVENT_TEXT_INPUT        = 8,
+
+	// engine events
 	AE_EVENT_ENTITY_SPAWN      = 9,
-	AE_EVENT_ENTITY_REMOVED    = 10
+	AE_EVENT_ENTITY_REMOVED    = 10,
+	AE_EVENT_CLIENT_MAP_LOADED = 11
 };
 
 typedef uint8_t Event_Type;
