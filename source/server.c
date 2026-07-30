@@ -272,12 +272,17 @@ void Server_Update(void) {
 	ServerClient* client = server.clients;
 	while (client) {
 		if (ClientWorker(client)) {
-			client = server.clients->next;
+			client = client->next;
 		}
 		else {
+			char ip[64];
+			Socket_StringAddr(client->relSock, ip, sizeof(ip));
+
+			Log("Client %s disconnected", ip);
+
 			ServerClient* removed = client;
 
-			client = server.clients->next;
+			client = client->next;
 
 			removed->prev->next       = client;
 			removed->prev->next->prev = removed;
