@@ -8,8 +8,9 @@
 typedef struct ServerClient ServerClient;
 
 struct ServerClient {
-	int     relState;
-	Socket* relSock;
+	int      relState;
+	Socket*  relSock;
+	uint64_t lastPing;
 
 	// state stuff
 	uint16_t packetID;

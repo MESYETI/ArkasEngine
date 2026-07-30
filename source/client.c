@@ -6,6 +6,7 @@
 #include "client.h"
 #include "server.h"
 #include "ramDrive.h"
+#include "platform.h"
 #include "resources.h"
 
 enum {
@@ -87,13 +88,43 @@ bool Client_StartINet(const char* ip, uint16_t port) {
 	Log("client: Client connected to internet server");
 	client.running = true;
 	StartClient();
+
+	client.lastPing = Platform_GetTime();
 	return true;
+}
+
+void Client_Stop(void) {
+	if (client.relSock) {
+		Socket_Close(client.relSock);
+		client.relSock = NULL;
+	}
+
+	if (client.udpSock) {
+		Socket_Close(client.udpSock);
+		client.udpSock = NULL;
+	}
+
+	client.running = false;
+
+	Log("Client stopped");
 }
 
 void Client_Update(void) {
 	if (!Socket_Connected(client.relSock)) {
 		Log("client: Client sock not connected yet, waiting");
 		return;
+	}
+
+	if (
+		(client.relSock->value.type == SOCKET_TYPE_NET) &&
+		(Platform_GetTime() - client.lastPing > 15000000)
+	) {
+		// send a ping
+		uint16_t id = 0x03;
+
+		Socket_Send(client.relSock, &id, sizeof(id));
+
+		client.lastPing = Platform_GetTime();
 	}
 
 	switch (client.state) {
@@ -121,7 +152,7 @@ void Client_Update(void) {
 			size_t available = Socket_DataAvailable(client.relSock);
 
 			switch (client.packetID) {
-				case 0x00: {
+				case 0x00: { // identification
 					size_t size = 32;
 
 					if (available < size) break;
@@ -134,7 +165,7 @@ void Client_Update(void) {
 					client.state = C_WAITING;
 					break;
 				}
-				case 0x01: {
+				case 0x01: { // receive file
 					size_t size = 64 + 4;
 
 					if (available < size) break;
@@ -155,19 +186,38 @@ void Client_Update(void) {
 					Log("Receiving '%s' from server...", client.fileName);
 					break;
 				}
-				case 0x02: {
+				case 0x02: { // chat
 					size_t size = 64;
 
 					if (available < size) break;
 
 					char message[65];
-					message[65] = 0;
+					message[64] = 0;
 					Socket_Receive(client.relSock, &message, 64);
 
 					Log("MSG: %s", message);
 					Chat_Add(message);
 
 					client.state = C_WAITING;
+					break;
+				}
+				case 0x03: { // ping
+					client.state = C_WAITING;
+					break;
+				}
+				case 0x04: { // kicked
+					if (available < 256) break;
+
+					char message[257];
+					message[256] = 0;
+					Socket_Receive(client.relSock, &message, 256);
+
+					Log("Kicked: %s", message);
+
+					Event e;
+					e.type = AE_EVENT_CLIENT_KICKED;
+					strcpy(e.clientKick.message, message);
+					Event_Add(&e);
 					break;
 				}
 				default: {
@@ -214,7 +264,7 @@ void Client_Update(void) {
 					// send map loaded event
 					Event e;
 					e.type = AE_EVENT_CLIENT_MAP_LOADED;
-					Event_Add(e);
+					Event_Add(&e);
 				}
 			}
 			break;

@@ -2,6 +2,8 @@
 Notes:
 - Integers are little endian
 - Current protocol version is 0
+- A ping packet is expected at least 30 seconds. Sending a ping packet every 15 seconds
+  is encouraged.
 
 Arkas Engine multiplayer requires that a connection is available where data is
 reliably sent in order, such as TCP or the local connection. UDP may be used for
@@ -55,6 +57,14 @@ Notes:
 
 Notes: A chat message without a null terminator is 64 characters long
 
+#### 0x03 - Ping
+This packet contains no extra data.
+
+#### 0x04 - Kick
+| Size | Description                                   |
+| ---- | --------------------------------------------- |
+| 256  | Null terminated kick message - one line       |
+
 #### 0xFF - Game packet - currently unsupported
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
@@ -75,3 +85,6 @@ over a reliable connection, this is not the case
 | 4    | Float - Z position                            |
 | 4    | Float - Yaw direction                         |
 | 4    | Float - Pitch direction                       |
+
+#### 0x03 - Ping
+This packet contains no extra data.

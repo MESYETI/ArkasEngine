@@ -48,8 +48,8 @@ static Event* FindFree(void) {
 	return &events[old];
 }
 
-void Event_Add(Event e) {
-	*FindFree() = e;
+void Event_Add(Event* e) {
+	*FindFree() = *e;
 }
 
 void Event_Update(void) {

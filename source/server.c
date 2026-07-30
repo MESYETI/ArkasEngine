@@ -2,6 +2,7 @@
 #include "mem.h"
 #include "util.h"
 #include "server.h"
+#include "platform.h"
 #include "resources.h"
 
 Server server = {
@@ -139,6 +140,22 @@ static bool ClientSendMap(ServerClient* this) {
 }
 
 static bool ClientWorker(ServerClient* this) {
+	if (
+		(this->relSock->value.type == SOCKET_TYPE_NET) &&
+		(Platform_GetTime() - this->lastPing > 30000000)
+	) {
+		// send kick message in case they are still connected, which probably won't
+		// be the case
+
+		char packet[258];
+		packet[0] = 0x04; // packet ID
+		packet[1] = 0;
+		strcpy(&packet[2], "Automatically disconnected - no ping for over 30 seconds");
+		Socket_Send(this->relSock, packet, sizeof(packet));
+
+		return false;
+	}
+
 	switch (this->relState) {
 		case SC_WAITING: {
 			if (Socket_DataAvailable(this->relSock) < 2) break;
@@ -151,7 +168,7 @@ static bool ClientWorker(ServerClient* this) {
 			size_t available = Socket_DataAvailable(this->relSock);
 
 			switch (this->packetID) {
-				case 0x00: {
+				case 0x00: { // identification
 					size_t size = 32 + 2;
 
 					if (available < size) break;
@@ -192,7 +209,7 @@ static bool ClientWorker(ServerClient* this) {
 
 					break;
 				}
-				case 0x02: {
+				case 0x02: { // chat
 					size_t size = 128;
 
 					if (available < size) break;
@@ -205,6 +222,11 @@ static bool ClientWorker(ServerClient* this) {
 					Server_SendMessage(msg);
 					free(msg);
 
+					this->relState = SC_WAITING;
+					break;
+				}
+				case 0x03: { // ping
+					this->lastPing = Platform_GetTime();
 					this->relState = SC_WAITING;
 					break;
 				}
@@ -267,6 +289,7 @@ void Server_Update(void) {
 
 		client->relState = SC_WAITING;
 		client->relSock  = newClient;
+		client->lastPing = Platform_GetTime();
 	}
 
 	ServerClient* client = server.clients;
@@ -284,8 +307,12 @@ void Server_Update(void) {
 
 			client = client->next;
 
-			removed->prev->next       = client;
-			removed->prev->next->prev = removed;
+			if (server.clients == removed) {
+				server.clients = removed->next;
+			}
+
+			if (removed->prev) removed->prev->next = removed->next;
+			if (removed->next) removed->next->prev = removed->prev;
 
 			Socket_Close(removed->relSock);
 			free(removed);

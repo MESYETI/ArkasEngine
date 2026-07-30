@@ -19,7 +19,8 @@ enum {
 	// engine events
 	AE_EVENT_ENTITY_SPAWN      = 9,
 	AE_EVENT_ENTITY_REMOVED    = 10,
-	AE_EVENT_CLIENT_MAP_LOADED = 11
+	AE_EVENT_CLIENT_MAP_LOADED = 11,
+	AE_EVENT_CLIENT_KICKED     = 12
 };
 
 typedef uint8_t Event_Type;
@@ -68,6 +69,11 @@ typedef struct {
 	size_t     idx;
 } Event_EntityRemoved;
 
+typedef struct {
+	Event_Type type;
+	char       message[257];
+} Event_ClientKick;
+
 typedef union {
 	Event_Type         type;
 	Event_MouseMove    mouseMove;
@@ -75,6 +81,7 @@ typedef union {
 	Event_Key          key;
 	Event_WindowResize windowResize;
 	Event_TextInput    textInput;
+	Event_ClientKick   clientKick;
 } Event;
 
 extern Event* events;
@@ -84,7 +91,7 @@ typedef void (*Event_Handler)(Event* event);
 
 void Event_Init(void);
 void Event_Free(void);
-void Event_Add(Event e);
+void Event_Add(Event* e);
 void Event_Update(void);
 void Event_PrepareExternal(void);
 bool Event_PollExternal(Event* event); // defined in source/event/*.c
