@@ -1,6 +1,7 @@
 #include <string.h>
 #include "mem.h"
 #include "util.h"
+#include "random.h"
 #include "server.h"
 #include "platform.h"
 #include "resources.h"
@@ -9,18 +10,25 @@ Server server = {
 	.running   = false,
 	.mapPath   = NULL,
 	.netSock   = NULL,
+	.udpSock   = NULL,
 	.localSock = NULL
 };
 
 ServerConfig serverConf = {
-	.inet     = false,
-	.inetPort = 2025,
-	.local    = false
+	.inet         = false,
+	.inetPort     = 2025,
+	.local        = false,
+	.allowTCPOnly = false
 };
 
 bool Server_Start(void) {
 	server.running   = true;
 	server.clients   = NULL;
+
+	// commented until it actually gets used
+	// #ifdef AE_RANDOM_STD
+	// 	Log("##### WARNING: Using insecure random number generator");
+	// #endif
 
 	Log("SERVER CONFIG");
 	Log("=============");
@@ -36,17 +44,29 @@ bool Server_Start(void) {
 		server.netSock = Socket_New(SOCKET_TYPE_NET, SOCKET_PROTOCOL_TCP);
 
 		if (!server.netSock) {
-			Log("Failed to open internet socket");
+			Log("Failed to open TCP internet socket");
 			return false;
 		}
 
 		if (!Socket_Bind(server.netSock, (uint16_t) serverConf.inetPort)) {
-			Log("Failed to bind internet socket");
+			Log("Failed to bind TCP internet socket");
 			return false;
 		}
 
 		if (!Socket_Listen(server.netSock, 10)) {
-			Log("Failed to listen on internet socket");
+			Log("Failed to listen on TCP internet socket");
+			return false;
+		}
+
+		server.udpSock = Socket_New(SOCKET_TYPE_NET, SOCKET_PROTOCOL_UDP);
+
+		if (!server.udpSock) {
+			Log("Failed to open UDP internet socket");
+			return false;
+		}
+
+		if (!Socket_Bind(server.udpSock, (uint16_t) serverConf.inetPort)) {
+			Log("Failed to bind UDP internet socket");
 			return false;
 		}
 
@@ -139,6 +159,14 @@ static bool ClientSendMap(ServerClient* this) {
 	return true;
 }
 
+static void KickClient(ServerClient* this, const char* message) {
+	char packet[258];
+	packet[0] = 0x04; // packet ID
+	packet[1] = 0;
+	strncpy(&packet[2], message, 256);
+	Socket_Send(this->relSock, packet, sizeof(packet));
+}
+
 static bool ClientWorker(ServerClient* this) {
 	if (
 		(this->relSock->value.type == SOCKET_TYPE_NET) &&
@@ -146,13 +174,7 @@ static bool ClientWorker(ServerClient* this) {
 	) {
 		// send kick message in case they are still connected, which probably won't
 		// be the case
-
-		char packet[258];
-		packet[0] = 0x04; // packet ID
-		packet[1] = 0;
-		strcpy(&packet[2], "Automatically disconnected - no ping for over 30 seconds");
-		Socket_Send(this->relSock, packet, sizeof(packet));
-
+		KickClient(this, "Automatically disconnected - no ping for over 30 seconds");
 		return false;
 	}
 
@@ -169,7 +191,7 @@ static bool ClientWorker(ServerClient* this) {
 
 			switch (this->packetID) {
 				case 0x00: { // identification
-					size_t size = 32 + 2;
+					size_t size = 32 + 2 + 2;
 
 					if (available < size) break;
 
@@ -181,15 +203,17 @@ static bool ClientWorker(ServerClient* this) {
 						return false;
 					}
 
+					Socket_Receive(this->relSock, &this->udpPort, 2);
+
 					char username[33];
 					username[32] = 0;
 					Socket_Receive(this->relSock, &username, 32);
-					Log("server: %s has joined the server", username);
+					Log("server: %s (%d) has joined the server", username, (int) this->udpPort);
 
 					strcpy(this->username, username);
 
 					// now send response
-					uint16_t id             = 0;
+					uint16_t id             = 0; // packet id
 					char     serverName[32] = "Arkas Engine Server";
 
 					Socket_Send(this->relSock, &id, sizeof(id));
@@ -229,6 +253,9 @@ static bool ClientWorker(ServerClient* this) {
 					this->lastPing = Platform_GetTime();
 					this->relState = SC_WAITING;
 					break;
+				}
+				case 0xFF00: { // my current position
+					
 				}
 				default: {
 					Log("server: Client sent invalid packet ID: %.4x", this->packetID);

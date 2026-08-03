@@ -4,11 +4,11 @@
 #include "socket.h"
 
 typedef struct {
-	bool    running;
-	int     state;
-	Socket* relSock;
-	Socket* udpSock;
-	char    name[32];
+	bool     running;
+	int      state;
+	Socket*  relSock;
+	Socket*  udpSock;
+	char     name[32];
 
 	// state stuff
 	uint16_t packetID;

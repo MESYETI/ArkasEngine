@@ -67,8 +67,9 @@ Socket* Socket_New(int type, int protocol) {
 					Log("warning: Failed to set reuse address option");
 				}
 			#else
-				return NULL;
+				Error("Network sockets not available");
 			#endif
+
 			break;
 		}
 	}
@@ -101,7 +102,7 @@ bool Socket_Bind(Socket* sock, uint16_t port) {
 				
 				return true;
 			#else
-				break;
+				Error("Network sockets not available");
 			#endif
 		}
 	}
@@ -125,7 +126,7 @@ bool Socket_Listen(Socket* sock, int backlog) {
 				fcntl(sock->value.net.fd, F_SETFL, O_NONBLOCK);
 				return true;
 			#else
-				break;
+				Error("Network sockets not available");
 			#endif
 		}
 	}
@@ -167,10 +168,11 @@ Socket* Socket_Accept(Socket* sock) {
 					Error("Called accept on UDP socket");
 				}
 
-				struct sockaddr addr;
+				struct sockaddr_storage addr;
+
 				socklen_t len = sizeof(addr);
 
-				int fd = accept(sock->value.net.fd, &addr, &len);
+				int fd = accept(sock->value.net.fd, (struct sockaddr*) &addr, &len);
 
 				if (fd < 0) {
 					if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) {
@@ -190,7 +192,7 @@ Socket* Socket_Accept(Socket* sock) {
 				fcntl(fd, F_SETFL, O_NONBLOCK);
 				return ret;
 			#else
-				break;
+				Error("Network sockets not available");
 			#endif
 		}
 	}
@@ -227,7 +229,7 @@ bool Socket_ConnectNet(Socket* sock, const char* ip, uint16_t port) {
 
 		return true;
 	#else
-		assert(0);
+		Error("Network sockets not available");
 	#endif
 }
 
@@ -265,7 +267,7 @@ size_t Socket_DataAvailable(Socket* sock) {
 
 				return (size_t) count;
 			#else
-				break;
+				Error("Network sockets not available");
 			#endif
 		}
 	}
@@ -273,29 +275,35 @@ size_t Socket_DataAvailable(Socket* sock) {
 	assert(0);
 }
 
-bool Socket_ReceiveUDP(Socket* sock) {
-	if (
-		(sock->value.type != SOCKET_TYPE_NET) ||
-		(sock->value.net.protocol != SOCKET_PROTOCOL_UDP)
-	) {
-		Error("Called ReceiveUDP on non-network or non-UDP socket");
-	}
-
-	size_t          remaining = 506 - sock->value.net.recvLen;
-	struct sockaddr addr;
-	socklen_t       addrLen;
-	uint8_t*        buf = &sock->value.net.recvData[sock->value.net.recvLen];
-
-	ssize_t len = recvfrom(sock->value.net.fd, buf, remaining, 0, &addr, &addrLen);
-
-	if (len <= 0) {
-		return false;
-	}
-
-	sock->value.net.recvLen += (size_t) len;
-
-	return sock->value.net.recvLen >= 506;
-}
+// bool Socket_ReceiveUDP(Socket* sock) {
+// 	if (
+// 		(sock->value.type != SOCKET_TYPE_NET) ||
+// 		(sock->value.net.protocol != SOCKET_PROTOCOL_UDP)
+// 	) {
+// 		Error("Called ReceiveUDP on non-network or non-UDP socket");
+// 	}
+// 
+// 	size_t          remaining = 506 - sock->value.net.recvLen;
+// 	struct sockaddr addr;
+// 	socklen_t       addrLen;
+// 	uint8_t*        buf = &sock->value.net.recvData[sock->value.net.recvLen];
+// 
+// 	ssize_t len = recvfrom(sock->value.net.fd, buf, remaining, 0, &addr, &addrLen);
+// 
+// 	if (len <= 0) {
+// 		return false;
+// 	}
+// 
+// 	sock->value.net.recvLen += (size_t) len;
+// 
+// 	bool ret = sock->value.net.recvLen >= 506;
+// 
+// 	if (ret) {
+// 		sock->value.net.recvLen = 0;
+// 	}
+// 
+// 	return ret;
+// }
 
 size_t Socket_Receive(Socket* sock, void* buf, size_t size) {
 	switch (sock->value.type) {
@@ -336,12 +344,44 @@ size_t Socket_Receive(Socket* sock, void* buf, size_t size) {
 				if (ret <= 0) return 0;
 				return (size_t) ret;
 			#else
-				break;
+				Error("Network sockets not available");
 			#endif
 		}
 	}
 
 	assert(0);
+}
+
+size_t Socket_ReceiveUDP(
+	Socket* sock, void* buf, size_t size, NetSocketAddr* addr, uint16_t* ident
+) {
+	#ifdef AE_NET_SOCKET
+		if (sock->value.type != SOCKET_TYPE_NET) {
+			Error("Called ReceiveUDP on non-network socket");
+		}
+
+		if (sock->value.net.protocol != SOCKET_PROTOCOL_UDP) {
+			Error("Called ReceiveUDP on non-UDP socket");
+		}
+
+		uint8_t dg[508];
+
+		ssize_t dgSize = recvfrom(
+			sock->value.net.fd, dg, sizeof(dg), 0, (struct sockaddr*) &addr->addr, &addr->addrLen
+		);
+		if (dgSize < 4) return 0;
+
+		uint16_t dataSize = *((uint16_t*) &dg[0]);
+
+		*ident = *((uint16_t*) &dg[4]);
+
+		memcpy(buf, dg, size < dataSize? size : dataSize);
+
+		return (size_t) dataSize;
+	#else
+		Error("Network sockets not available");
+		return (size_t) -1;
+	#endif
 }
 
 static ssize_t SendUDP(Socket* sock) {
@@ -354,7 +394,7 @@ static ssize_t SendUDP(Socket* sock) {
 	memcpy(&data[2], sock->value.net.sendData, 504);
 
 	ssize_t ret = sendto(
-		sock->value.net.fd, data, sizeof(data), 0, &sock->value.net.addr.addr,
+		sock->value.net.fd, data, sizeof(data), 0, (struct sockaddr*) &sock->value.net.addr.addr,
 		sock->value.net.addr.addrLen
 	);
 
@@ -415,6 +455,13 @@ size_t Socket_Send(Socket* sock, void* buf, size_t size) {
 	}
 
 	assert(0);
+}
+
+void Socket_Flush(Socket* sock) {
+	if (sock->value.type         != SOCKET_TYPE_NET)     return;
+	if (sock->value.net.protocol != SOCKET_PROTOCOL_UDP) return;
+
+	SendUDP(sock);
 }
 
 void Socket_Close(Socket* sock) {
@@ -478,4 +525,40 @@ bool Socket_Connected(Socket* sock) {
 	}
 
 	assert(0);
+}
+
+bool Socket_GetAddr(Socket* sock, NetSocketAddr* out) {
+	switch (sock->value.type) {
+		case SOCKET_TYPE_LOCAL: {
+			Error("GetAddr not available on local sockets");
+			break;
+		}
+		case SOCKET_TYPE_NET: {
+			#ifdef AE_NET_SOCKET
+				out->addrLen = sizeof(out->addr);
+				return getsockname(
+					sock->value.net.fd, (struct sockaddr*) &out->addr, &out->addrLen
+				) == 0;
+			#else
+				Error("Network sockets not available");
+			#endif
+		}
+	}
+
+	return false;
+}
+
+uint16_t NetSocketAddr_Port(NetSocketAddr* addr) {
+	if (addr->addr.ss_family == AF_INET) {
+		struct sockaddr_in* addr2 = (struct sockaddr_in*) &addr->addr;
+
+		return ntohs(addr2->sin_port);
+	}
+	else if (addr->addr.ss_family == AF_INET6) {
+		struct sockaddr_in6* addr2 = (struct sockaddr_in6*) &addr->addr;
+
+		return ntohs(addr2->sin6_port);
+	}
+
+	return 0;
 }

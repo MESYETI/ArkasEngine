@@ -18,8 +18,9 @@ enum {
 
 Client client = {
 	.running     = false,
-	.relSock     = NULL,
 	.state       = C_WAITING,
+	.relSock     = NULL,
+	.udpSock     = NULL,
 	.downloading = false
 };
 
@@ -135,6 +136,20 @@ void Client_Update(void) {
 			uint16_t ver = 0;
 			Socket_Send(client.relSock, &ver, sizeof(ver));
 
+			uint16_t port = 0;
+
+			if (client.udpSock) {
+				NetSocketAddr addr;
+
+				if (!Socket_GetAddr(client.relSock, &addr)) {
+					Error("client: Failed to get address of UDP socket");
+				}
+
+				port = NetSocketAddr_Port(&addr);
+			}
+
+			Socket_Send(client.relSock, &port, sizeof(port));
+
 			Socket_Send(client.relSock, client.name, sizeof(client.name));
 
 			client.state = C_WAITING;
@@ -153,7 +168,7 @@ void Client_Update(void) {
 
 			switch (client.packetID) {
 				case 0x00: { // identification
-					size_t size = 32;
+					size_t size = 34;
 
 					if (available < size) break;
 

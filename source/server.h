@@ -11,6 +11,7 @@ struct ServerClient {
 	int      relState;
 	Socket*  relSock;
 	uint64_t lastPing;
+	uint16_t udpPort; // set to 0 if not used
 
 	// state stuff
 	uint16_t packetID;
@@ -28,6 +29,7 @@ typedef struct {
 	bool inet;
 	int  inetPort;
 	bool local;
+	bool allowTCPOnly;
 } ServerConfig;
 
 typedef struct {
@@ -36,6 +38,7 @@ typedef struct {
 
 	// server sockets
 	Socket* netSock;
+	Socket* udpSock;
 	Socket* localSock;
 
 	// clients

@@ -14,6 +14,7 @@
 #include "camera.h"
 #include "client.h"
 #include "player.h"
+#include "random.h"
 #include "server.h"
 #include "window.h"
 #include "backend.h"
@@ -28,6 +29,8 @@ Engine engine;
 void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Platform_Init();
 	Log_Init();
+
+	Random_Init();
 
 	Variables_Add(VAR_FLOAT, "player.ground-friction",  &player.groundFriction, 0);
 	Variables_Add(VAR_FLOAT, "player.gravity",          &player.gravity, 0);
@@ -45,6 +48,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Variables_Add(VAR_BOOL,  "server.inet",             &serverConf.inet, 0);
 	Variables_Add(VAR_INT,   "server.inet-port",        &serverConf.inetPort, 0);
 	Variables_Add(VAR_BOOL,  "server.local",            &serverConf.local, 0);
+	Variables_Add(VAR_BOOL,  "server.allow-tcp-only",   &serverConf.allowTCPOnly, 0);
 	Variables_Add(VAR_STR,   "client.username",         &client.name, sizeof(client.name));
 
 	engine.server = false;
@@ -225,6 +229,6 @@ void Engine_Update(void) {
 	oldFrameTime = newFrameTime;
 
 	if (engine.server) {
-		Platform_Sleep(10);
+		Platform_Sleep(16);
 	}
 }

@@ -18,10 +18,13 @@ Each packet starts with an ID in a 16 bit integer
 #### 0x00 - Identification
 This WILL change in a future version of the protocol
 
-| Size | Description                                   |
-| ---- | --------------------------------------------- |
-| 2    | Integer - protocol version                    |
-| 32   | Username - null terminated string             |
+| Size | Description                                      |
+| ---- | ------------------------------------------------ |
+| 2    | Integer - protocol version                       |
+| 2    | Integer - source port used for UDP communication |
+| 32   | Username - null terminated string                |
+
+Note: If the source port is 0, the client will not use UDP.
 
 #### 0x02 - Chat message
 | Size | Description                                   |
@@ -29,6 +32,9 @@ This WILL change in a future version of the protocol
 | 128  | Null terminated chat message - one line       |
 
 Notes: A chat message without a null terminator is 128 characters long
+
+#### 0x03 - Ping
+This packet contains no extra data.
 
 ### Server to client
 #### 0x00 - Identification
@@ -72,19 +78,29 @@ This packet contains no extra data.
 | ?    | Packet data                                   |
 
 ## Unreliable connection (UDP, or over reliable connection)
-All UDP packets contain a 16-bit little endian length at the start, and they may
+All UDP packets contain a 2 byte header documented below, and they may
 contain one or more Arkas Engine packets. If the Arkas Engine packets are sent
-over a reliable connection, this is not the case
+over a reliable connection, this is not the case.
+
+Because there is only one packet that uses UDP, Arkas Engine does not send multiple packets
+in one datagram, and it does not expect to receive more than one packet in one datagram.
+
+The Arkas Engine protocol expects UDP datagrams containing 508 bytes of
+data, including this protocol's header.
+
+Header:
+
+| Size | Description                                   |
+| ---- | --------------------------------------------- |
+| 2    | Size of data in this packet                   |
 
 ### Client to server
 #### 0xFF00 - My current position
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
+| 4    | Number of position packets sent so far        |
 | 4    | Float - X position                            |
 | 4    | Float - Y position                            |
 | 4    | Float - Z position                            |
 | 4    | Float - Yaw direction                         |
 | 4    | Float - Pitch direction                       |
-
-#### 0x03 - Ping
-This packet contains no extra data.
