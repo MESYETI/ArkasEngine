@@ -1,10 +1,12 @@
 #include "mem.h"
 #include "map.h"
 #include "chat.h"
+#include "data.h"
 #include "util.h"
 #include "event.h"
 #include "client.h"
 #include "server.h"
+#include "player.h"
 #include "ramDrive.h"
 #include "platform.h"
 #include "resources.h"
@@ -284,6 +286,33 @@ void Client_Update(void) {
 			}
 			break;
 		}
+	}
+
+	// send position to server
+	if (map.active) {
+		uint8_t packet[30];
+		packet[0] = 0x00;
+		packet[1] = 0xFF;
+
+		++ client.movement;
+
+		Data_Write32(&packet[2], client.movement);
+		Data_Write32(&packet[6], (uint32_t) (player.sector - map.sectors));
+		Data_WriteFloat(&packet[10], player.pos.x);
+		Data_WriteFloat(&packet[14], player.pos.y);
+		Data_WriteFloat(&packet[18], player.pos.z);
+		Data_WriteFloat(&packet[22], player.yaw);
+		Data_WriteFloat(&packet[26], player.pitch);
+
+		if (client.udpSock) {
+			Socket_Send(client.udpSock, packet, sizeof(packet));
+			Socket_Flush(client.udpSock);
+		}
+		else {
+			Socket_Send(client.relSock, packet, sizeof(packet));
+		}
+
+		puts("Sent position");
 	}
 }
 

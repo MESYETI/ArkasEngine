@@ -8,14 +8,24 @@
 typedef struct ServerClient ServerClient;
 
 struct ServerClient {
+	// network
 	int      relState;
 	Socket*  relSock;
 	uint64_t lastPing;
 	uint16_t udpPort; // set to 0 if not used
 
+	// position
+	FVec3  pos;
+	float  yaw;
+	float  pitch;
+	size_t sector;
+
 	// state stuff
-	uint16_t packetID;
-	Stream   mapStream;
+	uint16_t    packetID;
+	Stream      mapStream;
+	bool        kickFlag;
+	const char* kickReason;
+	uint32_t    movement;
 
 	// info
 	char username[33];
@@ -43,6 +53,7 @@ typedef struct {
 
 	// clients
 	ServerClient* clients;
+	size_t        clientsNum;
 } Server;
 
 extern Server       server;

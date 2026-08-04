@@ -1,5 +1,7 @@
 #include <string.h>
+#include "map.h"
 #include "mem.h"
+#include "data.h"
 #include "util.h"
 #include "random.h"
 #include "server.h"
@@ -22,8 +24,9 @@ ServerConfig serverConf = {
 };
 
 bool Server_Start(void) {
-	server.running   = true;
-	server.clients   = NULL;
+	server.running    = true;
+	server.clients    = NULL;
+	server.clientsNum = 0;
 
 	// commented until it actually gets used
 	// #ifdef AE_RANDOM_STD
@@ -127,6 +130,10 @@ void Server_Free(void) {
 		free(server.mapPath);
 		server.mapPath = NULL;
 	}
+
+	server.clientsNum = 0;
+	server.running    = false;
+	server.mapPath    = NULL;
 }
 
 enum {
@@ -165,6 +172,56 @@ static void KickClient(ServerClient* this, const char* message) {
 	packet[1] = 0;
 	strncpy(&packet[2], message, 256);
 	Socket_Send(this->relSock, packet, sizeof(packet));
+}
+
+static bool HandleSharedPacket(ServerClient* this, uint8_t* packet, size_t sz) {
+	if (sz < 2) return true;
+
+	uint16_t id = Data_Read16(packet);
+
+	switch (id) {
+		case 0xFF00: { // my current position
+			if (sz < 30) {
+				return true;
+			}
+
+			uint32_t movement = Data_Read32(&packet[2]);
+
+			if (movement < this->movement) {
+				break;
+			}
+			this->movement = movement;
+
+			uint32_t sector = Data_Read32(&packet[6]);
+			float    x      = Data_ReadFloat(&packet[10]);
+			float    y      = Data_ReadFloat(&packet[14]);
+			float    z      = Data_ReadFloat(&packet[18]);
+			float    yaw    = Data_ReadFloat(&packet[22]);
+			float    pitch  = Data_ReadFloat(&packet[26]);
+
+			if (sector >= map.sectorsLen) {
+				this->kickFlag   = true;
+				this->kickReason = "Broken movement packet"; // TODO: implement
+				Log("server: Kicking '%s' for broken movement packet", this->username);
+				return false;
+			}
+
+			this->pos.x  = x;
+			this->pos.y  = y;
+			this->pos.z  = z;
+			this->yaw    = yaw;
+			this->pitch  = pitch;
+			this->sector = sector;
+
+			Log("server: %s is at %g,%g,%g", this->username, x, y, z);
+			return true;
+		}
+		default: {
+			abort();
+		}
+	}
+
+	return true;
 }
 
 static bool ClientWorker(ServerClient* this) {
@@ -255,7 +312,18 @@ static bool ClientWorker(ServerClient* this) {
 					break;
 				}
 				case 0xFF00: { // my current position
-					
+					size_t size = 28;
+
+					if (available < size) break;
+
+					uint8_t packet[30];
+					packet[0] = 0x00;
+					packet[1] = 0xFF;
+
+					Socket_Receive(this->relSock, &packet[2], 28);
+					this->relState = SC_WAITING;
+
+					return HandleSharedPacket(this, packet, sizeof(packet));
 				}
 				default: {
 					Log("server: Client sent invalid packet ID: %.4x", this->packetID);
@@ -286,7 +354,96 @@ static bool ClientWorker(ServerClient* this) {
 	return true;
 }
 
+static void RemoveClient(ServerClient* this) {
+	if (this->prev) this->prev->next = this->next;
+	if (this->next) this->next->prev = this->prev;
+
+	Socket_Close(this->relSock);
+	free(this);
+
+	-- server.clientsNum;
+}
+
+static void HandleUDP(ServerClient* this, uint8_t* packet, size_t sz) {
+	if (sz < 2) return;
+
+	uint16_t id = Data_Read16(packet);
+
+	switch (id) {
+		case 0xFF00: { // my current position
+			HandleSharedPacket(this, packet, sz);
+			break;
+		}
+		default: {
+			this->kickFlag   = true;
+			this->kickReason = "Invalid packet ID";
+
+			Log("server: %s sent invalid packet ID %.2x", id);
+			break;
+		}
+	}
+}
+
 void Server_Update(void) {
+	if (server.udpSock) {
+		for (size_t i = 0; i < server.clientsNum; ++ i) {
+			if (!Socket_IsDataAvailable(server.udpSock)) break;
+
+			puts("Data available");
+
+			uint8_t       packet[SOCKET_UDP_DATA_SIZE];
+			NetSocketAddr addr;
+
+			size_t sz = Socket_ReceiveUDP(server.udpSock, packet, sizeof(packet), &addr);
+
+			if (sz == 0) {
+				Log("server: Failed to read from UDP socket");
+			}
+			if (sz < 2) {
+				break;
+			}
+			size_t dataSize = Data_Read16(packet);
+
+			ServerClient* client = server.clients;
+			bool          found  = false;
+
+			while (client) {
+				if (client->relSock->value.type != SOCKET_TYPE_NET) {
+					client = client->next;
+					continue;
+				}
+
+				NetSocketAddr addr2;
+
+				if (!Socket_GetAddr(client->relSock, &addr2)) {
+					Log("Failed to get %s's address", client->username);
+				}
+
+				ServerClient* next = client->next;
+
+				if (NetSocketAddr_Compare(&addr, &addr2)) {
+					HandleUDP(client, packet, sz < dataSize? sz : dataSize);
+
+					if (client->kickFlag) {
+						RemoveClient(client);
+					}
+
+					found = true;
+					break;
+				}
+
+				client = next;
+			}
+
+			if (!found) {
+				char ip[64];
+				NetSocketAddr_StringAddr(&addr, ip, sizeof(ip));
+
+				Log("server: Packet from %s not matched to client", ip);
+			}
+		}
+	}
+
 	Socket* newClient = NULL;
 
 	if (server.netSock) {
@@ -317,6 +474,10 @@ void Server_Update(void) {
 		client->relState = SC_WAITING;
 		client->relSock  = newClient;
 		client->lastPing = Platform_GetTime();
+		client->kickFlag = false;
+		client->movement = 0;
+
+		++ server.clientsNum;
 	}
 
 	ServerClient* client = server.clients;
@@ -343,6 +504,8 @@ void Server_Update(void) {
 
 			Socket_Close(removed->relSock);
 			free(removed);
+
+			-- server.clientsNum;
 		}
 	}
 }

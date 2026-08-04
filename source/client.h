@@ -18,6 +18,7 @@ typedef struct {
 	size_t   fileRead;
 	bool     downloading;
 	uint64_t lastPing;
+	uint32_t movement;
 } Client;
 
 extern Client client;

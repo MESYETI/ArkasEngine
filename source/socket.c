@@ -4,12 +4,14 @@
 #include "socket.h"
 
 #ifdef AE_NET_SOCKET
+	#include <time.h>
+	#include <poll.h>
+	#include <errno.h>
+	#include <fcntl.h>
+	#include <unistd.h>
 	#include <arpa/inet.h>
 	#include <sys/ioctl.h>
 	#include <netinet/in.h>
-	#include <unistd.h>
-	#include <errno.h>
-	#include <fcntl.h>
 #endif
 
 Socket* sockets = NULL;
@@ -275,6 +277,38 @@ size_t Socket_DataAvailable(Socket* sock) {
 	assert(0);
 }
 
+bool Socket_IsDataAvailable(Socket* sock) {
+	switch (sock->value.type) {
+		case SOCKET_TYPE_LOCAL: {
+			return sock->value.local.len > 0;
+		}
+		case SOCKET_TYPE_NET: {
+			#ifdef AE_NET_SOCKET
+				struct pollfd pollfd;
+
+				pollfd.fd     = sock->value.net.fd;
+				pollfd.events = POLLIN;
+
+				struct timespec time;
+				time.tv_sec  = 0;
+				time.tv_nsec = 5000;
+
+				int res = ppoll(&pollfd, 1, &time, NULL);
+
+				if (res < 0) {
+					Error("ppoll failed: %s", strerror(errno));
+				}
+
+				return (pollfd.revents & POLLIN)? true : false;
+			#else
+				Error("Network sockets not available");
+			#endif
+		}
+	}
+
+	assert(0);
+}
+
 // bool Socket_ReceiveUDP(Socket* sock) {
 // 	if (
 // 		(sock->value.type != SOCKET_TYPE_NET) ||
@@ -352,9 +386,7 @@ size_t Socket_Receive(Socket* sock, void* buf, size_t size) {
 	assert(0);
 }
 
-size_t Socket_ReceiveUDP(
-	Socket* sock, void* buf, size_t size, NetSocketAddr* addr, uint16_t* ident
-) {
+size_t Socket_ReceiveUDP(Socket* sock, void* buf, size_t size, NetSocketAddr* addr) {
 	#ifdef AE_NET_SOCKET
 		if (sock->value.type != SOCKET_TYPE_NET) {
 			Error("Called ReceiveUDP on non-network socket");
@@ -364,7 +396,7 @@ size_t Socket_ReceiveUDP(
 			Error("Called ReceiveUDP on non-UDP socket");
 		}
 
-		uint8_t dg[508];
+		uint8_t dg[2 + SOCKET_UDP_DATA_SIZE];
 
 		ssize_t dgSize = recvfrom(
 			sock->value.net.fd, dg, sizeof(dg), 0, (struct sockaddr*) &addr->addr, &addr->addrLen
@@ -373,9 +405,7 @@ size_t Socket_ReceiveUDP(
 
 		uint16_t dataSize = *((uint16_t*) &dg[0]);
 
-		*ident = *((uint16_t*) &dg[4]);
-
-		memcpy(buf, dg, size < dataSize? size : dataSize);
+		memcpy(buf, &dg[2], size < dataSize? size : dataSize);
 
 		return (size_t) dataSize;
 	#else
@@ -387,11 +417,11 @@ size_t Socket_ReceiveUDP(
 static ssize_t SendUDP(Socket* sock) {
 	uint16_t len = (uint16_t) sock->value.net.sendLen;
 
-	uint8_t data[506];
+	uint8_t data[2 + SOCKET_UDP_DATA_SIZE];
 	data[0] = (uint8_t) (len & 0xFF);
 	data[1] = (uint8_t) ((len & 0xFF00) >> 8);
 
-	memcpy(&data[2], sock->value.net.sendData, 504);
+	memcpy(&data[2], sock->value.net.sendData, SOCKET_UDP_DATA_SIZE);
 
 	ssize_t ret = sendto(
 		sock->value.net.fd, data, sizeof(data), 0, (struct sockaddr*) &sock->value.net.addr.addr,
@@ -549,16 +579,78 @@ bool Socket_GetAddr(Socket* sock, NetSocketAddr* out) {
 }
 
 uint16_t NetSocketAddr_Port(NetSocketAddr* addr) {
-	if (addr->addr.ss_family == AF_INET) {
-		struct sockaddr_in* addr2 = (struct sockaddr_in*) &addr->addr;
+	#ifdef AE_NET_SOCKET
+		if (addr->addr.ss_family == AF_INET) {
+			struct sockaddr_in* addr2 = (struct sockaddr_in*) &addr->addr;
 
-		return ntohs(addr2->sin_port);
-	}
-	else if (addr->addr.ss_family == AF_INET6) {
-		struct sockaddr_in6* addr2 = (struct sockaddr_in6*) &addr->addr;
+			return ntohs(addr2->sin_port);
+		}
+		else if (addr->addr.ss_family == AF_INET6) {
+			struct sockaddr_in6* addr2 = (struct sockaddr_in6*) &addr->addr;
 
-		return ntohs(addr2->sin6_port);
-	}
+			return ntohs(addr2->sin6_port);
+		}
+	#else
+		Error("Network sockets not available");
+	#endif
 
 	return 0;
+}
+
+bool NetSocketAddr_Compare(NetSocketAddr* a, NetSocketAddr* b) {
+	#ifdef AE_NET_SOCKET
+		if (a->addr.ss_family != b->addr.ss_family) {
+			return false;
+		}
+
+		if (a->addr.ss_family == AF_INET) {
+			struct sockaddr_in* aIn = (struct sockaddr_in*) &a->addr;
+			struct sockaddr_in* bIn = (struct sockaddr_in*) &b->addr;
+
+			if (ntohl(aIn->sin_addr.s_addr) != ntohl(bIn->sin_addr.s_addr)) {
+				return false;
+			}
+			if (ntohs(aIn->sin_port) != ntohs(bIn->sin_port)) {
+				return false;
+			}
+
+			return true;
+		}
+		else if (a->addr.ss_family == AF_INET6) {
+			struct sockaddr_in6* aIn = (struct sockaddr_in6*) &a->addr;
+			struct sockaddr_in6* bIn = (struct sockaddr_in6*) &b->addr;
+
+			if (memcmp(
+				aIn->sin6_addr.s6_addr, bIn->sin6_addr.s6_addr, sizeof(aIn->sin6_addr.s6_addr)
+			) != 0) {
+				return false;
+			}
+
+			if (ntohs(aIn->sin6_port) != ntohs(bIn->sin6_port)) {
+				return false;
+			}
+
+			if (aIn->sin6_flowinfo != bIn->sin6_flowinfo) {
+				return false;
+			}
+
+			if (aIn->sin6_scope_id != bIn->sin6_scope_id) {
+				return false;
+			}
+
+			return true;
+		}
+	#else
+		Error("Network sockets not available");
+	#endif
+
+	return false;
+}
+
+void NetSocketAddr_StringAddr(NetSocketAddr* addr, char* dest, size_t size) {
+	#ifdef AE_NET_SOCKET
+		inet_ntop(AF_INET, &(((struct sockaddr_in *) &addr->addr)->sin_addr), dest, size);
+	#else
+		Error("Network sockets not available");
+	#endif
 }

@@ -99,8 +99,11 @@ Header:
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
 | 4    | Number of position packets sent so far        |
+| 4    | Integer - sector index                        |
 | 4    | Float - X position                            |
 | 4    | Float - Y position                            |
 | 4    | Float - Z position                            |
 | 4    | Float - Yaw direction                         |
 | 4    | Float - Pitch direction                       |
+
+Total size: 28 (excluding packet ID)

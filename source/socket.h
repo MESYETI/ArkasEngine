@@ -70,19 +70,16 @@ struct Socket {
 	Socket*     prev;
 };
 
-Socket* Socket_New(int type, int protocol);
-bool    Socket_Bind(Socket* sock, uint16_t port);
-bool    Socket_Listen(Socket* sock, int backlog);
-Socket* Socket_Accept(Socket* sock);
-bool    Socket_ConnectNet(Socket* sock, const char* ip, uint16_t port);
-bool    Socket_ConnectLocal(Socket* sock, Socket* to);
-size_t  Socket_DataAvailable(Socket* sock);
-size_t  Socket_Receive(Socket* sock, void* buf, size_t size);
-
-size_t Socket_ReceiveUDP(
-	Socket* sock, void* buf, size_t size, NetSocketAddr* addr, uint16_t* ident
-);
-
+Socket*  Socket_New(int type, int protocol);
+bool     Socket_Bind(Socket* sock, uint16_t port);
+bool     Socket_Listen(Socket* sock, int backlog);
+Socket*  Socket_Accept(Socket* sock);
+bool     Socket_ConnectNet(Socket* sock, const char* ip, uint16_t port);
+bool     Socket_ConnectLocal(Socket* sock, Socket* to);
+size_t   Socket_DataAvailable(Socket* sock);
+bool     Socket_IsDataAvailable(Socket* sock);
+size_t   Socket_Receive(Socket* sock, void* buf, size_t size);
+size_t   Socket_ReceiveUDP(Socket* sock, void* buf, size_t size, NetSocketAddr* addr);
 size_t   Socket_Send(Socket* sock, void* buf, size_t size);
 void     Socket_Flush(Socket* sock);
 void     Socket_Close(Socket* sock);
@@ -91,5 +88,7 @@ bool     Socket_Connected(Socket* sock);
 bool     Socket_GetAddr(Socket* sock, NetSocketAddr* out);
 
 uint16_t NetSocketAddr_Port(NetSocketAddr* addr);
+bool     NetSocketAddr_Compare(NetSocketAddr* a, NetSocketAddr* b);
+void     NetSocketAddr_StringAddr(NetSocketAddr* addr, char* dest, size_t size);
 
 #endif
