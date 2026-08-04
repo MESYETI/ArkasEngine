@@ -3,8 +3,6 @@ WIP 3D engine with build-like maps
 
 Written without the use of a hyper-thirsty super-hot slop machine
 
-Currently has a demo map with two sectors and a team fortress 2 model
-
 Controls:
 - WASD for movement
 - left or right arrow keys to turn camera (or use mouse)
@@ -13,6 +11,12 @@ Controls:
 ## Screenshot
 ![Screenshot](/img/screenshot3.png)
 
+## Preparation
+Get a D compiler and the `dub` build system and build the `ark` tool in `tools/ark`. Then,
+clone <https://github.com/mesyeti/ArkasAssets> and follow the build instructions in the
+README. Then, make a folder next to the engine executable called `game` and put the
+`base.ark` from the arkas assets in the folder.
+
 ## Build
 ```
 make
@@ -20,9 +24,9 @@ make
 Requires SDL2 and stb (clone recursively!)
 
 Make options:
-- `PLAT=windows` - Cross compile to Windows (64-bit)
+- `PLAT=windows`  - Cross compile to Windows (64-bit)
 - `BUILD=release` - Compile a release build
-- `ASAN=y` - Enable address santiser
+- `ASAN=y`        - Enable address santiser
 
 ### 3DS
 Arkas Engine has an incomplete 3DS port. To compile it, use these commands:
@@ -46,12 +50,6 @@ make
 
 Requirements: Vita SDK, SDL2, VitaGL
 
-## Preparation
-Get a D compiler and the `dub` build system and build the `ark` tool in `tools/ark`. Then,
-clone <https://github.com/mesyeti/ArkasAssets> and follow the build instructions in the
-README. Then, make a folder next to the engine executable called `game` and put the
-`base.ark` from the arkas assets in the folder.
-
 ## Usage
 Arkas (in it's WIP state) can only be built standalone. It starts with a console with
 these commands:
@@ -72,6 +70,3 @@ these commands:
 
 ### In Progress
 - Citro3D
-
-## Community
-Arkas Engine is discussed in the non-bloat collective: <https://discord.gg/zPf8RS2a4r>
