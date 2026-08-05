@@ -389,8 +389,6 @@ void Server_Update(void) {
 		for (size_t i = 0; i < server.clientsNum + 1; ++ i) {
 			if (!Socket_IsDataAvailable(server.udpSock)) break;
 
-			puts("Data available");
-
 			uint8_t       packet[SOCKET_UDP_DATA_SIZE];
 			NetSocketAddr addr;
 
@@ -405,7 +403,6 @@ void Server_Update(void) {
 			size_t dataSize = Data_Read16(packet);
 
 			ServerClient* client = server.clients;
-			bool          found  = false;
 
 			while (client) {
 				if (client->relSock->value.type != SOCKET_TYPE_NET) {
@@ -415,6 +412,7 @@ void Server_Update(void) {
 
 				NetSocketAddr addr2;
 
+				// TODO: this is very wrong
 				if (!Socket_GetAddr(client->relSock, &addr2)) {
 					Log("Failed to get %s's address", client->username);
 				}
@@ -428,18 +426,10 @@ void Server_Update(void) {
 						RemoveClient(client);
 					}
 
-					found = true;
 					break;
 				}
 
 				client = next;
-			}
-
-			if (!found) {
-				char ip[64];
-				NetSocketAddr_StringAddr(&addr, ip, sizeof(ip));
-
-				Log("server: Packet from %s not matched to client", ip);
 			}
 		}
 	}
