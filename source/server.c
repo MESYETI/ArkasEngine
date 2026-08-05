@@ -386,7 +386,7 @@ static void HandleUDP(ServerClient* this, uint8_t* packet, size_t sz) {
 
 void Server_Update(void) {
 	if (server.udpSock) {
-		for (size_t i = 0; i < server.clientsNum; ++ i) {
+		for (size_t i = 0; i < server.clientsNum + 1; ++ i) {
 			if (!Socket_IsDataAvailable(server.udpSock)) break;
 
 			puts("Data available");

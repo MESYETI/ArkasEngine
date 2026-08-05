@@ -307,12 +307,12 @@ void Client_Update(void) {
 		if (client.udpSock) {
 			Socket_Send(client.udpSock, packet, sizeof(packet));
 			Socket_Flush(client.udpSock);
+
+			puts("Sent position over UDP");
 		}
 		else {
 			Socket_Send(client.relSock, packet, sizeof(packet));
 		}
-
-		puts("Sent position");
 	}
 }
 

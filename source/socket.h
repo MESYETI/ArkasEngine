@@ -52,7 +52,7 @@ typedef struct {
 		NetSocketAddr addr;
 
 		// only for UDP sockets
-		uint8_t sendData[SOCKET_UDP_DATA_SIZE];
+		uint8_t sendData[SOCKET_UDP_DATA_SIZE - 2];
 		size_t  sendLen;
 	#endif
 } NetSocket;

@@ -54,6 +54,7 @@ Socket* Socket_New(int type, int protocol) {
 
 				ret.net.fd       = socket(AF_INET, type, 0);
 				ret.net.protocol = protocol;
+				ret.net.sendLen  = 0;
 
 				if (ret.net.fd == -1) {
 					Log("Failed to create socket: %s", strerror(errno));
@@ -398,10 +399,16 @@ size_t Socket_ReceiveUDP(Socket* sock, void* buf, size_t size, NetSocketAddr* ad
 
 		uint8_t dg[2 + SOCKET_UDP_DATA_SIZE];
 
+		addr->addrLen = sizeof(addr->addr);
+
 		ssize_t dgSize = recvfrom(
 			sock->value.net.fd, dg, sizeof(dg), 0, (struct sockaddr*) &addr->addr, &addr->addrLen
 		);
 		if (dgSize < 4) return 0;
+
+		if (dgSize < 0) {
+			Error("recvfrom failed: %s", strerror(errno));
+		}
 
 		uint16_t dataSize = *((uint16_t*) &dg[0]);
 
@@ -423,10 +430,11 @@ static ssize_t SendUDP(Socket* sock) {
 
 	memcpy(&data[2], sock->value.net.sendData, SOCKET_UDP_DATA_SIZE);
 
-	ssize_t ret = sendto(
-		sock->value.net.fd, data, sizeof(data), 0, (struct sockaddr*) &sock->value.net.addr.addr,
-		sock->value.net.addr.addrLen
-	);
+	ssize_t ret = send(sock->value.net.fd, data, sizeof(data), 0);
+
+	if (ret < 0) {
+		Error("sendto failed: %s", strerror(errno));
+	}
 
 	sock->value.net.sendLen = 0;
 	return ret;
@@ -461,14 +469,14 @@ size_t Socket_Send(Socket* sock, void* buf, size_t size) {
 				ssize_t ret;
 
 				if (sock->value.net.protocol == SOCKET_PROTOCOL_UDP) {
-					if (sock->value.net.sendLen + size > 504) {
+					if (sock->value.net.sendLen + size >= sizeof(sock->value.net.sendData)) {
 						SendUDP(sock);
 					}
 
 					memcpy(&sock->value.net.sendData[sock->value.net.sendLen], buf, size);
 					sock->value.net.sendLen += size;
 
-					if (sock->value.net.sendLen == 504) {
+					if (sock->value.net.sendLen == sizeof(sock->value.net.sendData)) {
 						SendUDP(sock);
 					}
 				}
