@@ -18,15 +18,21 @@ README. Then, make a folder next to the engine executable called `game` and put 
 `base.ark` from the arkas assets in the folder.
 
 ## Build
+
+To build Arkas Engine, run this:
 ```
 make
 ```
+
 Requires SDL2 and stb (clone recursively!)
 
 Make options:
 - `PLAT=windows`  - Cross compile to Windows (64-bit)
 - `BUILD=release` - Compile a release build
 - `ASAN=y`        - Enable address santiser
+- `LIB=y`         - Build Arkas Engine as a static library
+
+If you build Arkas Engine as a library, run `install.py` as root to install the Arkas Engine headers
 
 ### 3DS
 Arkas Engine has an incomplete 3DS port. To compile it, use these commands:
@@ -50,8 +56,8 @@ make
 
 Requirements: Vita SDK, SDL2, VitaGL
 
-## Usage
-Arkas (in it's WIP state) can only be built standalone. It starts with a console with
+## Arkas Standalone
+Arkas Standalone starts with a console with
 these commands:
 
 - `test-map`       - Load the test map
@@ -60,8 +66,8 @@ these commands:
   (Note: textures do not work when maps are loaded with this command, will be fixed when
   the resource manager is added)
 - `dl-map <MAP NAME>` - Saves the current loaded map as `MAP NAME` in the `maps` folder
-- `help` - Shows a list of commands
-- `editor` - Open WIP map editor
+- `help`    - Shows a list of commands
+- `editor`  - Open WIP map editor
 - `browser` - Open WIP file browser
 
 ## Graphics backends
