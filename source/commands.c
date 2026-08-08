@@ -398,11 +398,12 @@ typedef struct {
 
 static void Command_Bind(size_t argc, char** argv) {
 	static const Bind binds[] = {
-		{"game.forward",  &gameBaseConfig.forward},
-		{"game.left",     &gameBaseConfig.left},
-		{"game.backward", &gameBaseConfig.backward},
-		{"game.right",    &gameBaseConfig.right},
-		{"game.jump",     &gameBaseConfig.jump}
+		{"game.forward",    &gameBaseConfig.forward},
+		{"game.left",       &gameBaseConfig.left},
+		{"game.backward",   &gameBaseConfig.backward},
+		{"game.right",      &gameBaseConfig.right},
+		{"game.jump",       &gameBaseConfig.jump},
+		{"engine.profiler", &engine.profilerBind}
 	};
 
 	if (argc == 0) {
@@ -653,6 +654,14 @@ static void Command_MapView(size_t argc, char** argv) {
 	});
 }
 
+#define SET_COLUMN(NAME, STRING) columns[ENGINE_PROF_##NAME] = STRING
+
+static void Command_Profiler(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+
+	Engine_PrintProfiler();
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "test-map2",          &Command_Test2);
@@ -695,4 +704,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "chat",               &Command_Chat);
 	Console_AddCommand(true,  "map-info",           &Command_MapInfo);
 	Console_AddCommand(true,  "map-view",           &Command_MapView);
+	Console_AddCommand(true,  "profiler",           &Command_Profiler);
 }

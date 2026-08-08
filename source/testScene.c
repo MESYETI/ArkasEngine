@@ -7,14 +7,14 @@
 #include "ui/textInput.h"
 #include "testScene.h"
 
-static char input[128];
+static char sceneInput[128];
 static bool thing = false;
 
 static void ManulButton(UI_Button* this, uint8_t button) {
 	(void) this;
 	(void) button;
 	Log("Manul");
-	Log("Your input: %s", input);
+	Log("Your input: %s", sceneInput);
 }
 
 static Vec2 Resizer(UI_Container* cont) {
@@ -42,7 +42,7 @@ static void Init(Scene* scene) {
 
 	row = UI_ContainerAddRow(container, 0);
 
-	UI_RowAddElement(row, UI_NewTextInput(input, sizeof(input)));
+	UI_RowAddElement(row, UI_NewTextInput(sceneInput, sizeof(sceneInput)));
 	UI_RowUpdate(row);
 
 	row = UI_ContainerAddRow(container, 0);
@@ -51,7 +51,7 @@ static void Init(Scene* scene) {
 	UI_RowAddElement(row, UI_NewCheckBox(&thing));
 	UI_RowUpdate(row);
 
-	input[0] = 0;
+	sceneInput[0] = 0;
 }
 
 static void Free(Scene* scene) {

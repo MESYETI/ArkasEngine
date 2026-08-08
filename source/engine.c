@@ -27,6 +27,8 @@
 Engine engine;
 
 void Engine_Init(const char* gameName, int argc, const char** argv) {
+	engine.profilerBind = INPUT_BIND_NONE;
+
 	Platform_Init();
 	Log_Init();
 
@@ -70,6 +72,8 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Log("Arkas Engine WIP");
 	Log("Made by MESYETI in 2025");
 	Resources_Init();
+
+	Profiler_Init(&engine.profiler, ENGINE_PROF_NUM);
 
 	if (!engine.server) {
 		Window_Init();
@@ -138,6 +142,7 @@ void Engine_Free(void) {
 
 	if (engine.server) return;
 
+	Profiler_Free(&engine.profiler);
 	Window_Quit();
 	Input_Free();
 	Audio_Free();
@@ -148,6 +153,26 @@ void Engine_Free(void) {
 	Event_Free();
 	Platform_Quit();
 }
+
+#define SET_COLUMN(NAME, STRING) columns[ENGINE_PROF_##NAME] = STRING
+
+void Engine_PrintProfiler(void) {
+	const char* columns[ENGINE_PROF_NUM];
+
+	SET_COLUMN(EVENTS, "events");
+	SET_COLUMN(SERVER, "server");
+	SET_COLUMN(CLIENT, "client");
+	SET_COLUMN(SCENES, "scenes");
+	SET_COLUMN(AUDIO,  "audio");
+	SET_COLUMN(RENDER, "render");
+
+	Profiler_PrintToLog(&engine.profiler, columns);
+}
+
+#undef SET_COLUMN
+
+#define START(TIMER) Profiler_BeginTimer(&engine.profiler, ENGINE_PROF_##TIMER);
+#define END(TIMER)   Profiler_FinishTimer(&engine.profiler, ENGINE_PROF_##TIMER);
 
 void Engine_Update(void) {
 	static uint64_t oldFrameTime = 0;
@@ -168,9 +193,16 @@ void Engine_Update(void) {
 		frames   = 0;
 	}
 
+	START(EVENTS);
+
 	Event e;
 	while (Event_Poll(&e)) {
 		Input_HandleEvent(&e);
+
+		if ((e.type == AE_EVENT_KEY_DOWN) && Input_MatchBind(engine.profilerBind, &e)) {
+			Engine_PrintProfiler();
+			continue;
+		}
 
 		switch (e.type) {
 			case AE_EVENT_KEY_DOWN: {
@@ -179,6 +211,7 @@ void Engine_Update(void) {
 						if (!engine.console) {
 							Console_Begin();
 							engine.console = true;
+							continue;
 						}
 						break;
 					}
@@ -186,6 +219,7 @@ void Engine_Update(void) {
 						if (engine.console) {
 							Console_End();
 							engine.console = false;
+							continue;
 						}
 						break;
 					}
@@ -204,35 +238,41 @@ void Engine_Update(void) {
 			Console_HandleEvent(&e);
 		}
 	}
+	END(EVENTS);
 
+	START(SERVER);
 	if (server.running) {
 		Server_Update();
 	}
+	END(SERVER);
+
+	START(CLIENT);
 	if (client.running) {
 		Client_Update();
 	}
+	END(CLIENT);
 
 	if (engine.server) {
-		oldFrameTime = newFrameTime;
-
-		int64_t toSleep = 16666 - ((int64_t) frameTimeDiff / 1000);
-
-		if (toSleep < 0) return;
-
-		Platform_Sleep((uint32_t) toSleep);
+		Platform_Sleep(16);
 		return;
 	}
 
+	START(SCENES);
 	SceneManager_Update();
+	END(SCENES);
 
+	START(AUDIO);
 	Audio_Update();
+	END(AUDIO);
 
+	START(RENDER);
 	Backend_Begin();
 	SceneManager_Render();
 
 	if (engine.console) {
 		Console_Render();
 	}
+	END(RENDER);
 
 	Backend_FinishRender();
 	oldFrameTime = newFrameTime;
