@@ -212,7 +212,16 @@ void Engine_Update(void) {
 		Client_Update();
 	}
 
-	if (engine.server) return;
+	if (engine.server) {
+		oldFrameTime = newFrameTime;
+
+		int64_t toSleep = 16666 - ((int64_t) frameTimeDiff / 1000);
+
+		if (toSleep < 0) return;
+
+		Platform_Sleep((uint32_t) toSleep);
+		return;
+	}
 
 	SceneManager_Update();
 
@@ -227,8 +236,4 @@ void Engine_Update(void) {
 
 	Backend_FinishRender();
 	oldFrameTime = newFrameTime;
-
-	if (engine.server) {
-		Platform_Sleep(16);
-	}
 }

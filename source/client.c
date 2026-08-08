@@ -289,7 +289,7 @@ void Client_Update(void) {
 	}
 
 	// send position to server
-	if (map.active) {
+	if (map.active && false) {
 		uint8_t packet[30];
 		packet[0] = 0x00;
 		packet[1] = 0xFF;

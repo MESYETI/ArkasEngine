@@ -290,11 +290,7 @@ bool Socket_IsDataAvailable(Socket* sock) {
 				pollfd.fd     = sock->value.net.fd;
 				pollfd.events = POLLIN;
 
-				struct timespec time;
-				time.tv_sec  = 0;
-				time.tv_nsec = 5000;
-
-				int res = ppoll(&pollfd, 1, &time, NULL);
+				int res = poll(&pollfd, 1, 0);
 
 				if (res < 0) {
 					Error("ppoll failed: %s", strerror(errno));
@@ -397,24 +393,17 @@ size_t Socket_ReceiveUDP(Socket* sock, void* buf, size_t size, NetSocketAddr* ad
 			Error("Called ReceiveUDP on non-UDP socket");
 		}
 
-		uint8_t dg[2 + SOCKET_UDP_DATA_SIZE];
-
 		addr->addrLen = sizeof(addr->addr);
 
 		ssize_t dgSize = recvfrom(
-			sock->value.net.fd, dg, sizeof(dg), 0, (struct sockaddr*) &addr->addr, &addr->addrLen
+			sock->value.net.fd, buf, size, 0, (struct sockaddr*) &addr->addr, &addr->addrLen
 		);
-		if (dgSize < 4) return 0;
 
 		if (dgSize < 0) {
 			Error("recvfrom failed: %s", strerror(errno));
 		}
 
-		uint16_t dataSize = *((uint16_t*) &dg[0]);
-
-		memcpy(buf, &dg[2], size < dataSize? size : dataSize);
-
-		return (size_t) dataSize;
+		return (size_t) dgSize;
 	#else
 		Error("Network sockets not available");
 		return (size_t) -1;
@@ -635,6 +624,56 @@ bool NetSocketAddr_Compare(NetSocketAddr* a, NetSocketAddr* b) {
 			}
 
 			if (ntohs(aIn->sin6_port) != ntohs(bIn->sin6_port)) {
+				return false;
+			}
+
+			if (aIn->sin6_flowinfo != bIn->sin6_flowinfo) {
+				return false;
+			}
+
+			if (aIn->sin6_scope_id != bIn->sin6_scope_id) {
+				return false;
+			}
+
+			return true;
+		}
+	#else
+		Error("Network sockets not available");
+	#endif
+
+	return false;
+}
+
+bool NetSocketAddr_CompareAPort(NetSocketAddr* a, NetSocketAddr* b, uint16_t port) {
+	#ifdef AE_NET_SOCKET
+		if (a->addr.ss_family != b->addr.ss_family) {
+			return false;
+		}
+
+		if (a->addr.ss_family == AF_INET) {
+			struct sockaddr_in* aIn = (struct sockaddr_in*) &a->addr;
+			struct sockaddr_in* bIn = (struct sockaddr_in*) &b->addr;
+
+			if (ntohl(aIn->sin_addr.s_addr) != ntohl(bIn->sin_addr.s_addr)) {
+				return false;
+			}
+			if (ntohs(aIn->sin_port) != port) {
+				return false;
+			}
+
+			return true;
+		}
+		else if (a->addr.ss_family == AF_INET6) {
+			struct sockaddr_in6* aIn = (struct sockaddr_in6*) &a->addr;
+			struct sockaddr_in6* bIn = (struct sockaddr_in6*) &b->addr;
+
+			if (memcmp(
+				aIn->sin6_addr.s6_addr, bIn->sin6_addr.s6_addr, sizeof(aIn->sin6_addr.s6_addr)
+			) != 0) {
+				return false;
+			}
+
+			if (ntohs(aIn->sin6_port) != port) {
 				return false;
 			}
 

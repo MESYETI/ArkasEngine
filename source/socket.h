@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include "common.h"
 
-#define SOCKET_UDP_DATA_SIZE 506
+#define SOCKET_UDP_DATA_SIZE 508
 
 enum {
 	SOCKET_TYPE_LOCAL = 0,
@@ -89,6 +89,7 @@ bool     Socket_GetAddr(Socket* sock, NetSocketAddr* out);
 
 uint16_t NetSocketAddr_Port(NetSocketAddr* addr);
 bool     NetSocketAddr_Compare(NetSocketAddr* a, NetSocketAddr* b);
+bool     NetSocketAddr_CompareAPort(NetSocketAddr* a, NetSocketAddr* b, uint16_t port);
 void     NetSocketAddr_StringAddr(NetSocketAddr* addr, char* dest, size_t size);
 
 #endif

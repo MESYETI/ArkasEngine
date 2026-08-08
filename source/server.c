@@ -404,22 +404,26 @@ void Server_Update(void) {
 
 			ServerClient* client = server.clients;
 
+			bool found = false;
 			while (client) {
 				if (client->relSock->value.type != SOCKET_TYPE_NET) {
-					client = client->next;
-					continue;
+					goto next;
+				}
+				if (client->udpPort == 0) {
+					goto next;
 				}
 
 				NetSocketAddr addr2;
 
-				// TODO: this is very wrong
 				if (!Socket_GetAddr(client->relSock, &addr2)) {
 					Log("Failed to get %s's address", client->username);
 				}
 
 				ServerClient* next = client->next;
 
-				if (NetSocketAddr_Compare(&addr, &addr2)) {
+				if (NetSocketAddr_CompareAPort(&addr, &addr2, client->udpPort)) {
+					found = true;
+
 					HandleUDP(client, packet, sz < dataSize? sz : dataSize);
 
 					if (client->kickFlag) {
@@ -429,7 +433,15 @@ void Server_Update(void) {
 					break;
 				}
 
+				next:
 				client = next;
+			}
+
+			if (!found) {
+				char ip[64];
+				NetSocketAddr_StringAddr(&addr, ip, sizeof(ip));
+
+				printf("Didn't match UDP packet from %s:%d\n", ip, (int) NetSocketAddr_Port(&addr));
 			}
 		}
 	}
@@ -461,11 +473,13 @@ void Server_Update(void) {
 			client->next   = NULL;
 		}
 
-		client->relState = SC_WAITING;
-		client->relSock  = newClient;
-		client->lastPing = Platform_GetTime();
-		client->kickFlag = false;
-		client->movement = 0;
+		client->relState  = SC_WAITING;
+		client->relSock   = newClient;
+		client->lastPing  = Platform_GetTime();
+		client->udpPort   = 0;
+		client->sessionID = Server_GenID();
+		client->kickFlag  = false;
+		client->movement  = 0;
 
 		++ server.clientsNum;
 	}
@@ -498,6 +512,29 @@ void Server_Update(void) {
 			-- server.clientsNum;
 		}
 	}
+}
+
+static bool IDTaken(uint32_t id) {
+	ServerClient* client = server.clients;
+
+	while (client) {
+		if (client->sessionID == id) return true;
+
+		client = client->next;
+	}
+
+	return false;
+}
+
+uint32_t Server_GenID(void) {
+	uint32_t ret;
+
+	do {
+		ret = Random_Gen();
+	}
+	while (IDTaken(ret));
+
+	return ret;
 }
 
 void Server_SetMap(const char* name) {

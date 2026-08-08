@@ -13,6 +13,7 @@ struct ServerClient {
 	Socket*  relSock;
 	uint64_t lastPing;
 	uint16_t udpPort; // set to 0 if not used
+	uint32_t sessionID;
 
 	// position
 	FVec3  pos;
@@ -59,10 +60,11 @@ typedef struct {
 extern Server       server;
 extern ServerConfig serverConf;
 
-bool Server_Start(void);
-void Server_Free(void);
-void Server_Update(void);
-void Server_SetMap(const char* name);
-void Server_SendMessage(const char* message);
+bool     Server_Start(void);
+void     Server_Free(void);
+void     Server_Update(void);
+uint32_t Server_GenID(void);
+void     Server_SetMap(const char* name);
+void     Server_SendMessage(const char* message);
 
 #endif
