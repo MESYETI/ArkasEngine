@@ -120,6 +120,10 @@ static void Command_DlMap(size_t argc, char** argv) {
 	if (argc > 1) {
 		Log("dl-map must either have 1 parameter (map name) or none");
 	}
+	if (!map.active) {
+		Log("No map loaded");
+		return;
+	}
 
 	char* path1 = ConcatString("maps/", argc? argv[0] : map.name);
 	char* path2 = ConcatString(path1,   ".arm");
@@ -557,6 +561,12 @@ static void Command_Unmount(size_t argc, char** argv) {
 
 static void Command_ViewMap(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
+
+	if (!map.active) {
+		Log("No map loaded");
+		return;
+	}
+
 	SceneManager_AddScene((Scene) {
 		SCENE_TYPE_GAME, NULL, "Map Viewer", NULL, NULL, NULL, NULL,
 		NULL, NULL
@@ -599,10 +609,17 @@ static void Command_SpawnProp(size_t argc, char** argv) {
 		return;
 	}
 
+	Resource* modelRes = Resources_GetRes(path, 0);
+
+	if (!modelRes) {
+		Log("Failed to load model '%s'", path);
+		return;
+	}
+
 	size_t entityIdx = PropEntity_New(
 		player.sector, player.pos, (Direction) {
 			player.pitch, player.yaw, 0.0f
-		}, Resources_GetRes(path, 0), false
+		}, modelRes, false
 	);
 
 	Entity* entity = EntityPool_Get(entityIdx);
@@ -622,6 +639,7 @@ static void Command_Chat(size_t argc, char** argv) {
 
 	if (!client.running) {
 		Log("No client running");
+		return;
 	}
 
 	Client_SendMessage(argv[0]);

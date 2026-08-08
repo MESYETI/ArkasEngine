@@ -36,6 +36,10 @@ size_t EntityPool_New(void) {
 	entityPool.size *= 2;
 	entityPool.pool  = SafeRealloc(entityPool.pool, entityPool.size * sizeof(Entity));
 
+	for (size_t i = ret; i < entityPool.size; ++ i) {
+		entityPool.pool[i].used = false;
+	}
+
 	return ret;
 }
 

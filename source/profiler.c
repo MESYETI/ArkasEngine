@@ -51,6 +51,6 @@ void Profiler_PrintToLog(Profiler* profiler, const char** columns) {
 	for (size_t i = 0; i < profiler->timesNum; ++ i) {
 		double ms = ((double) profiler->times[i]) / 1000000;
 
-		Log("%*s: %.3f", (int) maxLen, columns[i], ms);
+		Log("%*s: %.9f", (int) maxLen, columns[i], ms);
 	}
 }
