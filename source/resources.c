@@ -487,6 +487,10 @@ Resource* Resources_GetRes(const char* path, uint32_t opt) {
 }
 
 void Resources_FreeRes(Resource* resource) {
+	if (resource->usedBy <= 0) {
+		Error("Freeing already freed resource");
+	}
+
 	-- resource->usedBy;
 
 	if (resource->usedBy == 0) {
