@@ -62,9 +62,7 @@ these commands:
 
 - `test-map`       - Load the test map
 - `clear-scenes`   - Clear scenes
-- `map <MAP NAME>` - Load `MAP NAME`. Maps are stored in the `maps` folder.
-  (Note: textures do not work when maps are loaded with this command, will be fixed when
-  the resource manager is added)
+- `map <MAP NAME>` - Load `MAP NAME`. Maps are stored in the `maps` folder
 - `dl-map <MAP NAME>` - Saves the current loaded map as `MAP NAME` in the `maps` folder
 - `help`    - Shows a list of commands
 - `editor`  - Open WIP map editor
