@@ -395,16 +395,17 @@ Resource* Resources_GetRes(const char* path, uint32_t opt) {
 	Resource* ret = AllocResource();
 
 	if (ret == NULL) {
-		resources.resources = SafeRealloc(resources.resources, resources.capacity * 2);
-
-		for (size_t i = resources.capacity; i < resources.capacity * 2; ++ i) {
-			resources.resources[i].active = false;
-		}
-
-		resources.capacity *= 2;
-
-		ret = AllocResource();
-		assert(ret);
+// 		resources.resources = SafeRealloc(resources.resources, resources.capacity * 2);
+// 
+// 		for (size_t i = resources.capacity; i < resources.capacity * 2; ++ i) {
+// 			resources.resources[i].active = false;
+// 		}
+// 
+// 		resources.capacity *= 2;
+// 
+// 		ret = AllocResource();
+// 		assert(ret);
+		return NULL;
 	}
 
 	ret->name = NewString(path);

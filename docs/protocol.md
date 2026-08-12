@@ -21,7 +21,6 @@ This WILL change in a future version of the protocol
 | Size | Description                                      |
 | ---- | ------------------------------------------------ |
 | 2    | Integer - protocol version                       |
-| 2    | Integer - source port used for UDP communication |
 | 32   | Username - null terminated string                |
 
 Note: If the source port is 0, the client will not use UDP.
@@ -40,6 +39,7 @@ This packet contains no extra data.
 #### 0x00 - Identification
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
+| 4    | Session ID                                    |
 | 32   | Server name - null terminated string          |
 
 #### 0x01 - Send file
@@ -92,7 +92,7 @@ Header:
 
 | Size | Description                                   |
 | ---- | --------------------------------------------- |
-| 2    | Size of data in this packet                   |
+| 4    | Session ID                                    |
 
 ### Client to server
 #### 0xFF00 - My current position

@@ -240,9 +240,15 @@ static bool DriveMakeDir(ResourceDrive* p_drive, const char* path) {
 	return true;
 }
 
+static bool DriveDelete(ResourceDrive* p_drive, const char* path);
+
 static bool DriveWriteFile(ResourceDrive* p_drive, const char* path, void* contents, size_t size) {
 	RamDrive* drive = (RamDrive*) p_drive;
 	File*     entry;
+
+	if (GetFile(&drive->fs, path)) {
+		DriveDelete(p_drive, path);
+	}
 
 	char* slash = strrchr(path, '/');
 	if (slash) {

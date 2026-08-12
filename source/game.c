@@ -2,6 +2,7 @@
 #include "game.h"
 #include "util.h"
 #include "video.h"
+#include "client.h"
 #include "camera.h"
 #include "config.h"
 #include "engine.h"
@@ -32,6 +33,8 @@ void GameBase_Init(void) {
 	camera.pitch = 0.0;
 	camera.yaw   = 0.0;
 	camera.roll  = 0.0;
+
+	client.reportPos = true;
 
 	// setAudioEnv(
 	// 	AUDIOENVMASK_REVERB,
@@ -89,6 +92,8 @@ void GameBase_Init(void) {
 void GameBase_Free(void) {
 	Audio_StopAudio();
 	Map_Free();
+
+	client.reportPos = false;
 }
 
 void GameBase_Update(bool top) {

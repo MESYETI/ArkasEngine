@@ -5,6 +5,7 @@
 #include "util.h"
 #include "random.h"
 #include "server.h"
+#include "ramDrive.h"
 #include "platform.h"
 #include "resources.h"
 
@@ -24,6 +25,11 @@ ServerConfig serverConf = {
 };
 
 bool Server_Start(void) {
+	if (Resources_DriveExists("server")) {
+		Resources_DeleteDrive("server");
+	}
+	Resources_AddDrive(NewRamDrive(), "server");
+
 	server.running    = true;
 	server.clients    = NULL;
 	server.clientsNum = 0;
@@ -203,6 +209,7 @@ static bool HandleSharedPacket(ServerClient* this, uint8_t* packet, size_t sz) {
 				this->kickFlag   = true;
 				this->kickReason = "Broken movement packet"; // TODO: implement
 				Log("server: Kicking '%s' for broken movement packet", this->username);
+				Log("server: Client sent sector ID %u", sector);
 				return false;
 			}
 
@@ -240,6 +247,7 @@ static bool ClientWorker(ServerClient* this) {
 			if (Socket_DataAvailable(this->relSock) < 2) break;
 
 			Socket_Receive(this->relSock, &this->packetID, 2);
+			this->packetID = AE_SWAP_16(this->packetID);
 			this->relState = SC_PACKET;
 			break;
 		}
@@ -248,7 +256,7 @@ static bool ClientWorker(ServerClient* this) {
 
 			switch (this->packetID) {
 				case 0x00: { // identification
-					size_t size = 32 + 2 + 2;
+					size_t size = 32 + 2;
 
 					if (available < size) break;
 
@@ -260,8 +268,6 @@ static bool ClientWorker(ServerClient* this) {
 						return false;
 					}
 
-					Socket_Receive(this->relSock, &this->udpPort, 2);
-
 					char username[33];
 					username[32] = 0;
 					Socket_Receive(this->relSock, &username, 32);
@@ -270,10 +276,13 @@ static bool ClientWorker(ServerClient* this) {
 					strcpy(this->username, username);
 
 					// now send response
-					uint16_t id             = 0; // packet id
+					uint16_t id             = AE_SWAP_16(0); // packet id
 					char     serverName[32] = "Arkas Engine Server";
 
+					uint32_t sessionID = AE_SWAP_32(this->sessionID);
+
 					Socket_Send(this->relSock, &id, sizeof(id));
+					Socket_Send(this->relSock, &sessionID, sizeof(sessionID));
 					Socket_Send(this->relSock, serverName, sizeof(serverName));
 
 					// start sending map
@@ -316,9 +325,7 @@ static bool ClientWorker(ServerClient* this) {
 
 					if (available < size) break;
 
-					uint8_t packet[30];
-					packet[0] = 0x00;
-					packet[1] = 0xFF;
+					uint8_t packet[28];
 
 					Socket_Receive(this->relSock, &packet[2], 28);
 					this->relState = SC_WAITING;
@@ -378,7 +385,7 @@ static void HandleUDP(ServerClient* this, uint8_t* packet, size_t sz) {
 			this->kickFlag   = true;
 			this->kickReason = "Invalid packet ID";
 
-			Log("server: %s sent invalid packet ID %.2x", id);
+			Log("server: client '%s' sent invalid packet ID %.2x", this->username, id);
 			break;
 		}
 	}
@@ -386,31 +393,31 @@ static void HandleUDP(ServerClient* this, uint8_t* packet, size_t sz) {
 
 void Server_Update(void) {
 	if (server.udpSock) {
-		for (size_t i = 0; i < server.clientsNum + 1; ++ i) {
+		for (size_t i = 0; i < server.clientsNum; ++ i) {
 			if (!Socket_IsDataAvailable(server.udpSock)) break;
 
 			uint8_t       packet[SOCKET_UDP_DATA_SIZE];
 			NetSocketAddr addr;
+
+			uint32_t sessionID = AE_SWAP_32(*((uint32_t*) packet));
 
 			size_t sz = Socket_ReceiveUDP(server.udpSock, packet, sizeof(packet), &addr);
 
 			if (sz == 0) {
 				Log("server: Failed to read from UDP socket");
 			}
-			if (sz < 2) {
+			if (sz < 4) {
+				printf("Dropping packet below 4 bytes: %d", (int) sz);
 				break;
 			}
-			size_t dataSize = Data_Read16(packet);
 
 			ServerClient* client = server.clients;
 
 			bool found = false;
 			while (client) {
 				if (client->relSock->value.type != SOCKET_TYPE_NET) {
-					goto next;
-				}
-				if (client->udpPort == 0) {
-					goto next;
+					client = client->next;
+					continue;
 				}
 
 				NetSocketAddr addr2;
@@ -421,19 +428,30 @@ void Server_Update(void) {
 
 				ServerClient* next = client->next;
 
-				if (NetSocketAddr_CompareAPort(&addr, &addr2, client->udpPort)) {
+				if (
+					NetSocketAddr_CompareAPort(&addr, &addr2, client->udpPort) ||
+					((client->udpPort == 0) && (client->sessionID == sessionID))
+				) {
+					if (client->udpPort == 0) {
+						client->udpPort = NetSocketAddr_Port(&addr);
+						Log("Client '%s' using source port %d on UDP", client->username, client->udpPort);
+					}
+
 					found = true;
 
-					HandleUDP(client, packet, sz < dataSize? sz : dataSize);
+					HandleUDP(client, &packet[4], sz - 4);
 
 					if (client->kickFlag) {
 						RemoveClient(client);
+
+						if (client == server.clients) {
+							server.clients = next;
+						}
 					}
 
 					break;
 				}
 
-				next:
 				client = next;
 			}
 
@@ -441,7 +459,7 @@ void Server_Update(void) {
 				char ip[64];
 				NetSocketAddr_StringAddr(&addr, ip, sizeof(ip));
 
-				printf("Didn't match UDP packet from %s:%d\n", ip, (int) NetSocketAddr_Port(&addr));
+				printf("Didn't match UDP packet from %s:%d, id = %u\n", ip, (int) NetSocketAddr_Port(&addr), sessionID);
 			}
 		}
 	}
@@ -456,9 +474,11 @@ void Server_Update(void) {
 	}
 
 	if (newClient) {
+		uint32_t newID = Server_GenID();
+
 		char addr[64];
 		Socket_StringAddr(newClient, addr, sizeof(addr));
-		Log("server: Client connected (%s)", addr);
+		Log("server: Client connected (%s), id = %u", addr, newID);
 
 		ServerClient* client = SafeMalloc(sizeof(ServerClient));
 		client->prev         = NULL;
@@ -477,7 +497,7 @@ void Server_Update(void) {
 		client->relSock   = newClient;
 		client->lastPing  = Platform_GetTime();
 		client->udpPort   = 0;
-		client->sessionID = Server_GenID();
+		client->sessionID = newID;
 		client->kickFlag  = false;
 		client->movement  = 0;
 
@@ -532,7 +552,7 @@ uint32_t Server_GenID(void) {
 	do {
 		ret = Random_Gen();
 	}
-	while (IDTaken(ret));
+	while (ret && IDTaken(ret));
 
 	return ret;
 }
@@ -545,6 +565,24 @@ void Server_SetMap(const char* name) {
 	char* path     = ConcatString("maps:", name);
 	server.mapPath = ConcatString(path, ".arm");
 	free(path);
+
+	size_t size;
+	void*  file = Resources_ReadFile(server.mapPath, &size);
+
+	Resources_WriteFile("server:map.arm", file, size);
+
+	free(file);
+
+	const char* mapPath = "server:map.arm";
+
+	bool   success;
+	Stream mapStream = Resources_Open(mapPath, &success, false);
+
+	if (!success) {
+		Error("Failed to load server:map.arm");
+	}
+
+	Map_LoadFile(&mapStream, mapPath, false);
 }
 
 static void MsgPacket(const char* data) {

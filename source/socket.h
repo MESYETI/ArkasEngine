@@ -52,8 +52,9 @@ typedef struct {
 		NetSocketAddr addr;
 
 		// only for UDP sockets
-		uint8_t sendData[SOCKET_UDP_DATA_SIZE - 2];
-		size_t  sendLen;
+		uint8_t  sendData[SOCKET_UDP_DATA_SIZE];
+		size_t   sendLen;
+		uint32_t sessionID;
 	#endif
 } NetSocket;
 
@@ -86,6 +87,7 @@ void     Socket_Close(Socket* sock);
 void     Socket_StringAddr(Socket* sock, char* dest, size_t size);
 bool     Socket_Connected(Socket* sock);
 bool     Socket_GetAddr(Socket* sock, NetSocketAddr* out);
+void     Socket_SetSessionID(Socket* sock, uint32_t sessionID);
 
 uint16_t NetSocketAddr_Port(NetSocketAddr* addr);
 bool     NetSocketAddr_Compare(NetSocketAddr* a, NetSocketAddr* b);

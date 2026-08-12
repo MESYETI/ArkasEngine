@@ -35,7 +35,8 @@ override CPPFLAGS += -DAE_WINDOW_SDL2 -DAE_INPUT_SDL2 -DAE_EVENT_SDL2
 override CPPFLAGS += -DSDL_MAIN_HANDLED -D_POSIX_C_SOURCE=199309L
 
 ifeq ($(BUILD),release)
-	override CFLAGS += -O3
+	override CFLAGS   += -O3
+	override CPPFLAGS += -DAE_RELEASE
 	#override CPPFLAGS += -NDEBUG
 else
 	override CFLAGS += -O0 -ggdb -fno-omit-frame-pointer

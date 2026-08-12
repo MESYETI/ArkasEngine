@@ -100,7 +100,7 @@ static void Command_Map(size_t argc, char** argv) {
 
 		Stream stream = Stream_Memory(res, size, true);
 
-		if (!Map_LoadFile(&stream, path)) {
+		if (!Map_LoadFile(&stream, path, true)) {
 			Log("Failed to load map");
 			SceneManager_PopScene();
 			return;

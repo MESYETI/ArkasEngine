@@ -26,6 +26,19 @@ Client client = {
 	.downloading = false
 };
 
+void Client_Init(void) {
+	strcpy(client.name, "Player");
+
+	char digits[5];
+	digits[4] = 0;
+
+	for (int i = 0; i < sizeof(digits); ++ i) {
+		digits[i] = (rand() % 10) + '0';
+	}
+
+	strcat(client.name, digits);
+}
+
 static void StartClient(void) {
 	if (Resources_DriveExists("net")) {
 		Resources_DeleteDrive("net");
@@ -34,6 +47,9 @@ static void StartClient(void) {
 
 	Chat_Free();
 	Chat_Init();
+
+	client.sessionID = 0;
+	client.reportPos = false;
 }
 
 bool Client_StartLocal(void) {
@@ -132,25 +148,11 @@ void Client_Update(void) {
 
 	switch (client.state) {
 		case C_IDENT: {
-			uint16_t id = 0;
+			uint16_t id = AE_SWAP_16(0);
 			Socket_Send(client.relSock, &id, sizeof(id));
 
-			uint16_t ver = 0;
+			uint16_t ver = AE_SWAP_16(0);
 			Socket_Send(client.relSock, &ver, sizeof(ver));
-
-			uint16_t port = 0;
-
-			if (client.udpSock) {
-				NetSocketAddr addr;
-
-				if (!Socket_GetAddr(client.relSock, &addr)) {
-					Error("client: Failed to get address of UDP socket");
-				}
-
-				port = NetSocketAddr_Port(&addr);
-			}
-
-			Socket_Send(client.relSock, &port, sizeof(port));
 
 			Socket_Send(client.relSock, client.name, sizeof(client.name));
 
@@ -162,7 +164,8 @@ void Client_Update(void) {
 			if (Socket_DataAvailable(client.relSock) < 2) break;
 
 			Socket_Receive(client.relSock, &client.packetID, 2);
-			client.state = C_PACKET;
+			client.packetID = AE_SWAP_16(client.packetID);
+			client.state    = C_PACKET;
 			break;
 		}
 		case C_PACKET: {
@@ -170,9 +173,20 @@ void Client_Update(void) {
 
 			switch (client.packetID) {
 				case 0x00: { // identification
-					size_t size = 34;
+					size_t size = 32 + 4;
 
 					if (available < size) break;
+
+					Socket_Receive(client.relSock, &client.sessionID, sizeof(client.sessionID));
+
+					client.sessionID = AE_SWAP_32(client.sessionID);
+
+					Log("client: ID: %u", client.sessionID);
+
+					if (client.udpSock) {
+						Socket_SetSessionID(client.udpSock, client.sessionID);
+						Log("Set session ID on socket");
+					}
 
 					char name[33];
 					name[32] = 0;
@@ -190,6 +204,8 @@ void Client_Update(void) {
 					client.fileName[64] = 0;
 					Socket_Receive(client.relSock, &client.fileName, 64);
 					Socket_Receive(client.relSock, &client.fileSize, 4);
+
+					client.fileSize = AE_SWAP_32(client.fileSize);
 
 					if (client.fileSize > 16777216) {
 						client.running = false;
@@ -274,7 +290,7 @@ void Client_Update(void) {
 						break;
 					}
 
-					Map_LoadFile(&file, "net:map.arm");
+					Map_LoadFile(&file, "net:map.arm", true);
 					Stream_Close(&file);
 					client.state = C_WAITING;
 
@@ -289,7 +305,7 @@ void Client_Update(void) {
 	}
 
 	// send position to server
-	if (map.active && false) {
+	if (map.active && client.reportPos && client.sessionID) {
 		uint8_t packet[30];
 		packet[0] = 0x00;
 		packet[1] = 0xFF;
@@ -307,8 +323,6 @@ void Client_Update(void) {
 		if (client.udpSock) {
 			Socket_Send(client.udpSock, packet, sizeof(packet));
 			Socket_Flush(client.udpSock);
-
-			puts("Sent position over UDP");
 		}
 		else {
 			Socket_Send(client.relSock, packet, sizeof(packet));

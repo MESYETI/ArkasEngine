@@ -2,6 +2,7 @@
 #include "map.h"
 #include "util.h"
 #include "mem.h"
+#include "engine.h"
 #include "entity.h"
 #include "camera.h"
 #include "stream.h"
@@ -27,6 +28,7 @@ void Map_Init(void) {
 	Map_Free();
 
 	map.active      = false;
+	map.name        = NULL;
 	map.points      = NULL;
 	map.pointsLen   = 0;
 	map.walls       = NULL;
@@ -41,6 +43,10 @@ void Map_Init(void) {
 
 void Map_Free(void) {
 	map.active = false;
+
+	if (map.name) {
+		free(map.name);
+	}
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
 		if (map.sectors[i].floorTexture) {
@@ -79,7 +85,9 @@ void Map_Free(void) {
 		map.name = NULL;
 	}
 
-	Backend_OnMapFree();
+	if (!engine.server) {
+		Backend_OnMapFree();
+	}
 	EntityPool_Free();
 }
 
@@ -202,7 +210,7 @@ void Map_LoadTest2(void) {
 	Backend_OnMapLoad();
 }
 
-bool Map_LoadFile(Stream* file, const char* path) {
+bool Map_LoadFile(Stream* file, const char* path, bool loadResources) {
 	Map_Init();
 
 	char* baseName = strrchr(path, '/');
@@ -224,6 +232,17 @@ bool Map_LoadFile(Stream* file, const char* path) {
 	map.pointsLen  = Stream_Read32(file);
 	map.wallsLen   = Stream_Read32(file);
 	map.sectorsLen = Stream_Read32(file);
+
+	if (
+		(map.pointsLen > 16384) || (map.wallsLen > 16384) || (map.sectorsLen > 2048)
+	) {
+		Log("Map is too big");
+		Log("points:  %d (limit = 16384)", map.pointsLen);
+		Log("walls:   %d (limit = 16384)", map.wallsLen);
+		Log("sectors: %d (limit = 2048)", map.sectorsLen);
+		Map_Free();
+		return false;
+	}
 
 	map.points  = SafeMalloc(map.pointsLen  * sizeof(MapPoint));
 	map.walls   = SafeMalloc(map.wallsLen   * sizeof(Wall));
@@ -266,10 +285,12 @@ bool Map_LoadFile(Stream* file, const char* path) {
 			map.walls[i].portalOff.y = Stream_ReadFloat(file);
 		}
 
-		map.walls[i].texture = Resources_GetRes(stringTable[texture], 0);
+		if (loadResources) {
+			map.walls[i].texture = Resources_GetRes(stringTable[texture], 0);
 
-		if (!map.walls[i].texture) {
-			map.walls[i].texture = Resources_GetRes("builtin:no_texture.png", 0);
+			if (!map.walls[i].texture) {
+				map.walls[i].texture = Resources_GetRes("builtin:no_texture.png", 0);
+			}
 		}
 	}
 
@@ -293,6 +314,11 @@ bool Map_LoadFile(Stream* file, const char* path) {
 		if ((floorTexture >= stringsLen) || (ceilTexture >= stringsLen)) {
 			Error("Out of bounds string table offset");
 		}
+
+		if (!loadResources) {
+			continue;
+		}
+
 		map.sectors[i].floorTexture   = Resources_GetRes(stringTable[floorTexture], 0);
 		map.sectors[i].ceilingTexture = Resources_GetRes(stringTable[ceilTexture], 0);
 

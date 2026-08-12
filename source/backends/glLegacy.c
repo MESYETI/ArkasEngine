@@ -36,14 +36,18 @@ static void GL_Error(GLenum error, const char* file, int line) {
 	Error("%s:%d: OpenGL error: %s", file, line, errorStr);
 }
 
-#define GL_CALL(CALL, FILE, LINE) do { \
-	CALL; \
-	GLenum error = glGetError(); \
- \
-	if (error != GL_NO_ERROR) { \
-		GL_Error(error, FILE, LINE); \
-	} \
-} while(0)
+#ifdef AE_RELEASE
+	#define GL_CALL(CALL, FILE, LINE) CALL
+#else
+	#define GL_CALL(CALL, FILE, LINE) do { \
+		CALL; \
+		GLenum error = glGetError(); \
+	 \
+		if (error != GL_NO_ERROR) { \
+			GL_Error(error, FILE, LINE); \
+		} \
+	} while(0)
+#endif
 
 #define GL(CALL) GL_CALL(CALL, __FILE__, __LINE__)
 

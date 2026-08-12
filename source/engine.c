@@ -33,6 +33,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Log_Init();
 
 	Random_Init();
+	Client_Init();
 
 	Variables_Add(VAR_FLOAT, "player.ground-friction",  &player.groundFriction, 0);
 	Variables_Add(VAR_FLOAT, "player.gravity",          &player.gravity, 0);

@@ -37,3 +37,20 @@ void Data_WriteFloat(uint8_t* data, float value) {
 
 	Data_Write32(data, bytes);
 }
+
+uint16_t Data_Swap16(uint16_t value) {
+	return ((value & 0xFF00) >> 8) | ((value & 0xFF) << 8);
+}
+
+uint32_t Data_Swap32(uint32_t value) {
+	return
+		((value & 0xFF000000) >> 24) |
+		((value & 0x00FF0000) >> 8)  |
+		((value & 0x0000FF00) << 8)  |
+		((value & 0x000000FF) << 24);
+}
+
+float Data_SwapFloat(float value) {
+	uint32_t res = Data_Swap32(*((uint32_t*) &value));
+	return *((float*) &res);
+}

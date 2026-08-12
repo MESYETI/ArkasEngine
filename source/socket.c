@@ -1,5 +1,6 @@
 #include <string.h>
 #include "mem.h"
+#include "data.h"
 #include "util.h"
 #include "socket.h"
 
@@ -54,7 +55,9 @@ Socket* Socket_New(int type, int protocol) {
 
 				ret.net.fd       = socket(AF_INET, type, 0);
 				ret.net.protocol = protocol;
-				ret.net.sendLen  = 0;
+				ret.net.sendLen  = 4;
+
+				*((uint32_t*) ret.net.sendData) = 0;
 
 				if (ret.net.fd == -1) {
 					Log("Failed to create socket: %s", strerror(errno));
@@ -411,21 +414,17 @@ size_t Socket_ReceiveUDP(Socket* sock, void* buf, size_t size, NetSocketAddr* ad
 }
 
 static ssize_t SendUDP(Socket* sock) {
-	uint16_t len = (uint16_t) sock->value.net.sendLen;
-
-	uint8_t data[2 + SOCKET_UDP_DATA_SIZE];
-	data[0] = (uint8_t) (len & 0xFF);
-	data[1] = (uint8_t) ((len & 0xFF00) >> 8);
-
-	memcpy(&data[2], sock->value.net.sendData, SOCKET_UDP_DATA_SIZE);
-
-	ssize_t ret = send(sock->value.net.fd, data, sizeof(data), 0);
+	ssize_t ret = send(sock->value.net.fd, sock->value.net.sendData, sock->value.net.sendLen, 0);
 
 	if (ret < 0) {
 		Error("sendto failed: %s", strerror(errno));
 	}
 
-	sock->value.net.sendLen = 0;
+	sock->value.net.sendLen = 4;
+
+	uint32_t sessionID = AE_SWAP_32(sock->value.net.sessionID);
+	memcpy(sock->value.net.sendData, &sessionID, sizeof(sessionID));
+
 	return ret;
 }
 
@@ -575,6 +574,20 @@ bool Socket_GetAddr(Socket* sock, NetSocketAddr* out) {
 	return false;
 }
 
+void Socket_SetSessionID(Socket* sock, uint32_t sessionID) {
+	if (sock->value.type != SOCKET_TYPE_NET) {
+		Log("SetSessionID can only be called on network UDP sockets");
+	}
+	if (sock->value.net.protocol != SOCKET_PROTOCOL_UDP) {
+		Log("SetSessionID can only be called on network UDP sockets");
+	}
+
+	sock->value.net.sessionID = sessionID;
+
+	sessionID = AE_SWAP_32(sessionID);
+	memcpy(&sock->value.net.sendData, &sessionID, sizeof(sessionID));
+}
+
 uint16_t NetSocketAddr_Port(NetSocketAddr* addr) {
 	#ifdef AE_NET_SOCKET
 		if (addr->addr.ss_family == AF_INET) {
@@ -684,7 +697,6 @@ bool NetSocketAddr_CompareAPort(NetSocketAddr* a, NetSocketAddr* b, uint16_t por
 			if (aIn->sin6_scope_id != bIn->sin6_scope_id) {
 				return false;
 			}
-
 			return true;
 		}
 	#else

@@ -49,7 +49,7 @@ void Profiler_PrintToLog(Profiler* profiler, const char** columns) {
 	}
 
 	for (size_t i = 0; i < profiler->timesNum; ++ i) {
-		double ms = ((double) profiler->times[i]) / 1000000;
+		double ms = ((double) profiler->times[i]) / 1000.0;
 
 		Log("%*s: %.9f", (int) maxLen, columns[i], ms);
 	}

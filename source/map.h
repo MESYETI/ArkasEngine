@@ -54,7 +54,7 @@ void Map_Init(void);
 void Map_Free(void);
 void Map_LoadTest(void);
 void Map_LoadTest2(void);
-bool Map_LoadFile(Stream* file, const char* path);
+bool Map_LoadFile(Stream* file, const char* path, bool loadResources);
 bool Map_SaveFile(Stream* file);
 void Map_PointInMap(FVec2 pos);
 void Map_AddEntity(size_t entityIdx);

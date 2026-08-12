@@ -9,6 +9,7 @@ typedef struct {
 	Socket*  relSock;
 	Socket*  udpSock;
 	char     name[32];
+	uint32_t sessionID;
 
 	// state stuff
 	uint16_t packetID;
@@ -19,10 +20,12 @@ typedef struct {
 	bool     downloading;
 	uint64_t lastPing;
 	uint32_t movement;
+	bool     reportPos;
 } Client;
 
 extern Client client;
 
+void Client_Init(void);
 bool Client_StartLocal(void);
 bool Client_StartINet(const char* ip, uint16_t port);
 void Client_Stop(void);
