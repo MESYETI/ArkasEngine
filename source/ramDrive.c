@@ -283,11 +283,12 @@ static bool DriveWriteFile(ResourceDrive* p_drive, const char* path, void* conte
 	entry->children[entry->size - 1] = (File) {
 		.folder   = false,
 		.name     = "",
-		.contents = contents,
+		.contents = SafeMalloc(size),
 		.size     = size,
 		.children = NULL
 	};
 	strncpy(entry->children[entry->size - 1].name, slash, sizeof(entry->name));
+	memcpy(entry->children[entry->size - 1].contents, contents, size);
 	return true;
 }
 

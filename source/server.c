@@ -569,6 +569,11 @@ void Server_SetMap(const char* name) {
 	size_t size;
 	void*  file = Resources_ReadFile(server.mapPath, &size);
 
+	if (!file) {
+		Log("Failed to read '%s'", name);
+		return;
+	}
+
 	Resources_WriteFile("server:map.arm", file, size);
 
 	free(file);
