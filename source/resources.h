@@ -8,33 +8,6 @@
 #include "stream.h"
 #include "backend.h"
 
-typedef struct ResourceDrive ResourceDrive;
-
-typedef struct {
-	char* fullPath;
-	bool  dir;
-} ResourceFile;
-
-struct ResourceDrive {
-	char* name;
-
-	FUNCTION_POINTER(void,          free, ResourceDrive*);
-	FUNCTION_POINTER(bool,          fileExists, ResourceDrive*, const char* path);
-	FUNCTION_POINTER(void,          printList, ResourceDrive*, const char* folder);
-	FUNCTION_POINTER(ResourceFile*, list, ResourceDrive*, const char* folder, size_t* sz);
-	FUNCTION_POINTER(Stream,        open, ResourceDrive*, const char* path, bool* success, bool write);
-
-	FUNCTION_POINTER(void*, readFile, ResourceDrive*, const char* path, size_t* size);
-
-	// write functions
-	FUNCTION_POINTER(bool, makeDir, ResourceDrive*, const char* path);
-	FUNCTION_POINTER(
-		bool, writeFile, ResourceDrive*, const char* path, void* contents,
-		size_t size
-	);
-	FUNCTION_POINTER(bool, delete, ResourceDrive*, const char* path);
-};
-
 enum {
 	RESOURCE_TYPE_TEXTURE = 0,
 	RESOURCE_TYPE_AUDIO,
@@ -70,30 +43,15 @@ typedef struct {
 } Resource;
 
 typedef struct {
-	ResourceDrive** drives;
-	size_t          drivesNum;
-
 	Resource* resources;
 	size_t    capacity;
 } ResourceManager;
 
 extern ResourceManager resources;
 
-void          Resources_Init(void);
-void          Resources_Free(void);
-bool          Resources_DriveExists(const char* name);
-bool          Resources_AddDrive(ResourceDrive* drive, const char* name);
-bool          Resources_DeleteDrive(const char* name);
-bool          Resources_FileExists(const char* path);
-ResourceFile* Resources_List(const char* path, size_t* sz);
-void          Resources_FreeFileList(ResourceFile* list, size_t sz);
-void          Resources_PrintList(const char* path);
-void*         Resources_ReadFile(const char* path, size_t* size);
-bool          Resources_MakeDir(const char* path);
-bool          Resources_Delete(const char* path);
-bool          Resources_WriteFile(const char* path, void* contents, size_t size);
-Stream        Resources_Open(const char* path, bool* success, bool write);
-Resource*     Resources_GetRes(const char* path, uint32_t opt);
-void          Resources_FreeRes(Resource* resource);
+void      Resources_Init(void);
+void      Resources_Free(void);
+Resource* Resources_GetRes(const char* path, uint32_t opt);
+void      Resources_FreeRes(Resource* resource);
 
 #endif

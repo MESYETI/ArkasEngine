@@ -1,6 +1,6 @@
 #include "fs.h"
 #include "ui.h"
-#include "engine.h"
+#include "vfs.h"
 #include "map.h"
 #include "game.h"
 #include "util.h"
@@ -10,6 +10,7 @@
 #include "scene.h"
 #include "video.h"
 #include "audio.h"
+#include "engine.h"
 #include "config.h"
 #include "camera.h"
 #include "client.h"
@@ -72,6 +73,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Console_Init();
 	Log("Arkas Engine WIP");
 	Log("Made by MESYETI in 2025");
+	VFS_Init();
 	Resources_Init();
 
 	Profiler_Init(&engine.profiler, ENGINE_PROF_NUM);
@@ -152,6 +154,7 @@ void Engine_Free(void) {
 	Resources_Free();
 	Video_Free();
 	Event_Free();
+	VFS_Free();
 	Platform_Quit();
 }
 

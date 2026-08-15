@@ -2,10 +2,10 @@
 #define AE_ARK_H
 
 #include <stdio.h>
+#include "vfs.h"
 #include "error.h"
 #include "stream.h"
 #include "common.h"
-#include "resources.h"
 
 typedef struct ArkEntry ArkEntry;
 
@@ -28,11 +28,10 @@ typedef struct {
 	bool     free;
 } ArchiveReader;
 
-ErrorRet Ark_InitReader(ArchiveReader* reader, Stream* stream, bool free);
-void     Ark_FreeReader(ArchiveReader* reader);
-ErrorRet Ark_Read(ArchiveReader* reader);
-void*    Ark_ReadFile(ArchiveReader* reader, ArkEntry* entry);
-
-ResourceDrive* Ark_CreateResourceDrive(Stream* stream, bool free);
+ErrorRet   Ark_InitReader(ArchiveReader* reader, Stream* stream, bool free);
+void       Ark_FreeReader(ArchiveReader* reader);
+ErrorRet   Ark_Read(ArchiveReader* reader);
+void*      Ark_ReadFile(ArchiveReader* reader, ArkEntry* entry);
+VFS_Drive* Ark_CreateDrive(Stream* stream, bool free);
 
 #endif

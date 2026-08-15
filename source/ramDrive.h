@@ -1,8 +1,8 @@
 #ifndef AE_RAM_DRIVE_H
 #define AE_RAM_DRIVE_H
 
-#include "resources.h"
+#include "vfs.h"
 
-ResourceDrive* NewRamDrive(void);
+VFS_Drive* NewRamDrive(void);
 
 #endif

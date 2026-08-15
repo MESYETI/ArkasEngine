@@ -1,13 +1,14 @@
+#include <string.h>
 #include "mem.h"
 #include "subDrive.h"
 
 typedef struct {
-	ResourceDrive   parent;
-	ResourceDrive** drives;
-	size_t          num;
+	VFS_Drive   parent;
+	VFS_Drive** drives;
+	size_t      num;
 } SubDrive;
 
-static ResourceDrive* GetSubDrive(SubDrive* drive, const char* path) {
+static VFS_Drive* GetSubDrive(SubDrive* drive, const char* path) {
 	const char* name = path;
 	size_t      nameLen;
 
@@ -21,7 +22,7 @@ static ResourceDrive* GetSubDrive(SubDrive* drive, const char* path) {
 	}
 
 	// find drive
-	for (size_t i = 0; i < resources.drivesNum; ++ i) {
+	for (size_t i = 0; i < drive->num; ++ i) {
 		if (
 			(strlen(drive->drives[i]->name) == nameLen) &&
 			(strncmp(drive->drives[i]->name, name, nameLen) == 0)
@@ -33,10 +34,10 @@ static ResourceDrive* GetSubDrive(SubDrive* drive, const char* path) {
 	return NULL;
 }
 
-static bool DriveFileExists(ResourceDrive* p_drive, const char* path) {
+static bool DriveFileExists(VFS_Drive* p_drive, const char* path) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
-	ResourceDrive* sub = GetSubDrive(drive, path);
+	VFS_Drive* sub = GetSubDrive(drive, path);
 
 	if (!sub) {
 		Log("Invalid file path: %s", path);
@@ -48,10 +49,10 @@ static bool DriveFileExists(ResourceDrive* p_drive, const char* path) {
 	return sub->fileExists(sub, drivePath);
 }
 
-static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
+static void DrivePrintList(VFS_Drive* p_drive, const char* folder) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
-	ResourceDrive* sub = GetSubDrive(drive, folder);
+	VFS_Drive* sub = GetSubDrive(drive, folder);
 
 	if (!sub) {
 		Log("Invalid file path: %s", folder);
@@ -63,10 +64,10 @@ static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
 	sub->printList(sub, drivePath);
 }
 
-static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_t* sz) {
+static VFS_File* DriveList(VFS_Drive* p_drive, const char* folder, size_t* sz) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
-	ResourceDrive* sub = GetSubDrive(drive, folder);
+	VFS_Drive* sub = GetSubDrive(drive, folder);
 
 	if (!sub) {
 		Log("Invalid file path: %s", folder);
@@ -78,10 +79,10 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	return sub->list(sub, drivePath, sz);
 }
 
-static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success, bool write) {
+static Stream DriveOpen(VFS_Drive* p_drive, const char* path, bool* success, bool write) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
-	ResourceDrive* sub = GetSubDrive(drive, path);
+	VFS_Drive* sub = GetSubDrive(drive, path);
 
 	if (!sub) {
 		Log("Invalid file path: %s", path);
@@ -95,10 +96,10 @@ static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success,
 	return sub->open(sub, drivePath, success, write);
 }
 
-static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* size) {
+static void* DriveReadFile(VFS_Drive* p_drive, const char* path, size_t* size) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
-	ResourceDrive* sub = GetSubDrive(drive, path);
+	VFS_Drive* sub = GetSubDrive(drive, path);
 
 	if (!sub) {
 		Log("Invalid file path: %s", path);
@@ -110,10 +111,10 @@ static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* siz
 	return sub->readFile(sub, drivePath, size);
 }
 
-static bool DriveMakeDir(ResourceDrive* p_drive, const char* path) {
+static bool DriveMakeDir(VFS_Drive* p_drive, const char* path) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
-	ResourceDrive* sub = GetSubDrive(drive, path);
+	VFS_Drive* sub = GetSubDrive(drive, path);
 
 	if (!sub) {
 		Log("Invalid file path: %s", path);
@@ -126,11 +127,11 @@ static bool DriveMakeDir(ResourceDrive* p_drive, const char* path) {
 }
 
 static bool DriveWriteFile(
-	ResourceDrive* p_drive, const char* path, void* contents, size_t size
+	VFS_Drive* p_drive, const char* path, void* contents, size_t size
 ) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
-	ResourceDrive* sub = GetSubDrive(drive, path);
+	VFS_Drive* sub = GetSubDrive(drive, path);
 
 	if (!sub) {
 		Log("Invalid file path: %s", path);
@@ -142,10 +143,10 @@ static bool DriveWriteFile(
 	return sub->writeFile(sub, drivePath, contents, size);
 }
 
-static bool DriveDelete(ResourceDrive* p_drive, const char* path) {
+static bool DriveDelete(VFS_Drive* p_drive, const char* path) {
 	SubDrive* drive = (SubDrive*) p_drive;
 
-	ResourceDrive* sub = GetSubDrive(drive, path);
+	VFS_Drive* sub = GetSubDrive(drive, path);
 
 	if (!sub) {
 		Log("Invalid file path: %s", path);
@@ -157,7 +158,7 @@ static bool DriveDelete(ResourceDrive* p_drive, const char* path) {
 	return sub->delete(sub, drivePath);
 }
 
-ResourceDrive* NewSubDrive(ResourceDrive** drives, size_t num, bool readOnly) {
+VFS_Drive* NewSubDrive(VFS_Drive** drives, size_t num, bool readOnly) {
 	SubDrive* ret = SafeMalloc(sizeof(SubDrive));
 
 	ret->parent.free       = NULL;
@@ -172,10 +173,10 @@ ResourceDrive* NewSubDrive(ResourceDrive** drives, size_t num, bool readOnly) {
 	ret->drives            = drives;
 	ret->num               = num;
 
-	return (ResourceDrive*) ret;
+	return (VFS_Drive*) ret;
 }
 
-void SubDrive_Add(ResourceDrive* subDrive, ResourceDrive* drive) {
+void SubDrive_Add(VFS_Drive* subDrive, VFS_Drive* drive) {
 	SubDrive* sub = (SubDrive*) subDrive;
 
 	++ sub->num;

@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "vfs.h"
 #include "mem.h"
 #include "map.h"
 #include "video.h"
@@ -114,7 +115,7 @@ static void OpenCallback(const char* path) {
 	if (!path) return;
 
 	bool   success;
-	Stream file = Resources_Open(path, &success, false);
+	Stream file = VFS_Open(path, &success, false);
 
 	if (!success) {
 		SceneManager_ScheduleAdd(NewMessageBoxScene(
@@ -147,7 +148,7 @@ static void OpenButton(uint8_t button) {
 
 static void SaveProject(void) {
 	bool   success;
-	Stream file = Resources_Open(mapEditor.savePath, &success, true);
+	Stream file = VFS_Open(mapEditor.savePath, &success, true);
 
 	if (!success) {
 		SceneManager_ScheduleAdd(NewMessageBoxScene(

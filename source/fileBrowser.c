@@ -1,9 +1,9 @@
 #include "ui.h"
-#include "engine.h"
+#include "vfs.h"
 #include "mem.h"
 #include "video.h"
+#include "engine.h"
 #include "backend.h"
-#include "resources.h"
 #include "fileBrowser.h"
 #include "ui/label.h"
 #include "ui/button.h"
@@ -23,8 +23,8 @@ static UI_ListBoxItem* driveList;
 static UI_ListBoxItem* fileList;
 static UI_Element*     filesElem;
 
-static ResourceFile* files     = NULL;
-static size_t        filesSize = 0;
+static VFS_File* files     = NULL;
+static size_t    filesSize = 0;
 
 static int                 mode;
 static FileBrowserCallback callback;
@@ -34,7 +34,7 @@ static const char* CWDLabel() {
 }
 
 static void UpdateFiles(void) {
-	files    = Resources_List(cwd, &filesSize);
+	files    = VFS_List(cwd, &filesSize);
 	fileList = SafeMalloc(filesSize * sizeof(UI_ListBoxItem));
 
 	for (size_t i = 0; i < filesSize; ++ i) {
@@ -63,7 +63,7 @@ static void FileClick(void) {
 	strncat(cwd, fileSelected, sizeof(cwd) - strlen(cwd) - 1);
 
 	if (files) {
-		Resources_FreeFileList(files, filesSize);
+		VFS_FreeFileList(files, filesSize);
 	}
 
 	if (fileList) {
@@ -76,7 +76,7 @@ static void FileClick(void) {
 
 static void DriveClick(void) {
 	if (files) {
-		Resources_FreeFileList(files, filesSize);
+		VFS_FreeFileList(files, filesSize);
 		free(fileList);
 		fileList = NULL;
 	}
@@ -94,7 +94,7 @@ static void UpButton(UI_Button* this, uint8_t button) {
 	if (button != 0) return;
 
 	if (files) {
-		Resources_FreeFileList(files, filesSize);
+		VFS_FreeFileList(files, filesSize);
 		free(fileList);
 		fileList  = NULL;
 		filesSize = 0;
@@ -170,15 +170,15 @@ static void Init(Scene* scene) {
 	UI_RowUpdate(row);
 
 	// make drive list
-	driveList = SafeMalloc(resources.drivesNum * sizeof(UI_ListBoxItem));
+	driveList = SafeMalloc(vfs.drivesNum * sizeof(UI_ListBoxItem));
 
-	for (size_t i = 0; i < resources.drivesNum; ++ i) {
-		driveList[i] = (UI_ListBoxItem) {resources.drives[i]->name};
+	for (size_t i = 0; i < vfs.drivesNum; ++ i) {
+		driveList[i] = (UI_ListBoxItem) {vfs.drives[i]->name};
 	}
 
 	row = UI_ContainerAddRow(container, 391); // 412
 	UI_RowAddElement(row, UI_NewListBox(
-		driveList, resources.drivesNum, &driveSelected, 100, DriveClick
+		driveList, vfs.drivesNum, &driveSelected, 100, DriveClick
 	));
 	UI_RowAddElement(
 		row, UI_NewListBox(NULL, 0, &fileSelected, 0, FileClick)

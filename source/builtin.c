@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <string.h>
 #include "mem.h"
 #include "builtin.h"
 
@@ -16,7 +17,7 @@ static const File files[2] = {
 	{"no_texture.png", noTexture, sizeof(noTexture)}
 };
 
-static bool DriveFileExists(ResourceDrive* drive, const char* path) {
+static bool DriveFileExists(VFS_Drive* drive, const char* path) {
 	(void) drive;
 
 	for (size_t i = 0; i < sizeof(files) / sizeof(File); ++ i) {
@@ -26,7 +27,7 @@ static bool DriveFileExists(ResourceDrive* drive, const char* path) {
 	return false;
 }
 
-static void DrivePrintList(ResourceDrive* drive, const char* folder) {
+static void DrivePrintList(VFS_Drive* drive, const char* folder) {
 	(void) drive;
 	(void) folder;
 
@@ -35,10 +36,10 @@ static void DrivePrintList(ResourceDrive* drive, const char* folder) {
 	}
 }
 
-static ResourceFile* DriveList(ResourceDrive* drive, const char* folder, size_t* sz) {
+static VFS_File* DriveList(VFS_Drive* drive, const char* folder, size_t* sz) {
 	*sz = sizeof(files) / sizeof(File);
 
-	ResourceFile* ret = SafeMalloc(*sz * sizeof(ResourceFile));
+	VFS_File* ret = SafeMalloc(*sz * sizeof(VFS_File));
 
 	for (size_t i = 0; i < *sz; ++ i) {
 		ret[i].fullPath = SafeMalloc(
@@ -57,7 +58,7 @@ static ResourceFile* DriveList(ResourceDrive* drive, const char* folder, size_t*
 	return ret;
 }
 
-static Stream DriveOpen(ResourceDrive* drive, const char* path, bool* success, bool write) {
+static Stream DriveOpen(VFS_Drive* drive, const char* path, bool* success, bool write) {
 	(void) drive;
 
 	if (write) {
@@ -77,7 +78,7 @@ static Stream DriveOpen(ResourceDrive* drive, const char* path, bool* success, b
 	return Stream_Blank();
 }
 
-static void* DriveReadFile(ResourceDrive* drive, const char* path, size_t* size) {
+static void* DriveReadFile(VFS_Drive* drive, const char* path, size_t* size) {
 	(void) drive;
 
 	for (size_t i = 0; i < sizeof(files) / sizeof(File); ++ i) {
@@ -93,8 +94,8 @@ static void* DriveReadFile(ResourceDrive* drive, const char* path, size_t* size)
 	return NULL;
 }
 
-ResourceDrive* BuiltIn_GetDrive(void) {
-	ResourceDrive* ret = SafeMalloc(sizeof(ResourceDrive));
+VFS_Drive* BuiltIn_GetDrive(void) {
+	VFS_Drive* ret = SafeMalloc(sizeof(VFS_Drive));
 	// expect caller to write to name
 
 	ret->free       = NULL;

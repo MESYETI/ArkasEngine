@@ -1,5 +1,6 @@
 #include "mem.h"
 #include "map.h"
+#include "vfs.h"
 #include "chat.h"
 #include "data.h"
 #include "util.h"
@@ -9,7 +10,6 @@
 #include "player.h"
 #include "ramDrive.h"
 #include "platform.h"
-#include "resources.h"
 
 enum {
 	C_IDENT = 0, // about to identify
@@ -40,10 +40,10 @@ void Client_Init(void) {
 }
 
 static void StartClient(void) {
-	if (Resources_DriveExists("net")) {
-		Resources_DeleteDrive("net");
+	if (VFS_DriveExists("net")) {
+		VFS_DeleteDrive("net");
 	}
-	Resources_AddDrive(NewRamDrive(), "net");
+	VFS_AddDrive(NewRamDrive(), "net");
 
 	Chat_Free();
 	Chat_Init();
@@ -274,7 +274,7 @@ void Client_Update(void) {
 			if (client.fileRead == client.fileSize) {
 				char* path = ConcatString("net:", client.fileName);
 
-				if (!Resources_WriteFile(path, client.fileContents, client.fileSize)) {
+				if (!VFS_WriteFile(path, client.fileContents, client.fileSize)) {
 					Error("Failed to write net file");
 					break;
 				}
@@ -283,7 +283,7 @@ void Client_Update(void) {
 
 				if (strcmp(client.fileName, "map.arm") == 0) {
 					bool   success;
-					Stream file = Resources_Open("net:map.arm", &success, false);
+					Stream file = VFS_Open("net:map.arm", &success, false);
 
 					if (!success) {
 						Error("Failed to open server map");

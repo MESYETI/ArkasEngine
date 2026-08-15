@@ -1,5 +1,6 @@
 #include "map.h"
 #include "mem.h"
+#include "vfs.h"
 #include "game.h"
 #include "util.h"
 #include "audio.h"
@@ -90,7 +91,7 @@ static void Command_Map(size_t argc, char** argv) {
 		});
 
 		size_t size;
-		void*  res = Resources_ReadFile(path, &size);
+		void*  res = VFS_ReadFile(path, &size);
 
 		if (!res) {
 			Log("Failed to load map");
@@ -145,10 +146,10 @@ static void Command_DlMap(size_t argc, char** argv) {
 
 static void Command_Ls(size_t argc, char** argv) {
 	if (argc == 0) {
-		Resources_PrintList(NULL);
+		VFS_PrintList(NULL);
 	}
 	else if (argc == 1) {
-		Resources_PrintList(argv[0]);
+		VFS_PrintList(argv[0]);
 	}
 	else {
 		Log("ls must have either 0 or 1 parameters");
@@ -159,7 +160,7 @@ static void Command_Cat(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
 	size_t size;
-	void*  contents = Resources_ReadFile(argv[0], &size);
+	void*  contents = VFS_ReadFile(argv[0], &size);
 
 	if (contents == NULL) {
 		Log("Error reading file");
@@ -341,7 +342,7 @@ static void Command_HexDump(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
 	size_t size;
-	void*  contents = Resources_ReadFile(argv[0], &size);
+	void*  contents = VFS_ReadFile(argv[0], &size);
 
 	if (contents == NULL) {
 		Log("Error reading file");
@@ -523,14 +524,14 @@ static void Command_StartNetClient(size_t argc, char** argv) {
 static void Command_RamDrive(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
-	if (!Resources_AddDrive(NewRamDrive(), argv[0])) {
+	if (!VFS_AddDrive(NewRamDrive(), argv[0])) {
 		Log("Failed to add RAM drive");
 	}
 }
 
 static void Command_MakeDir(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
-	if (!Resources_MakeDir(argv[0])) {
+	if (!VFS_MakeDir(argv[0])) {
 		Log("Failed to make directory");
 	}
 }
@@ -538,7 +539,7 @@ static void Command_MakeDir(size_t argc, char** argv) {
 static void Command_Touch(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
-	if (!Resources_WriteFile(argv[0], NULL, 0)) {
+	if (!VFS_WriteFile(argv[0], NULL, 0)) {
 		Log("Failed to create file");
 	}
 }
@@ -546,7 +547,7 @@ static void Command_Touch(size_t argc, char** argv) {
 static void Command_Delete(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
-	if (!Resources_Delete(argv[0])) {
+	if (!VFS_Delete(argv[0])) {
 		Log("Failed to delete file/folder");
 	}
 }
@@ -554,7 +555,7 @@ static void Command_Delete(size_t argc, char** argv) {
 static void Command_Unmount(size_t argc, char** argv) {
 	ASSERT_ARGC(1);
 
-	if (!Resources_DeleteDrive(argv[0])) {
+	if (!VFS_DeleteDrive(argv[0])) {
 		Log("Failed to unmount drive");
 	}
 }

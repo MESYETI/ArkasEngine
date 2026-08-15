@@ -1,8 +1,8 @@
 #ifndef AE_FOLDER_DRIVE_H
 #define AE_FOLDER_DRIVE_H
 
-#include "resources.h"
+#include "vfs.h"
 
-ResourceDrive* NewFolderDrive(const char* path);
+VFS_Drive* NewFolderDrive(const char* path);
 
 #endif

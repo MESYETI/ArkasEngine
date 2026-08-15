@@ -1,9 +1,9 @@
 #ifndef AE_SUB_DRIVE_H
 #define AE_SUB_DRIVE_H
 
-#include "resources.h"
+#include "vfs.h"
 
-ResourceDrive* SubDrive_New(ResourceDrive** drives, size_t num, bool readOnly);
-void           SubDrive_Add(ResourceDrive* subDrive, ResourceDrive* drive);
+VFS_Drive* SubDrive_New(VFS_Drive** drives, size_t num, bool readOnly);
+void       SubDrive_Add(VFS_Drive* subDrive, VFS_Drive* drive);
 
 #endif

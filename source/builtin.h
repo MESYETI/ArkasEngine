@@ -3,8 +3,8 @@
 
 // builtin: is a folderless drive containing files inside the engine executable
 
-#include "resources.h"
+#include "vfs.h"
 
-ResourceDrive* BuiltIn_GetDrive(void);
+VFS_Drive* BuiltIn_GetDrive(void);
 
 #endif

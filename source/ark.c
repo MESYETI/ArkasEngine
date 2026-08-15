@@ -2,7 +2,6 @@
 #include "ark.h"
 #include "util.h"
 #include "mem.h"
-#include "resources.h"
 
 ErrorRet Ark_InitReader(ArchiveReader* reader, Stream* stream, bool free) {
 	reader->file = stream;
@@ -119,11 +118,11 @@ void* Ark_ReadFile(ArchiveReader* reader, ArkEntry* entry) {
 }
 
 typedef struct {
-	ResourceDrive parent;
+	VFS_Drive parent;
 	ArchiveReader reader;
 } ArkDrive;
 
-static void FreeDrive(ResourceDrive* p_drive) {
+static void FreeDrive(VFS_Drive* p_drive) {
 	ArkDrive* drive = (ArkDrive*) p_drive;
 	Ark_FreeReader(&drive->reader);
 }
@@ -170,13 +169,13 @@ static ArkEntry* GetEntry(ArchiveReader* reader, const char* path) {
 	}
 }
 
-static bool DriveFileExists(ResourceDrive* p_drive, const char* path) {
+static bool DriveFileExists(VFS_Drive* p_drive, const char* path) {
 	ArkDrive* drive = (ArkDrive*) p_drive;
 
 	return GetEntry(&drive->reader, path);
 }
 
-static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
+static void DrivePrintList(VFS_Drive* p_drive, const char* folder) {
 	ArkDrive* drive = (ArkDrive*) p_drive;
 	ArkEntry* entry = GetEntry(&drive->reader, folder);
 
@@ -199,7 +198,7 @@ static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
 	}
 }
 
-static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_t* sz) {
+static VFS_File* DriveList(VFS_Drive* p_drive, const char* folder, size_t* sz) {
 	ArkDrive* drive = (ArkDrive*) p_drive;
 	ArkEntry* entry = GetEntry(&drive->reader, folder);
 
@@ -214,10 +213,11 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 
 	*sz = entry->folderSize;
 
-	ResourceFile* ret = SafeMalloc(*sz * sizeof(ResourceFile));
+	VFS_File* ret = SafeMalloc(*sz * sizeof(VFS_File));
 
 	for (size_t i = 0; i < entry->folderSize; ++ i) {
-		ResourceFile* file = &ret[i];
+		VFS_File* file = &ret[i];
+
 		file->fullPath = SafeMalloc(
 			strlen(p_drive->name) + strlen(folder) +
 			strlen(entry->folderContents[i].name) + 4
@@ -235,7 +235,7 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	return ret;
 }
 
-static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success, bool write) {
+static Stream DriveOpen(VFS_Drive* p_drive, const char* path, bool* success, bool write) {
 	if (write) {
 		*success = false;
 		return Stream_Blank();
@@ -260,7 +260,7 @@ static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success,
 	return Stream_SubStream(drive->reader.file, entry->contentsOffset, entry->size);
 }
 
-static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* size) {
+static void* DriveReadFile(VFS_Drive* p_drive, const char* path, size_t* size) {
 	ArkDrive* drive = (ArkDrive*) p_drive;
 	ArkEntry* entry = GetEntry(&drive->reader, path);
 
@@ -278,7 +278,7 @@ static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* siz
 	return ret;
 }
 
-ResourceDrive* Ark_CreateResourceDrive(Stream* stream, bool free) {
+VFS_Drive* Ark_CreateDrive(Stream* stream, bool free) {
 	ArkDrive* ret = SafeMalloc(sizeof(ArkDrive));
 	// expect caller to write to name
 
@@ -298,7 +298,7 @@ ResourceDrive* Ark_CreateResourceDrive(Stream* stream, bool free) {
 	ret->parent.delete     = NULL;
 
 	if (Ark_Read(&ret->reader).success) {
-		return (ResourceDrive*) ret;
+		return (VFS_Drive*) ret;
 	}
 	else {
 		Log("Failed to read archive");

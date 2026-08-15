@@ -1,8 +1,8 @@
 #include "art.h"
+#include "vfs.h"
 #include "stb.h"
 #include "util.h"
 #include "texture.h"
-#include "resources.h"
 
 Texture* Texture_LoadMem(uint8_t* img, size_t len) {
 	int      width, height, ch;
@@ -71,7 +71,7 @@ Texture* Texture_LoadMem(uint8_t* img, size_t len) {
 
 Texture* Texture_LoadFile(const char* path) {
 	size_t   size;
-	uint8_t* data = Resources_ReadFile(path, &size);
+	uint8_t* data = VFS_ReadFile(path, &size);
 
 	if (data == NULL) {
 		Log("Failed to read file: %s", path);

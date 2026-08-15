@@ -4,6 +4,7 @@
 #include "ark.h"
 #include "mem.h"
 #include "stb.h"
+#include "vfs.h"
 #include "util.h"
 #include "builtin.h"
 #include "texture.h"
@@ -13,63 +14,6 @@
 ResourceManager resources;
 
 void Resources_Init(void) {
-	DIR* dir = opendir(AE_LOCATION "game");
-
-	if (dir == NULL) {
-		Error("Failed to open directory 'game'");
-	}
-
-	resources.drives          = SafeMalloc(sizeof(ResourceDrive*) * 5);
-	resources.drivesNum       = 5;
-	resources.drives[0]       = BuiltIn_GetDrive();
-	resources.drives[0]->name = NewString("builtin");
-	resources.drives[1]       = NewFolderDrive(AE_LOCATION "game/extra");
-	resources.drives[1]->name = NewString("extra");
-	resources.drives[2]       = NewFolderDrive(AE_LOCATION "maps");
-	resources.drives[2]->name = NewString("maps");
-	resources.drives[3]       = NewFolderDrive(AE_LOCATION "screenshots");
-	resources.drives[3]->name = NewString("screenshots");
-	resources.drives[4]       = NewFolderDrive(AE_LOCATION "game/projects");
-	resources.drives[4]->name = NewString("projects");
-
-	struct dirent* entry;
-	while ((entry = readdir(dir)) != NULL) {
-		char* path = strrchr(entry->d_name, '.');
-
-		if (path == NULL) continue;
-		if (strcmp(path, ".ark") != 0) {
-			continue;
-		}
-
-		char* concatPath = ConcatString(AE_LOCATION "game/", entry->d_name);
-		FILE* file       = fopen(concatPath, "rb");
-
-		ResourceDrive* drive = Ark_CreateResourceDrive(
-			Stream_ToHeap(Stream_File(file, true)), true
-		);
-		free(concatPath);
-
-		if (drive == NULL) {
-			Log("Failed to load archive '%s'", entry->d_name);
-			continue;
-		}
-		else {
-			resources.drives = SafeRealloc(
-				resources.drives, (resources.drivesNum + 1) * sizeof(ResourceDrive*)
-			);
-			resources.drives[resources.drivesNum] = drive;
-			++ resources.drivesNum;
-		}
-
-		drive->name = NewString(entry->d_name);
-		*strrchr(drive->name, '.') = 0;
-		drive->name = SafeRealloc(drive->name, strlen(drive->name) + 1);
-	}
-
-	closedir(dir);
-
-	Log("%d resource drives mounted", resources.drivesNum);
-
 	// init resource pool
 	resources.resources = SafeMalloc(256 * sizeof(*resources.resources));
 	resources.capacity  = 256;
@@ -82,291 +26,8 @@ void Resources_Init(void) {
 }
 
 void Resources_Free(void) {
-	for (size_t i = 0; i < resources.drivesNum; ++ i) {
-		if (resources.drives[i]->free) {
-			resources.drives[i]->free(resources.drives[i]);
-		}
-
-		free(resources.drives[i]->name);
-		free(resources.drives[i]);
-	}
-	free(resources.drives);
-
-	resources.drives    = NULL;
-	resources.drivesNum = 0;
-
 	free(resources.resources);
 	resources.capacity = false;
-}
-
-static ResourceDrive* GetDrive(const char* path) {
-	const char* name = path;
-	size_t      nameLen;
-
-	const char* colon = strchr(path, ':');
-
-	if (colon) {
-		nameLen = colon - name;
-	}
-	else {
-		return NULL;
-	}
-
-	// find drive
-	for (size_t i = 0; i < resources.drivesNum; ++ i) {
-		if (
-			(strlen(resources.drives[i]->name) == nameLen) &&
-			(strncmp(resources.drives[i]->name, name, nameLen) == 0)
-		) {
-			return resources.drives[i];
-		}
-	}
-
-	return NULL;
-}
-
-bool Resources_DriveExists(const char* name) {
-	return GetDrive(name)? true : false;
-}
-
-bool Resources_AddDrive(ResourceDrive* drive, const char* name) {
-	if (Resources_DriveExists(name)) {
-		Log("Error: Drive '%s' already exists", name);
-		return false;
-	}
-
-	++ resources.drivesNum;
-	resources.drives = SafeRealloc(
-		resources.drives, resources.drivesNum * sizeof(void*)
-	);
-
-	ResourceDrive** newDrive = &resources.drives[resources.drivesNum - 1];
-
-	*newDrive         = drive;
-	(*newDrive)->name = NewString(name);
-	Log("New drive: %s:", name);
-	return true;
-}
-
-bool Resources_DeleteDrive(const char* name) {
-	for (size_t i = 0; i < resources.drivesNum; ++ i) {
-		ResourceDrive* drive = resources.drives[i];
-
-		if (strcmp(drive->name, name) == 0) {
-			if (drive->free) {
-				drive->free(drive);
-			}
-			free(drive);
-
-			memmove(
-				&resources.drives[i], &resources.drives[i + 1],
-				(resources.drivesNum - 1) * sizeof(void*)
-			);
-			-- resources.drivesNum;
-			return true;
-		}
-	}
-
-	return false;
-}
-
-bool Resources_FileExists(const char* path) {
-	ResourceDrive* drive = GetDrive(path);
-
-	if (!drive) {
-		Log("Resources_FileExists: Automatic drive selection not implemented");
-		return false;
-	}
-
-	const char* drivePath = strchr(path, ':');
-
-	if (!drivePath) {
-		Log("Invalid file path: '%s'", path);
-		return false;
-	}
-
-	return drive->fileExists(drive, drivePath + 1);
-}
-
-ResourceFile* Resources_List(const char* path, size_t* sz) {
-	ResourceDrive* drive = GetDrive(path);
-
-	if (!drive) {
-		Log("Invalid drive: %s", path);
-		return NULL;
-	}
-
-	const char* drivePath = strchr(path, ':');
-
-	if (drivePath == NULL) {
-		Log("Invalid file path: '%s'", path);
-		return NULL;
-	}
-	else {
-		++ drivePath;
-	}
-
-	return drive->list(drive, drivePath, sz);
-}
-
-void Resources_FreeFileList(ResourceFile* list, size_t size) {
-	for (size_t i = 0; i < size; ++ i) {
-		free(list[i].fullPath);
-	}
-
-	free(list);
-}
-
-void Resources_PrintList(const char* path) {
-	if (!path) {
-		Log("Mounted resource drives:");
-
-		for (size_t i = 0; i < resources.drivesNum; ++ i) {
-			Log("  %s:", resources.drives[i]->name);
-		}
-	}
-	else {
-		ResourceDrive* drive = GetDrive(path);
-
-		if (!drive) {
-			Log("Invalid drive");
-			return;
-		}
-
-		const char* drivePath = strchr(path, ':');
-
-		if (drivePath == NULL) {
-			Log("Invalid file path: '%s'", path);
-			return;
-		}
-		else {
-			++ drivePath;
-		}
-
-		drive->printList(drive, drivePath);
-	}
-}
-
-void* Resources_ReadFile(const char* path, size_t* size) {
-	ResourceDrive* drive = GetDrive(path);
-
-	if (!drive) {
-		Log("Invalid drive");
-		return NULL;
-	}
-
-	const char* drivePath = strchr(path, ':');
-
-	if (drivePath == NULL) {
-		Log("Invalid file path: '%s'", path);
-		return NULL;
-	}
-	else {
-		++ drivePath;
-	}
-
-	return drive->readFile(drive, drivePath, size);
-}
-
-bool Resources_MakeDir(const char* path) {
-	ResourceDrive* drive = GetDrive(path);
-
-	if (!drive) {
-		Log("Invalid drive");
-		return NULL;
-	}
-
-	if (!drive->makeDir) {
-		Log("Operation not available");
-	}
-
-	const char* drivePath = strchr(path, ':');
-
-	if (drivePath == NULL) {
-		Log("Invalid file path: '%s'", path);
-		return NULL;
-	}
-	else {
-		++ drivePath;
-	}
-
-	return drive->makeDir(drive, drivePath);
-}
-
-bool Resources_Delete(const char* path) {
-	ResourceDrive* drive = GetDrive(path);
-
-	if (!drive) {
-		Log("Invalid drive");
-		return false;
-	}
-
-	if (!drive->delete) {
-		Log("Operation not available");
-		return false;
-	}
-
-	const char* drivePath = strchr(path, ':');
-
-	if (drivePath == NULL) {
-		Log("Invalid file path: '%s'", path);
-		return false;
-	}
-	else {
-		++ drivePath;
-	}
-
-	return drive->delete(drive, drivePath);
-}
-
-bool Resources_WriteFile(const char* path, void* contents, size_t size) {
-	ResourceDrive* drive = GetDrive(path);
-
-	if (!drive) {
-		Log("Invalid drive");
-		return false;
-	}
-
-	if (!drive->writeFile) {
-		Log("Operation not available");
-		return false;
-	}
-
-	const char* drivePath = strchr(path, ':');
-
-	if (drivePath == NULL) {
-		Log("Invalid file path: '%s'", path);
-		return false;
-	}
-	else {
-		++ drivePath;
-	}
-
-	return drive->writeFile(drive, drivePath, contents, size);
-}
-
-Stream Resources_Open(const char* path, bool* success, bool write) {
-	ResourceDrive* drive = GetDrive(path);
-
-	if (!drive) {
-		Log("Invalid drive");
-		*success = false;
-
-		return Stream_Blank();
-	}
-
-	const char* drivePath = strchr(path, ':');
-
-	if (drivePath == NULL) {
-		Log("Invalid file path: '%s'", path);
-		*success = false;
-		return Stream_Blank();
-	}
-	else {
-		++ drivePath;
-	}
-
-	return drive->open(drive, drivePath, success, write);
 }
 
 static Resource* AllocResource(void) {
@@ -451,7 +112,7 @@ Resource* Resources_GetRes(const char* path, uint32_t opt) {
 		ret->type = RESOURCE_TYPE_AUDIO;
 
 		size_t   size;
-		uint8_t* data = (uint8_t*) Resources_ReadFile(path, &size);
+		uint8_t* data = (uint8_t*) VFS_ReadFile(path, &size);
 
 		int res = stb_vorbis_decode_memory(
 			data, (int) size, &ret->v.audio.channels, &ret->v.audio.sampleRate,
@@ -472,7 +133,7 @@ Resource* Resources_GetRes(const char* path, uint32_t opt) {
 		ret->type = RESOURCE_TYPE_MODEL;
 		
 		size_t   size;
-		uint8_t* data   = (uint8_t*) Resources_ReadFile(path, &size);
+		uint8_t* data   = (uint8_t*) VFS_ReadFile(path, &size);
 		Stream   stream = Stream_Memory(data, size, true);
 
 		Model_Load(&ret->v.model, &stream, path);

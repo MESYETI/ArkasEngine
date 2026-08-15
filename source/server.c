@@ -1,13 +1,13 @@
 #include <string.h>
 #include "map.h"
 #include "mem.h"
+#include "vfs.h"
 #include "data.h"
 #include "util.h"
 #include "random.h"
 #include "server.h"
 #include "ramDrive.h"
 #include "platform.h"
-#include "resources.h"
 
 Server server = {
 	.running   = false,
@@ -25,10 +25,10 @@ ServerConfig serverConf = {
 };
 
 bool Server_Start(void) {
-	if (Resources_DriveExists("server")) {
-		Resources_DeleteDrive("server");
+	if (VFS_DriveExists("server")) {
+		VFS_DeleteDrive("server");
 	}
-	Resources_AddDrive(NewRamDrive(), "server");
+	VFS_AddDrive(NewRamDrive(), "server");
 
 	server.running    = true;
 	server.clients    = NULL;
@@ -156,7 +156,7 @@ static bool ClientSendMap(ServerClient* this) {
 	Socket_Send(this->relSock, mapName, sizeof(mapName));
 
 	bool success;
-	this->mapStream = Resources_Open(server.mapPath, &success, false);
+	this->mapStream = VFS_Open(server.mapPath, &success, false);
 
 	if (!success) {
 		Log("Failed to open map");
@@ -567,21 +567,21 @@ void Server_SetMap(const char* name) {
 	free(path);
 
 	size_t size;
-	void*  file = Resources_ReadFile(server.mapPath, &size);
+	void*  file = VFS_ReadFile(server.mapPath, &size);
 
 	if (!file) {
 		Log("Failed to read '%s'", name);
 		return;
 	}
 
-	Resources_WriteFile("server:map.arm", file, size);
+	VFS_WriteFile("server:map.arm", file, size);
 
 	free(file);
 
 	const char* mapPath = "server:map.arm";
 
 	bool   success;
-	Stream mapStream = Resources_Open(mapPath, &success, false);
+	Stream mapStream = VFS_Open(mapPath, &success, false);
 
 	if (!success) {
 		Error("Failed to load server:map.arm");

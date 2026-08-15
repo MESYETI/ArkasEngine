@@ -1,3 +1,4 @@
+#include <string.h>
 #include "mem.h"
 #include "ramDrive.h"
 
@@ -13,7 +14,7 @@ struct File {
 };
 
 typedef struct {
-	ResourceDrive parent;
+	VFS_Drive parent;
 	File          fs;
 } RamDrive;
 
@@ -76,19 +77,19 @@ static File* GetFile(File* fs, const char* path) {
 	}
 }
 
-static void DriveFree(ResourceDrive* p_drive) {
+static void DriveFree(VFS_Drive* p_drive) {
 	RamDrive* drive = (RamDrive*) p_drive;
 
 	DeleteChildren(&drive->fs);
 }
 
-static bool DriveFileExists(ResourceDrive* p_drive, const char* path) {
+static bool DriveFileExists(VFS_Drive* p_drive, const char* path) {
 	RamDrive* drive = (RamDrive*) p_drive;
 
 	return GetFile(&drive->fs, path);
 }
 
-static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
+static void DrivePrintList(VFS_Drive* p_drive, const char* folder) {
 	RamDrive* drive = (RamDrive*) p_drive;
 	File*     entry = GetFile(&drive->fs, folder);
 
@@ -111,7 +112,7 @@ static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
 	}
 }
 
-static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_t* sz) {
+static VFS_File* DriveList(VFS_Drive* p_drive, const char* folder, size_t* sz) {
 	RamDrive* drive = (RamDrive*) p_drive;
 	File*     entry = GetFile(&drive->fs, folder);
 
@@ -126,10 +127,11 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 
 	*sz = entry->size;
 
-	ResourceFile* ret = SafeMalloc(*sz * sizeof(ResourceFile));
+	VFS_File* ret = SafeMalloc(*sz * sizeof(VFS_File));
 
 	for (size_t i = 0; i < entry->size; ++ i) {
-		ResourceFile* file = &ret[i];
+		VFS_File* file = &ret[i];
+
 		file->fullPath = SafeMalloc(
 			strlen(p_drive->name) + strlen(folder) +
 			strlen(entry->children[i].name) + 4
@@ -147,7 +149,7 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	return ret;
 }
 
-static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success, bool write) {
+static Stream DriveOpen(VFS_Drive* p_drive, const char* path, bool* success, bool write) {
 	if (write) {
 		*success = false;
 		return Stream_Blank();
@@ -172,7 +174,7 @@ static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success,
 	return Stream_Memory(file->contents, file->size, false);
 }
 
-static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* size) {
+static void* DriveReadFile(VFS_Drive* p_drive, const char* path, size_t* size) {
 	RamDrive* drive = (RamDrive*) p_drive;
 	File*     entry = GetFile(&drive->fs, path);
 
@@ -189,7 +191,7 @@ static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* siz
 	return entry->contents;
 }
 
-static bool DriveMakeDir(ResourceDrive* p_drive, const char* path) {
+static bool DriveMakeDir(VFS_Drive* p_drive, const char* path) {
 	RamDrive* drive = (RamDrive*) p_drive;
 	File*     entry;
 
@@ -240,9 +242,9 @@ static bool DriveMakeDir(ResourceDrive* p_drive, const char* path) {
 	return true;
 }
 
-static bool DriveDelete(ResourceDrive* p_drive, const char* path);
+static bool DriveDelete(VFS_Drive* p_drive, const char* path);
 
-static bool DriveWriteFile(ResourceDrive* p_drive, const char* path, void* contents, size_t size) {
+static bool DriveWriteFile(VFS_Drive* p_drive, const char* path, void* contents, size_t size) {
 	RamDrive* drive = (RamDrive*) p_drive;
 	File*     entry;
 
@@ -292,7 +294,7 @@ static bool DriveWriteFile(ResourceDrive* p_drive, const char* path, void* conte
 	return true;
 }
 
-static bool DriveDelete(ResourceDrive* p_drive, const char* path) {
+static bool DriveDelete(VFS_Drive* p_drive, const char* path) {
 	RamDrive* drive = (RamDrive*) p_drive;
 	File*     parent;
 
@@ -335,7 +337,7 @@ static bool DriveDelete(ResourceDrive* p_drive, const char* path) {
 	return true;
 }
 
-ResourceDrive* NewRamDrive(void) {
+VFS_Drive* NewRamDrive(void) {
 	RamDrive* ret = SafeMalloc(sizeof(RamDrive));
 
 	ret->parent.free       = &DriveFree;
@@ -356,5 +358,5 @@ ResourceDrive* NewRamDrive(void) {
 		.children = NULL
 	};
 
-	return (ResourceDrive*) ret;
+	return (VFS_Drive*) ret;
 }

@@ -3,13 +3,14 @@
 #include "fs.h"
 #include "mem.h"
 #include "resources.h"
+#include "folderDrive.h"
 
 typedef struct {
-	ResourceDrive parent;
-	const char*   path;
+	VFS_Drive   parent;
+	const char* path;
 } FolderDrive;
 
-static bool DriveFileExists(ResourceDrive* p_drive, const char* path) {
+static bool DriveFileExists(VFS_Drive* p_drive, const char* path) {
 	FolderDrive* drive = (FolderDrive*) p_drive;
 
 	if (strstr(path, "..")) {
@@ -24,7 +25,7 @@ static bool DriveFileExists(ResourceDrive* p_drive, const char* path) {
 	return FileExists(pathAdd);
 }
 
-static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
+static void DrivePrintList(VFS_Drive* p_drive, const char* folder) {
 	FolderDrive* drive = (FolderDrive*) p_drive;
 
 	if (strstr(folder, "..")) {
@@ -59,7 +60,7 @@ static void DrivePrintList(ResourceDrive* p_drive, const char* folder) {
 	closedir(dir);
 }
 
-static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_t* sz) {
+static VFS_File* DriveList(VFS_Drive* p_drive, const char* folder, size_t* sz) {
 	FolderDrive* drive = (FolderDrive*) p_drive;
 
 	if (strstr(folder, "..")) {
@@ -78,7 +79,7 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	}
 
 	DIR*          dir = opendir(pathAdd);
-	ResourceFile* ret = NULL;
+	VFS_File* ret = NULL;
 	size_t        len = 0;
 
 	char pathStart[4096];
@@ -97,9 +98,9 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 
 		++ len;
 
-		ret = SafeRealloc(ret, len * sizeof(ResourceFile));
+		ret = SafeRealloc(ret, len * sizeof(VFS_File));
 
-		ResourceFile* file = &ret[len - 1];
+		VFS_File* file = &ret[len - 1];
 
 		file->fullPath = SafeMalloc(strlen(pathStart) + strlen(entry->d_name) + 2);
 		strcpy(file->fullPath, pathStart);
@@ -120,7 +121,7 @@ static ResourceFile* DriveList(ResourceDrive* p_drive, const char* folder, size_
 	return ret;
 }
 
-static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success, bool write) {
+static Stream DriveOpen(VFS_Drive* p_drive, const char* path, bool* success, bool write) {
 	FolderDrive* drive = (FolderDrive*) p_drive;
 
 	*success = true;
@@ -146,7 +147,7 @@ static Stream DriveOpen(ResourceDrive* p_drive, const char* path, bool* success,
 	}
 }
 
-static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* size) {
+static void* DriveReadFile(VFS_Drive* p_drive, const char* path, size_t* size) {
 	FolderDrive* drive = (FolderDrive*) p_drive;
 
 	if (strstr(path, "..")) {
@@ -161,7 +162,7 @@ static void* DriveReadFile(ResourceDrive* p_drive, const char* path, size_t* siz
 	return ReadFile_(pathAdd, size);
 }
 
-ResourceDrive* NewFolderDrive(const char* path) {
+VFS_Drive* NewFolderDrive(const char* path) {
 	FolderDrive* ret = SafeMalloc(sizeof(FolderDrive));
 
 	ret->parent.free       = NULL;
@@ -177,5 +178,5 @@ ResourceDrive* NewFolderDrive(const char* path) {
 
 	MakeDir(path, true);
 
-	return (ResourceDrive*) ret;
+	return (VFS_Drive*) ret;
 }
