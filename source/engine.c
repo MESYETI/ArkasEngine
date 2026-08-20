@@ -11,6 +11,7 @@
 #include "video.h"
 #include "audio.h"
 #include "engine.h"
+#include "entity.h"
 #include "config.h"
 #include "camera.h"
 #include "client.h"
@@ -126,6 +127,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Theme_Init();
 	UI_Init();
 	MapEditor_Init();
+	Entities_Init();
 
 	bool success;
 	engine.font    = Text_LoadFont("builtin:font.png", &success);

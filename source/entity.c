@@ -1,8 +1,9 @@
 #include "mem.h"
+#include "data.h"
 #include "engine.h"
 #include "entity.h"
 
-Entities entities;
+EntitySystem entities;
 
 static bool CompMovableRead(Entity* ent, uint8_t* data) {
 	bool* movable = (bool*) ent->getComponent(ent, AE_COMPONENT_MOVABLE);
@@ -32,6 +33,14 @@ static void CompNameWrite(Entity* ent, uint8_t* out) {
 	out[64] = name->render? 1 : 0;
 }
 
+static void CompModelFree(Entity* ent) {
+	EntityModel* model = (EntityModel*) ent->getComponent(ent, AE_COMPONENT_MODEL);
+
+	if (model->model) {
+		Resources_FreeRes(model->model);
+	}
+}
+
 static bool CompModelRead(Entity* ent, uint8_t* data) {
 	EntityModel* model = (EntityModel*) ent->getComponent(ent, AE_COMPONENT_MODEL);
 
@@ -41,7 +50,7 @@ static bool CompModelRead(Entity* ent, uint8_t* data) {
 
 	model->model = Resources_GetRes(path, 0);
 
-	if (model->model.type != RESOURCE_TYPE_MODEL) {
+	if (model->model->type != RESOURCE_TYPE_MODEL) {
 		Log("Model resource is not a model");
 
 		Resources_FreeRes(model->model);
@@ -50,27 +59,28 @@ static bool CompModelRead(Entity* ent, uint8_t* data) {
 
 	model->modelScale   = Data_ReadFloat(&data[256]);
 	model->modelVisible = data[260] != 0;
+	return true;
 }
 
 static void CompModelWrite(Entity* ent, uint8_t* out) {
 	EntityModel* model = (EntityModel*) ent->getComponent(ent, AE_COMPONENT_MODEL);
-	
-}
 
-static void CompModelRead(Entity* ent, uint8_t* data) {
-	char path[257];
+	strncpy((char*) out, model->model->name, 256);
+
+	Data_WriteFloat(&out[256], model->modelScale);
+	out[260] = model->modelVisible;
 }
 
 static void CompModelRender(Entity* ent, FVec2 portalOff) {
-	EntityModel* comp = (EntityModel*) ent->getComponent(ent, AE_COMPONENT_MODEL);
+	EntityModel* model = (EntityModel*) ent->getComponent(ent, AE_COMPONENT_MODEL);
 
 	ModelRenderOpt opt = {
-		.scale = comp->modelScale, .pos = ent->pos, .rot = ent->dir.yaw
+		.scale = model->modelScale, .pos = ent->pos, .rot = ent->dir.yaw
 	};
 	opt.pos.x += portalOff.x;
 	opt.pos.z += portalOff.y;
 
-	Backend_RenderModel(&ent->model->v.model, &opt);
+	Backend_RenderModel(&model->model->v.model, &opt);
 }
 
 typedef struct {
@@ -103,22 +113,22 @@ static void* PlayerGetComponent(Entity* p_ent, int id) {
 	}
 }
 
-#define B(N) entities.builtInComp[N] = (EntityComponnt)
+#define B(N) entities.builtInComp[N] = (EntityComponent)
 
 void Entities_Init(void) {
 	entities.gameComp       = NULL;
 	entities.gameCompLength = 0;
 
 	B(AE_COMPONENT_MOVABLE) {
-		1, &CompMovableRead, &CompMovableWrite, NULL, NULL
+		1, NULL, &CompMovableRead, &CompMovableWrite, NULL, NULL
 	};
 
 	B(AE_COMPONENT_NAME) {
-		64 + 1, &CompNameRead, &CompNameWrite, NULL, NULL
+		64 + 1, NULL, &CompNameRead, &CompNameWrite, NULL, NULL
 	};
 
 	B(AE_COMPONENT_MODEL) {
-		256 + 4 + 1, &CompModelRead, &CompModelWrite, NULL, &CompModelRender
+		256 + 4 + 1, &CompModelFree, &CompModelRead, &CompModelWrite, NULL, &CompModelRender
 	};
 
 	entities.gameDef       = NULL;
@@ -196,10 +206,23 @@ void Entities_FreeEntity(size_t idx) {
 
 	entity->used = false;
 
-	entity->free(entity);
+	EntityDef* def = Entities_GetDef(entity->type);
 
-	if (entity->model) {
-		Resources_FreeRes(entity->model);
+	if (!def) {
+		Error("Broken entity in pool");
+	}
+
+	for (size_t i = 0; i < def->len; ++ i) {
+		EntityComponent* comp = Entities_GetComponent(def->components[i]);
+
+		if (!comp) {
+			Error("Failed to get entity component %d", def->components[i]);
+		}
+		if (!comp->update) {
+			continue;
+		}
+
+		comp->free(entity);
 	}
 
 	free(entity->data);
@@ -218,7 +241,7 @@ EntityComponent* Entities_GetComponent(int comp) {
 		return &entities.builtInComp[comp];
 	}
 	else {
-		if (comp >= entities.gameCompLength) {
+		if (comp >= (int) entities.gameCompLength) {
 			return NULL;
 		}
 
@@ -273,7 +296,7 @@ bool Entities_Deserialise(uint8_t* data, size_t size, Entity* out) {
 		return false;
 	}
 
-	if (size < Entities_CalcSize(def) + AE_ENTITY_HEADER_SIZE) {
+	if (size < Entities_CalcSerialSize(def) + AE_ENTITY_HEADER_SIZE) {
 		Log("Not enough room to deserialise entity");
 		return false;
 	}
@@ -320,7 +343,7 @@ bool Entities_Serialise(Entity* ent, uint8_t* dest, size_t size) {
 		return false;
 	}
 
-	if (size < Entities_CalcSize(def) + AE_ENTITY_HEADER_SIZE) {
+	if (size < Entities_CalcSerialSize(def) + AE_ENTITY_HEADER_SIZE) {
 		Log("Not enough room to serialise entity");
 		return false;
 	}
@@ -342,22 +365,26 @@ bool Entities_Serialise(Entity* ent, uint8_t* dest, size_t size) {
 		comp->write(ent, &dest[offset]);
 		offset += comp->serialSize;
 	}
+
+	return true;
 }
 
 void Entities_Update(void) {
 	for (size_t i = 0; i < entities.size; ++ i) {
 		if (!entities.pool[i].used) continue;
 
-		Entity* ent = &entities.pool[i];
+		Entity*    ent = &entities.pool[i];
+		EntityDef* def = Entities_GetDef(ent->type);
 
-		size_t len;
-		int*   ids = ent->getComponents(ent, &len);
+		if (!def) {
+			Error("Broken entity in pool");
+		}
 
-		for (size_t i = 0; i < len; ++ i) {
-			EntityComponent* comp = Entities_GetComponent(ids[i]);
+		for (size_t i = 0; i < def->len; ++ i) {
+			EntityComponent* comp = Entities_GetComponent(def->components[i]);
 
 			if (!comp) {
-				Error("Failed to get entity component %d", ids[i]);
+				Error("Failed to get entity component %d", def->components[i]);
 			}
 			if (!comp->update) {
 				continue;
@@ -369,14 +396,17 @@ void Entities_Update(void) {
 }
 
 void Entity_Render(Entity* ent, FVec2 portalOff) {
-	size_t len;
-	int*   ids = ent->getComponents(ent, &len);
+	EntityDef* def = Entities_GetDef(ent->type);
 
-	for (size_t i = 0; i < len; ++ i) {
-		EntityComponent* comp = Entities_GetComponent(ids[i]);
+	if (!def) {
+		Error("Broken entity in pool");
+	}
+
+	for (size_t i = 0; i < def->len; ++ i) {
+		EntityComponent* comp = Entities_GetComponent(def->components[i]);
 
 		if (!comp) {
-			Error("Failed to get entity component %d", ids[i]);
+			Error("Failed to get entity component %d", def->components[i]);
 		}
 		if (!comp->render) {
 			continue;
@@ -403,9 +433,7 @@ void Entity_Render(Entity* ent, FVec2 portalOff) {
 		ent->dir           = dir;
 		ent->nextSect      = SECTOR_NO_ENTITIES;
 		ent->prevSect      = SECTOR_NO_ENTITIES;
-		ent->free          = &PropFree;
 		ent->getComponent  = &PropGetComponent;
-		ent->getComponents = &PropGetComponents;
 
 		data->movable            = movable;
 		data->model.model        = model;
@@ -421,25 +449,24 @@ void Entity_Render(Entity* ent, FVec2 portalOff) {
 		size_t  ret = Entities_New();
 		Entity* ent = Entities_Get(ret);
 		
-		PropEntity* data = NEW(PropEntity);
+		PlayerEntity* data = NEW(PlayerEntity);
 
 		ent->used          = true;
 		ent->data          = data;
-		ent->type          = AE_ENTITY_PROP;
+		ent->type          = AE_ENTITY_PLAYER;
 		ent->pos           = pos;
 		ent->vel           = (FVec3) {0.0f, 0.0f, 0.0f};
 		ent->grounded      = false;
 		ent->sector        = sect;
 		ent->dir           = dir;
-		ent->model         = model;
-		ent->modelScale    = 1.0f;
-		ent->modelVisible  = true;
 		ent->nextSect      = SECTOR_NO_ENTITIES;
 		ent->prevSect      = SECTOR_NO_ENTITIES;
 		ent->getComponent  = &PlayerGetComponent;
-		ent->getComponents = &PlayerGetComponents;
 
-		data->name = NewString(name);
+		strncpy(data->name.name, name, sizeof(data->name.name) - 1);
+		data->model.model        = model;
+		data->model.modelScale   = 1.0f;
+		data->model.modelVisible = true;
 
 		return ret;
 	}

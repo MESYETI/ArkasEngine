@@ -30,9 +30,9 @@ struct Entity {
 };
 
 typedef struct {
-	int*   components;
-	size_t len;
-	size_t dataSize;
+	const int* components;
+	size_t     len;
+	size_t     dataSize;
 
 	void* (*getComponent)(Entity* ent, int id);
 } EntityDef;
@@ -42,6 +42,7 @@ typedef struct {
 
 	// read, write are required
 	// update, render are not required
+	void (*free)(Entity* ent);
 	bool (*read)(Entity* ent, uint8_t* data);
 	void (*write)(Entity* ent, uint8_t* out);
 	void (*update)(Entity* ent);

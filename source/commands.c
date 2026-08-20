@@ -688,6 +688,40 @@ static void Command_Profiler(size_t argc, char** argv) {
 	Engine_PrintProfiler();
 }
 
+static void Command_Entities(size_t argc, char** argv) {
+	ASSERT_ARGC(0);
+
+	for (size_t i = 0; i < entities.size; ++ i) {
+		if (!entities.pool[i].used) {
+			continue;
+		}
+
+		Entity* ent = &entities.pool[i];
+
+		Log("Entity %d in sector %d", (int) i, (int) (ent->sector - map.sectors));
+
+		Log("  x = %g", ent->pos.x);
+		Log("  y = %g", ent->pos.y);
+		Log("  z = %g", ent->pos.z);
+
+		if (ent->getComponent(ent, AE_COMPONENT_NAME)) {
+			EntityName* name = ent->getComponent(ent, AE_COMPONENT_NAME);
+
+			Log("  name = %s", name->name);
+		}
+		if (ent->getComponent(ent, AE_COMPONENT_MODEL)) {
+			EntityModel* model = ent->getComponent(ent, AE_COMPONENT_MODEL);
+
+			if (model->model) {
+				Log("  model = %s", model->model->name);
+			}
+			else {
+				Log("  has model component, but no model resource");
+			}
+		}
+	}
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "test-map2",          &Command_Test2);
@@ -731,4 +765,5 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "map-info",           &Command_MapInfo);
 	Console_AddCommand(true,  "map-view",           &Command_MapView);
 	Console_AddCommand(true,  "profiler",           &Command_Profiler);
+	Console_AddCommand(true,  "entities",           &Command_Entities);
 }

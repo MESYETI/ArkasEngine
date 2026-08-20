@@ -38,7 +38,7 @@ void Map_Init(void) {
 	map.fogColour   = (Colour) {0x66, 0x66, 0xFF, 0xFF};
 	map.fogDistance = 100.0f;
 
-	Entities_Init();
+	Entities_InitPool();
 }
 
 void Map_Free(void) {
@@ -46,6 +46,7 @@ void Map_Free(void) {
 
 	if (map.name) {
 		free(map.name);
+		map.name = NULL;
 	}
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
@@ -80,15 +81,10 @@ void Map_Free(void) {
 	map.wallsLen   = 0;
 	map.sectorsLen = 0;
 
-	if (map.name != NULL) {
-		free(map.name);
-		map.name = NULL;
-	}
-
 	if (!engine.server) {
 		Backend_OnMapFree();
 	}
-	Entities_Free();
+	Entities_FreePool();
 }
 
 void Map_LoadTest(void) {
@@ -213,7 +209,7 @@ void Map_LoadTest2(void) {
 bool Map_LoadFile(Stream* file, const char* path, bool loadResources) {
 	Map_Init();
 
-	char* baseName = strrchr(path, '/');
+	const char* baseName = strrchr(path, '/');
 	if (baseName == NULL) {
 		map.name = NewString(path);
 	}
@@ -458,11 +454,5 @@ void Map_DetachEntity(size_t entityIdx) {
 
 void Map_DeleteEntity(size_t entityIdx) {
 	Map_DetachEntity(entityIdx);
-
-	Entity* entity = Entities_Get(entityIdx);
-
-	entity->free(entity);
-	free(entity->data);
-
-	entity->used = false;
+	Entities_FreeEntity(entityIdx);
 }
