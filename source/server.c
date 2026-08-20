@@ -10,11 +10,13 @@
 #include "platform.h"
 
 Server server = {
-	.running   = false,
-	.mapPath   = NULL,
-	.netSock   = NULL,
-	.udpSock   = NULL,
-	.localSock = NULL
+	.running    = false,
+	.mapPath    = NULL,
+	.netSock    = NULL,
+	.udpSock    = NULL,
+	.localSock  = NULL,
+
+	.createPlayerEntity = NULL
 };
 
 ServerConfig serverConf = {
@@ -25,6 +27,12 @@ ServerConfig serverConf = {
 };
 
 bool Server_Start(void) {
+	#ifdef AE_NO_BASIC_PLAYER_ENT
+		if (!server.createPlayerEntity) {
+			Error("createPlayerEntity callback not used");
+		}
+	#endif
+
 	if (VFS_DriveExists("server")) {
 		VFS_DeleteDrive("server");
 	}

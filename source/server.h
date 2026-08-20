@@ -55,6 +55,10 @@ typedef struct {
 	// clients
 	ServerClient* clients;
 	size_t        clientsNum;
+
+	// callbacks
+	// must not be NULL if the engine is compiled with AE_NO_BASIC_PLAYER_ENT
+	size_t (*createPlayerEntity)(ServerClient* client);
 } Server;
 
 extern Server       server;

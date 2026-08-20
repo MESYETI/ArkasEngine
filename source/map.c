@@ -38,7 +38,7 @@ void Map_Init(void) {
 	map.fogColour   = (Colour) {0x66, 0x66, 0xFF, 0xFF};
 	map.fogDistance = 100.0f;
 
-	EntityPool_Init();
+	Entities_Init();
 }
 
 void Map_Free(void) {
@@ -88,7 +88,7 @@ void Map_Free(void) {
 	if (!engine.server) {
 		Backend_OnMapFree();
 	}
-	EntityPool_Free();
+	Entities_Free();
 }
 
 void Map_LoadTest(void) {
@@ -416,11 +416,11 @@ bool Map_SaveFile(Stream* file) {
 }
 
 void Map_AddEntity(size_t entityIdx) {
-	Entity* entity = EntityPool_Get(entityIdx);
+	Entity* entity = Entities_Get(entityIdx);
 	Sector* sector = entity->sector;
 
 	size_t  sectEntIdx = sector->entityLink;
-	Entity* sectEnt    = EntityPool_Get(sectEntIdx);
+	Entity* sectEnt    = Entities_Get(sectEntIdx);
 
 	if (sectEnt) {
 		entity->nextSect  = sectEntIdx;
@@ -431,10 +431,10 @@ void Map_AddEntity(size_t entityIdx) {
 }
 
 void Map_DetachEntity(size_t entityIdx) {
-	Entity* entity = EntityPool_Get(entityIdx);
+	Entity* entity = Entities_Get(entityIdx);
 	Sector* sector = entity->sector;
-	Entity* prev   = EntityPool_Get(entity->prevSect);
-	Entity* next   = EntityPool_Get(entity->nextSect);
+	Entity* prev   = Entities_Get(entity->prevSect);
+	Entity* next   = Entities_Get(entity->nextSect);
 
 	if (prev) {
 		prev->nextSect = entity->nextSect;
@@ -459,7 +459,7 @@ void Map_DetachEntity(size_t entityIdx) {
 void Map_DeleteEntity(size_t entityIdx) {
 	Map_DetachEntity(entityIdx);
 
-	Entity* entity = EntityPool_Get(entityIdx);
+	Entity* entity = Entities_Get(entityIdx);
 
 	entity->free(entity);
 	free(entity->data);

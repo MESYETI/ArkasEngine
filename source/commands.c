@@ -623,8 +623,15 @@ static void Command_SpawnProp(size_t argc, char** argv) {
 		}, modelRes, false
 	);
 
-	Entity* entity = EntityPool_Get(entityIdx);
-	entity->modelScale = scale;
+	Entity* entity = Entities_Get(entityIdx);
+
+	EntityModel* entModel = entity->getComponent(entity, AE_COMPONENT_MODEL);
+
+	if (!entModel) {
+		abort();
+	}
+
+	entModel->modelScale = scale;
 
 	Map_AddEntity(entityIdx);
 }

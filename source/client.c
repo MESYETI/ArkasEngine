@@ -23,7 +23,8 @@ Client client = {
 	.state       = C_WAITING,
 	.relSock     = NULL,
 	.udpSock     = NULL,
-	.downloading = false
+	.downloading = false,
+	.recvEntity  = NULL
 };
 
 void Client_Init(void) {

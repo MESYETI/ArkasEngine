@@ -71,6 +71,13 @@ This packet contains no extra data.
 | ---- | --------------------------------------------- |
 | 256  | Null terminated kick message - one line       |
 
+#### 0x05 - New entity
+| Size | Description                                   |
+| ---- | --------------------------------------------- |
+| 4    | Entity ID                                     |
+| 2    | Size of entity data                           |
+| ?    | Entity data                                   |
+
 #### 0xFF - Game packet - currently unsupported
 | Size | Description                                   |
 | ---- | --------------------------------------------- |

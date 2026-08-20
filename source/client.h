@@ -21,6 +21,9 @@ typedef struct {
 	uint64_t lastPing;
 	uint32_t movement;
 	bool     reportPos;
+
+	// callbacks
+	size_t (*recvEntity)(uint8_t* data, size_t size);
 } Client;
 
 extern Client client;
