@@ -26,9 +26,8 @@ GameBaseConfig gameBaseConfig = {
 GameBase gameBase;
 
 static void OnChatFocus(UI_Container* cont, bool focus) {
-	cont->hidden = !focus;
-
-	cont->manager->priority = false;
+	cont->hidden            = !focus;
+	cont->manager->priority = focus;
 }
 
 void GameBase_Init(Scene* scene) {
@@ -48,7 +47,6 @@ void GameBase_Init(Scene* scene) {
 	gameBaseConfig.sensitivity = 7.5;
 
 	gameBase.chatInput[0] = 0;
-
 
 	scene->ui = UI_ManagerInit(32);
 

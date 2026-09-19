@@ -454,7 +454,7 @@ void UI_ContainerRender(UI_Container* container, bool focus) {
 
 			if (!elem->render || (elem->canHide && container->hidden)) continue;
 
-			elem->render(container, elem, focus && container->focus == elem);
+			elem->render(container, elem, focus && (container->focus == elem));
 		}
 	}
 }

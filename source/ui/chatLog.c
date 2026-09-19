@@ -33,7 +33,7 @@ static void Render(UI_Container* container, UI_Element* e, bool focus) {
 		UI_ChatLogMsg* msg = &data->lines[i];
 
 		// show message for 10 seconds
-		if (/*(time - msg->time > 10000000) &&*/ !msg->message) {
+		if ((container->hidden && (time - msg->time > 10000000)) || !msg->message) {
 			continue;
 		}
 
