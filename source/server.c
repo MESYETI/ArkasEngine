@@ -228,7 +228,7 @@ static bool HandleSharedPacket(ServerClient* this, uint8_t* packet, size_t sz) {
 			this->pitch  = pitch;
 			this->sector = sector;
 
-			Log("server: %s is at %g,%g,%g", this->username, x, y, z);
+			// Log("server: %s is at %g,%g,%g", this->username, x, y, z);
 			return true;
 		}
 		default: {

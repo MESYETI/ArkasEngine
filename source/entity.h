@@ -25,7 +25,6 @@ struct Entity {
 	size_t nextSect;
 	size_t prevSect;
 
-	// overrides
 	void* (*getComponent)(struct Entity* ent, int id);
 };
 
@@ -41,7 +40,7 @@ typedef struct {
 	size_t serialSize;
 
 	// read, write are required
-	// update, render are not required
+	// free, update, render are not required
 	void (*free)(Entity* ent);
 	bool (*read)(Entity* ent, uint8_t* data);
 	void (*write)(Entity* ent, uint8_t* out);

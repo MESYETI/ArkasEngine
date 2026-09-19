@@ -20,6 +20,7 @@ UI_Element UI_NewSeparator(void) {
 	ret.fixedWidth      = 0;
 	ret.data            = NULL;
 	ret.preferredHeight = 5;
+	ret.canHide         = true;
 	ret.free            = NULL;
 	ret.render          = &Render;
 	ret.onClick         = NULL;

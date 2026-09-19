@@ -98,6 +98,7 @@ UI_Element UI_NewListBox(
 	ret.fixedWidth      = fixedW;
 	ret.data            = SafeMalloc(sizeof(UI_ListBox));
 	ret.preferredHeight = engine.font.charHeight + 8;
+	ret.canHide         = true;
 	ret.free            = NULL;
 	ret.render          = &Render;
 	ret.onClick         = &OnClick;

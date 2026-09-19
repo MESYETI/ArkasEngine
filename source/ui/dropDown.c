@@ -181,6 +181,7 @@ UI_Element UI_NewDropDown(
 	ret.fixedWidth      = fixed? strlen(label) * engine.font.charWidth : 0;
 	ret.data            = SafeMalloc(sizeof(UI_DropDown));
 	ret.preferredHeight = engine.font.charHeight + 8;
+	ret.canHide         = true;
 	ret.free            = &Free;
 	ret.render          = &Render;
 	ret.onClick         = &OnClick;

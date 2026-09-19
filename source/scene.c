@@ -11,7 +11,7 @@ void SceneManager_Init(void) {
 void SceneManager_Free(void) {
 	for (size_t i = 0; i < sm.activeScenes; ++ i) {
 		if (sm.scenes[i].type == SCENE_TYPE_GAME) {
-			GameBase_Free();
+			GameBase_Free(&sm.scenes[i]);
 		}
 
 		if (sm.scenes[i].free == NULL) continue;
@@ -52,7 +52,7 @@ void SceneManager_InitActive(void) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
-		GameBase_Init();
+		GameBase_Init(&sm.scenes[sm.activeScenes - 1]);
 	}
 
 	if (sm.scenes[sm.activeScenes - 1].init == NULL) return;
@@ -64,7 +64,7 @@ void SceneManager_FreeActive(void) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
-		GameBase_Free();
+		GameBase_Free(&sm.scenes[sm.activeScenes - 1]);
 	}
 
 	if (sm.scenes[sm.activeScenes - 1].free == NULL) return;
@@ -76,7 +76,7 @@ void SceneManager_UpdateActive(void) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
-		GameBase_Update(true);
+		GameBase_Update(&sm.scenes[sm.activeScenes - 1], true);
 	}
 
 	if (sm.scenes[sm.activeScenes - 1].update == NULL) return;
@@ -88,7 +88,7 @@ void SceneManager_HandleEvent(Event* e) {
 	if (sm.activeScenes == 0) return;
 
 	if (sm.scenes[sm.activeScenes - 1].type == SCENE_TYPE_GAME) {
-		GameBase_HandleEvent(e);
+		GameBase_HandleEvent(&sm.scenes[sm.activeScenes - 1], e);
 	}
 
 	for (size_t i = sm.activeScenes; i -- > 0;) {
@@ -113,7 +113,7 @@ void SceneManager_Update(void) {
 
 	for (size_t i = 0; i < sm.activeScenes; ++ i) {
 		if (sm.scenes[i].type == SCENE_TYPE_GAME) {
-			GameBase_Update(i == sm.activeScenes - 1);
+			GameBase_Update(&sm.scenes[i], i == sm.activeScenes - 1);
 		}
 
 		if (sm.scenes[i].update == NULL) continue;
@@ -124,15 +124,12 @@ void SceneManager_Update(void) {
 void SceneManager_Render(void) {
 	for (size_t i = 0; i < sm.activeScenes; ++ i) {
 		if (sm.scenes[i].type == SCENE_TYPE_GAME) {
-			GameBase_Render();
+			GameBase_Render(&sm.scenes[i]);
 		}
 
 		if (engine.console) {
 			Window_SetRelativeMouseMode(false);
 			Window_ShowCursor(true);
-		}
-		else if (i == sm.activeScenes - 1) {
-			Window_SetRelativeMouseMode(sm.scenes[i].type == SCENE_TYPE_GAME);
 		}
 
 		if (sm.scenes[i].render == NULL) continue;

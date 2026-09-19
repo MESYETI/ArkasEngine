@@ -1,9 +1,9 @@
 #include "button.h"
-#include "../engine.h"
 #include "../mem.h"
 #include "../util.h"
 #include "../input.h"
 #include "../theme.h"
+#include "../engine.h"
 
 static void Free(UI_Element* e) {
 	UI_Button* data = (UI_Button*) e->data;
@@ -84,6 +84,7 @@ UI_Element UI_NewButton(const char* label, bool fixed, UI_ButtonFunc onClick) {
 	ret.fixedWidth      = fixed? (strlen(label) * engine.font.charWidth) + 8 : 0;
 	ret.data            = SafeMalloc(sizeof(UI_Button));
 	ret.preferredHeight = engine.font.charHeight + 8;
+	ret.canHide         = true;
 	ret.free            = &Free;
 	ret.render          = &Render;
 	ret.onClick         = &OnClick;

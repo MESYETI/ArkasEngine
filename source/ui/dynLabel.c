@@ -40,6 +40,7 @@ UI_Element UI_NewDynLabel(Font* font, DynLabelFunc func, int opt) {
 	ret.fixedWidth      = 0;
 	ret.data            = SafeMalloc(sizeof(LabelData));
 	ret.preferredHeight = font->charHeight;
+	ret.canHide         = true;
 	ret.free            = &Free;
 	ret.render          = &Render;
 	ret.onClick         = NULL;

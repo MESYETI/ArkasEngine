@@ -31,6 +31,7 @@ extern Client client;
 void Client_Init(void);
 bool Client_StartLocal(void);
 bool Client_StartINet(const char* ip, uint16_t port);
+bool Client_IsMultiplayer(void);
 void Client_Stop(void);
 void Client_Update(void);
 void Client_SendMessage(const char* message);

@@ -59,6 +59,7 @@ UI_Element UI_NewCheckBox(bool* value) {
 	ret.fixedWidth      = 16;
 	ret.data            = SafeMalloc(sizeof(UI_CheckBox));
 	ret.preferredHeight = 16;
+	ret.canHide         = true;
 	ret.free            = &Free;
 	ret.render          = &Render;
 	ret.onClick         = &OnClick;

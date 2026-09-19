@@ -1,6 +1,7 @@
 #include "text.h"
 #include "game.h"
 #include "util.h"
+#include "audio.h"
 #include "video.h"
 #include "client.h"
 #include "camera.h"
@@ -8,7 +9,9 @@
 #include "engine.h"
 #include "player.h"
 #include "backend.h"
-#include "audio.h"
+#include "ui/button.h"
+#include "ui/chatLog.h"
+#include "ui/textInput.h"
 
 GameBaseConfig gameBaseConfig = {
 	.debugInfoLevel = 0,
@@ -20,10 +23,15 @@ GameBaseConfig gameBaseConfig = {
 	.jump           = INPUT_BIND_NONE
 };
 
-AudioEmitter emitters2d[1];
-AudioEmitter emitters3d[2];
+GameBase gameBase;
 
-void GameBase_Init(void) {
+static void OnChatFocus(UI_Container* cont, bool focus) {
+	cont->hidden = !focus;
+
+	cont->manager->priority = false;
+}
+
+void GameBase_Init(Scene* scene) {
 	//Map_Init();
 	Audio_StartAudio();
 
@@ -33,73 +41,59 @@ void GameBase_Init(void) {
 	camera.pitch = 0.0;
 	camera.yaw   = 0.0;
 	camera.roll  = 0.0;
+	Player_Init();
 
 	client.reportPos = true;
 
-	// setAudioEnv(
-	// 	AUDIOENVMASK_REVERB,
-	// 	&(struct audioenv) {.reverb = {0.07, 0.65, 1.0, 0.1, 0.25, 0.25}},
-	// 	AUDIOENVMASK_ALL
-	// );
-
-// 	emitters2d[0] = new2DAudioEmitter(
-// 		AUDIOPRIO_DEFAULT, -1, 0,
-// 		0, NULL
-// 	);
-// 	Resource* resource = Resources_GetRes("base:sfx/air1.ogg", 0);
-// 	if (resource) {
-// 		Audio_Play2DSound(
-// 			emitters2d[0], resource,
-// 			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
-// 			AUDIOFXMASK_SPEED | AUDIOFXMASK_VOL,
-// 			&(struct audiofx) {.speed = 0.3f, .vol = {0.65f, 0.65f}}
-// 		);
-// 		Resources_FreeRes(resource);
-// 	}
-// 
-// 	emitters3d[0] = new3DAudioEmitter(
-// 		AUDIOPRIO_DEFAULT, -1, 0,
-// 		0, NULL,
-// 		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {-5.0f, -0.3f, 9.0f}}
-// 	);
-// 	emitters3d[1] = new3DAudioEmitter(
-// 		AUDIOPRIO_DEFAULT, -1, 0,
-// 		0, NULL,
-// 		AUDIO3DFXMASK_POS, &(struct audio3dfx){.pos = {6.0f, -0.3f, 4.0f}}
-// 	);
-// 
-// 	resource = Resources_GetRes("base:sfx/drip1.ogg", 0);
-// 
-// 	if (resource) {
-// 		Audio_Play3DSound(
-// 			emitters3d[0], resource,
-// 			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
-// 			AUDIOFXMASK_SPEED, &(struct audiofx){.speed = 1.56521f}
-// 		);
-// 		Audio_Play3DSound(
-// 			emitters3d[1], resource,
-// 			AUDIOPRIO_DEFAULT, SOUNDFLAG_LOOP | SOUNDFLAG_WRAP,
-// 			AUDIOFXMASK_SPEED, &(struct audiofx){.speed = 1.10435f}
-// 		);
-// 		Resources_FreeRes(resource);
-// 	}
-
 	gameBaseConfig.sensitivity = 7.5;
 
-	Player_Init();
+	gameBase.chatInput[0] = 0;
+
+
+	scene->ui = UI_ManagerInit(32);
+
+	// width = 200
+	gameBase.chatCont = UI_ManagerAddContainer(scene->ui, engine.font.charWidth * 64, NULL);
+	UI_ContainerAlignLeft(gameBase.chatCont, 8);
+	UI_ContainerCenterY(gameBase.chatCont);
+	UI_ContainerSetPadding(gameBase.chatCont, 5, 5, 5, 5);
+	gameBase.chatCont->hidden  = true;
+	gameBase.chatCont->hasBG   = true;
+	gameBase.chatCont->opacity = 128;
+	gameBase.chatCont->onFocus = &OnChatFocus;
+
+	UI_Row* row = UI_ContainerAddSingleElemRow(gameBase.chatCont, 0, UI_NewChatLog(8));
+	UI_RowUpdate(row);
+
+	gameBase.chatLog = &row->elems[0];
+
+	row = UI_ContainerAddRow(gameBase.chatCont, 0);
+	UI_RowAddElement(row, UI_NewTextInput(gameBase.chatInput, sizeof(gameBase.chatInput)));
+	UI_RowAddElement(row, UI_NewButton("Send", true, NULL));
+	UI_RowUpdate(row);
+
+	gameBase.chatInputElem = &row->elems[1];
+
+	UI_ChatLogAddMsg(gameBase.chatLog, "mesyeti: Happy manul Monday");
 }
 
-void GameBase_Free(void) {
+void GameBase_Free(Scene* scene) {
 	Audio_StopAudio();
 	Map_Free();
+
+	UI_ManagerFree(scene->ui);
 
 	client.reportPos = false;
 }
 
-void GameBase_Update(bool top) {
+void GameBase_Update(Scene* scene, bool top) {
+	(void) scene;
+
 	if (!top || engine.console) return;
 
 	if (!map.active) return;
+
+	Window_SetRelativeMouseMode(!scene->ui->priority);
 
 	// static const float sensitivity = 180.0;
 	float speed = player.speed;
@@ -111,41 +105,43 @@ void GameBase_Update(bool top) {
 	// bool  moved  = false;
 	FVec3 oldPos = camera.pos;
 
-	if (Input_BindPressed(gameBaseConfig.forward)) {
-		player.acc.z += CosDeg(player.yaw) * speed * engine.delta;
-		player.acc.x += SinDeg(player.yaw) * speed * engine.delta;
-		// moved         = true;
-	}
-	if (Input_BindPressed(gameBaseConfig.left)) {
-		player.acc.z += CosDeg(player.yaw - 90) * speed * engine.delta;
-		player.acc.x += SinDeg(player.yaw - 90) * speed * engine.delta;
-		// moved         = true;
-	}
-	if (Input_BindPressed(gameBaseConfig.backward)) {
-		player.acc.z += CosDeg(player.yaw + 180) * speed * engine.delta;
-		player.acc.x += SinDeg(player.yaw + 180) * speed * engine.delta;
-		// moved         = true;
-	}
-	if (Input_BindPressed(gameBaseConfig.right)) {
-		player.acc.z += CosDeg(player.yaw + 90) * speed * engine.delta;
-		player.acc.x += SinDeg(player.yaw + 90) * speed * engine.delta;
-		// moved         = true;
-	}
-	// if (Input_KeyPressed(AE_KEY_P)) {
-	// 	SDL_SetRelativeMouseMode(SDL_TRUE);
-	// }
-	// if (Input_KeyPressed(AE_KEY_O)) {
-	// 	SDL_SetRelativeMouseMode(SDL_FALSE);
-	// }
+	if (!scene->ui->priority) {
+		if (Input_BindPressed(gameBaseConfig.forward)) {
+			player.acc.z += CosDeg(player.yaw) * speed * engine.delta;
+			player.acc.x += SinDeg(player.yaw) * speed * engine.delta;
+			// moved         = true;
+		}
+		if (Input_BindPressed(gameBaseConfig.left)) {
+			player.acc.z += CosDeg(player.yaw - 90) * speed * engine.delta;
+			player.acc.x += SinDeg(player.yaw - 90) * speed * engine.delta;
+			// moved         = true;
+		}
+		if (Input_BindPressed(gameBaseConfig.backward)) {
+			player.acc.z += CosDeg(player.yaw + 180) * speed * engine.delta;
+			player.acc.x += SinDeg(player.yaw + 180) * speed * engine.delta;
+			// moved         = true;
+		}
+		if (Input_BindPressed(gameBaseConfig.right)) {
+			player.acc.z += CosDeg(player.yaw + 90) * speed * engine.delta;
+			player.acc.x += SinDeg(player.yaw + 90) * speed * engine.delta;
+			// moved         = true;
+		}
+		// if (Input_KeyPressed(AE_KEY_P)) {
+		// 	SDL_SetRelativeMouseMode(SDL_TRUE);
+		// }
+		// if (Input_KeyPressed(AE_KEY_O)) {
+		// 	SDL_SetRelativeMouseMode(SDL_FALSE);
+		// }
 
-	if (Input_BindPressed(gameBaseConfig.left)) {
-		camera.roll = -2.0;
-	}
-	else if (Input_BindPressed(gameBaseConfig.right)) {
-		camera.roll = 2.0;
-	}
-	else {
-		camera.roll = 0.0;
+		if (Input_BindPressed(gameBaseConfig.left)) {
+			camera.roll = -2.0;
+		}
+		else if (Input_BindPressed(gameBaseConfig.right)) {
+			camera.roll = 2.0;
+		}
+		else {
+			camera.roll = 0.0;
+		}
 	}
 
 	Player_Physics();
@@ -235,21 +231,39 @@ void GameBase_Update(bool top) {
 	}
 }
 
-void GameBase_HandleEvent(Event* e) {
+void GameBase_HandleEvent(Scene* scene, Event* e) {
 	if (!map.active) return;
+
+	if (UI_ManagerHandleEvent(scene->ui, e)) return;
 
 	switch (e->type) {
 		case AE_EVENT_KEY_DOWN: {
+			if (scene->ui->priority) {
+				break;
+			}
+
 			if (Input_MatchBind(gameBaseConfig.jump, e)) {
 				if (FloatEqual(player.sector->floor, player.pos.y, 0.05)) {
 					player.acc.y        = player.jumpSpeed;
 					player.skipFriction = true;
 				}
 			}
+			if (Input_MatchBind(gameBaseConfig.chat, e)) {
+				scene->ui->priority = true;
+				scene->ui->focus    = gameBase.chatCont;
+
+				gameBase.chatCont->focus  = gameBase.chatInputElem;
+				gameBase.chatCont->hidden = false;
+				Event_StartTextInput();
+			}
 
 			break;
 		}
 		case AE_EVENT_MOUSE_MOVE: {
+			if (scene->ui->priority) {
+				break;
+			}
+
 			player.yaw +=
 				(float) e->mouseMove.xRel * globalConfig.scale2D *
 				gameBaseConfig.sensitivity * engine.delta;
@@ -265,7 +279,7 @@ void GameBase_HandleEvent(Event* e) {
 	}
 }
 
-void GameBase_Render(void) {
+void GameBase_Render(Scene* scene) {
 	if (!map.active) return;
 
 	Player_FPCamera();
@@ -279,6 +293,8 @@ void GameBase_Render(void) {
 
     Backend_VLine((videoWidth / 2) - 1, (videoHeight / 2) - csLen, 2, csLen * 2, csCol);
     Backend_HLine((videoWidth / 2) - csLen, (videoHeight / 2) - 1, 2, csLen * 2, csCol);
+
+    UI_ManagerRender(scene->ui);
 
     if (gameBaseConfig.debugInfoLevel == 0) return;
 

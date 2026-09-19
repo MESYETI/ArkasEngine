@@ -106,10 +106,12 @@ UI_Element UI_NewScrollBar(int buttonHeight) {
 	data->buttonHeight = buttonHeight;
 	data->buttonY      = 0;
 
+	// TODO: make this consistent with the other UI sources
 	return (UI_Element) {
 		.fixedWidth      = 16,
 		.data            = data,
 		.preferredHeight = 0,
+		.canHide         = true,
 		.free            = &Free,
 		.render          = &Render,
 		.onClick         = &OnClick,

@@ -90,6 +90,7 @@ UI_Element UI_NewTextInput(char* dest, size_t size) {
 	ret.fixedWidth      = 0;
 	ret.data            = SafeMalloc(sizeof(UI_TextInput));
 	ret.preferredHeight = engine.font.charHeight + 8;
+	ret.canHide         = true;
 	ret.free            = &Free;
 	ret.onClick         = &OnClick;
 	ret.render          = &Render;

@@ -101,13 +101,14 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w, UI_ContainerResizer
 			.active = true,
 			.x = 0, .y = 0, .w = w, .h = 0,
 			.padTop = 0, .padBottom = 0, .padLeft = 0, .padRight = 0,
-			.fixedHeight = 0, .window = 0,
+			.fixedHeight = 0, .window = 0, .hidden = false, .hasBG = true, .opacity = 255,
 			.yMode = 0, .xMode = 0,
 			.rows      = NULL,
 			.rowAmount = 0,
 			.focus     = NULL,
 			.manager   = man,
-			.resizer   = resizer
+			.resizer   = resizer,
+			.onFocus   = NULL
 		};
 		return &man->containers[i];
 	}
@@ -118,6 +119,7 @@ UI_Container* UI_ManagerAddContainer(UI_Manager* man, int w, UI_ContainerResizer
 void UI_ManagerRender(UI_Manager* man) {
 	for (size_t i = 0; i < man->containerLen; ++ i) {
 		if (!man->containers[i].active) continue;
+
 		UI_ContainerRender(
 			&man->containers[i], man->focus == &man->containers[i]
 		);
@@ -183,6 +185,10 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 				man->focus = container;
 				focus      = true;
 
+				if (container->onFocus) {
+					container->onFocus(container, true);
+				}
+
 				bool elemFocus = false;
 
 				for (size_t j = 0; j < container->rowAmount; ++ j) {
@@ -216,7 +222,13 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 				return true;
 			}
 
-			if (!focus) man->focus = NULL;
+			if (!focus) {
+				if (man->focus) if (man->focus->onFocus) {
+					man->focus->onFocus(man->focus, false);
+				}
+
+				man->focus = NULL;
+			}
 			break;
 		}
 		case AE_EVENT_MOUSE_MOVE: {
@@ -263,6 +275,18 @@ bool UI_ManagerHandleEvent(UI_Manager* man, Event* e) {
 
 				return true;
 			}
+			break;
+		}
+		case AE_EVENT_KEY_DOWN: {
+			if ((e->key.key == AE_KEY_ESCAPE) && man->focus) {
+				if (man->focus) if (man->focus->onFocus) {
+					man->focus->onFocus(man->focus, false);
+				}
+
+				man->focus    = NULL;
+				man->priority = false;
+			}
+			break;
 		}
 	}
 
@@ -407,8 +431,16 @@ void UI_ContainerRender(UI_Container* container, bool focus) {
 
 	Rect rect = UI_ContainerGetRect(container);
 
-	Backend_RenderRect(rect, theme.bg[0]);
-	UI_RenderBorder(0, rect, false);
+	if (!container->hidden && container->hasBG) {
+		Colour bg = theme.bg[0];
+		bg.a      = container->opacity;
+
+		Backend_EnableAlpha(true);
+		Backend_RenderRect(rect, bg);
+		Backend_EnableAlpha(false);
+
+		UI_RenderBorder(0, rect, false);
+	}
 
 	for (size_t rowIdx = 0; rowIdx < container->rowAmount; ++ rowIdx) {
 		UI_Row* row = &container->rows[rowIdx];
@@ -420,7 +452,7 @@ void UI_ContainerRender(UI_Container* container, bool focus) {
 			// 	rect.x + elem->x, rect.y + elem->y, elem->w, elem->h
 			// }, (Colour) {0xFF, 0xFF, 0xFF, 0xFF});
 
-			if (!elem->render) continue;
+			if (!elem->render || (elem->canHide && container->hidden)) continue;
 
 			elem->render(container, elem, focus && container->focus == elem);
 		}

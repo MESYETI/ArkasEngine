@@ -113,6 +113,14 @@ bool Client_StartINet(const char* ip, uint16_t port) {
 	return true;
 }
 
+bool Client_IsMultiplayer(void) {
+	if (!client.relSock) {
+		return false;
+	}
+
+	return client.relSock->value.type == SOCKET_TYPE_NET;
+}
+
 void Client_Stop(void) {
 	if (client.relSock) {
 		Socket_Close(client.relSock);

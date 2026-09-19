@@ -408,6 +408,7 @@ static void Command_Bind(size_t argc, char** argv) {
 		{"game.backward",   &gameBaseConfig.backward},
 		{"game.right",      &gameBaseConfig.right},
 		{"game.jump",       &gameBaseConfig.jump},
+		{"game.chat",       &gameBaseConfig.chat},
 		{"engine.profiler", &engine.profilerBind}
 	};
 

@@ -40,6 +40,8 @@ void Text_Render(Font* font, const char* string, int x, int y) {
 	src.h = font->charHeight;
 	// Backend_DrawTexture(font->texture, NULL, NULL, NULL);
 
+	Backend_EnableAlpha(true);
+
 	for (size_t i = 0; i < strlen(string); ++ i) {
 		if (string[i] == ' ') {
 			dest.x += font->charWidth;
@@ -52,4 +54,6 @@ void Text_Render(Font* font, const char* string, int x, int y) {
 		Backend_DrawTexture(font->texture, NULL, &src, &dest);
 		dest.x += font->charWidth;
 	}
+
+	Backend_EnableAlpha(false);
 }

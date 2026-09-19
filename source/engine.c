@@ -130,8 +130,8 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Entities_Init();
 
 	bool success;
-	engine.font    = Text_LoadFont("builtin:font.png", &success);
-	engine.fps     = 0;
+	engine.font = Text_LoadFont("builtin:font.png", &success);
+	engine.fps  = 0;
 
 	if (!success) {
 		Error("Failed to load font");

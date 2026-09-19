@@ -23,6 +23,7 @@ struct UI_Element {
 	int   h;
 	void* data;
 	int   preferredHeight; // minimum height this element should use
+	bool  canHide;
 
 	void (*free)(UI_Element* e);
 	void (*render)(UI_Container* cont, UI_Element* e, bool focus);
@@ -68,6 +69,9 @@ struct UI_Container {
 	int     padRight;
 	int     fixedHeight;
 	int     window;
+	bool    hidden;
+	bool    hasBG;
+	uint8_t opacity;
 	
 	UI_Mode yMode;
 	UI_Mode xMode;
@@ -81,6 +85,9 @@ struct UI_Container {
 	UI_Manager* manager;
 
 	UI_ContainerResizer resizer;
+
+	// optional callbacks
+	void (*onFocus)(UI_Container*, bool focus);
 };
 
 struct UI_Manager {
