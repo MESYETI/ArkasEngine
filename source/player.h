@@ -5,8 +5,6 @@
 #include "types.h"
 
 typedef struct {
-	size_t entityIdx;
-
 	// config, might be moved into components at some point
 	float maxSpeed;
 	float gravity;
@@ -21,7 +19,7 @@ typedef struct {
 	FVec3 acc;
 
 	// callbacks
-	size_t (*createPlayerEntity)(FVec3 pos, Direction dir, const char* name);
+	void (*createPlayerEntity)(FVec3 pos, Direction dir, const char* name);
 } Player;
 
 // player is 0.6 units tall

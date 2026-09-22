@@ -322,7 +322,7 @@ void Client_Update(void) {
 
 		++ client.movement;
 
-		Entity* ent = Entities_Get(player.entityIdx);
+		Entity* ent = Entities_GetPlayer();
 
 		Data_Write32(&packet[2], client.movement);
 		Data_Write32(&packet[6], (uint32_t) (ent->sector - map.sectors));

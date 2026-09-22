@@ -103,7 +103,7 @@ void GameBase_Update(Scene* scene, bool top) {
 
 	Window_SetRelativeMouseMode(!scene->ui->priority);
 
-	Entity* playerEnt = Entities_Get(player.entityIdx);
+	Entity* playerEnt = Entities_GetPlayer();
 
 	// static const float sensitivity = 180.0;
 	float speed = player.speed;
@@ -246,7 +246,7 @@ void GameBase_HandleEvent(Scene* scene, Event* e) {
 
 	if (UI_ManagerHandleEvent(scene->ui, e)) return;
 
-	Entity* playerEnt = Entities_Get(player.entityIdx);
+	Entity* playerEnt = Entities_GetPlayer();
 
 	switch (e->type) {
 		case AE_EVENT_KEY_DOWN: {
@@ -310,7 +310,7 @@ void GameBase_Render(Scene* scene) {
 
     if (gameBaseConfig.debugInfoLevel == 0) return;
 
-    Entity* playerEnt = Entities_Get(player.entityIdx);
+    Entity* playerEnt = Entities_GetPlayer();
 
 	static char text[80];
 	snprintf(text, 80, "FPS: %d", engine.fps);

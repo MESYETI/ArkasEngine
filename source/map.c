@@ -165,7 +165,7 @@ void Map_LoadTest(void) {
 		}
 	}
 
-	Entity* playerEnt = Entities_Get(player.entityIdx);
+	Entity* playerEnt = Entities_GetPlayer();
 
 	camera.sector     = &map.sectors[0];
 	playerEnt->sector = &map.sectors[0];
@@ -201,7 +201,7 @@ void Map_LoadTest2(void) {
 		Resources_GetRes("base:3p_textures/grass1.png", 0), NULL, SECTOR_NO_ENTITIES
 	};
 
-	Entity* playerEnt = Entities_Get(player.entityIdx);
+	Entity* playerEnt = Entities_GetPlayer();
 
 	camera.sector     = &map.sectors[0];
 	playerEnt->sector = &map.sectors[0];
@@ -332,7 +332,7 @@ bool Map_LoadFile(Stream* file, const char* path, bool loadResources) {
 
 	Log("Loaded map");
 
-	Entity* playerEnt = Entities_Get(player.entityIdx);
+	Entity* playerEnt = Entities_GetPlayer();
 
 	camera.sector     = &map.sectors[0];
 	playerEnt->sector = &map.sectors[0];

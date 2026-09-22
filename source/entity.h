@@ -101,6 +101,7 @@ void             Entities_InitPool(void);
 void             Entities_FreePool(void);
 size_t           Entities_New(void);
 Entity*          Entities_Get(size_t idx);
+Entity*          Entities_GetPlayer(void);
 void             Entities_FreeEntity(size_t idx);
 EntityComponent* Entities_GetComponent(int comp);
 EntityDef*       Entities_GetDef(uint32_t type);
@@ -117,7 +118,7 @@ void Entity_Render(Entity* ent, FVec2 portalOff);
 #endif
 
 #ifndef AE_NO_BASIC_PLAYER_ENT
-	size_t PlayerEntity_New(Sector* sect, FVec3 pos, Direction dir, Resource* model, const char* name);
+	void PlayerEntity_New(Sector* sect, FVec3 pos, Direction dir, Resource* model, const char* name);
 #endif
 
 #endif
