@@ -165,8 +165,10 @@ void Map_LoadTest(void) {
 		}
 	}
 
-	camera.sector = &map.sectors[0];
-	player.sector = &map.sectors[0];
+	Entity* playerEnt = Entities_Get(player.entityIdx);
+
+	camera.sector     = &map.sectors[0];
+	playerEnt->sector = &map.sectors[0];
 
 	Skybox_Load("base:skyboxes/04");
 	Backend_OnMapLoad();
@@ -199,8 +201,10 @@ void Map_LoadTest2(void) {
 		Resources_GetRes("base:3p_textures/grass1.png", 0), NULL, SECTOR_NO_ENTITIES
 	};
 
-	camera.sector = &map.sectors[0];
-	player.sector = &map.sectors[0];
+	Entity* playerEnt = Entities_Get(player.entityIdx);
+
+	camera.sector     = &map.sectors[0];
+	playerEnt->sector = &map.sectors[0];
 
 	Skybox_Load("base:skyboxes/14");
 	Backend_OnMapLoad();
@@ -327,9 +331,12 @@ bool Map_LoadFile(Stream* file, const char* path, bool loadResources) {
 	}
 
 	Log("Loaded map");
-	camera.sector = &map.sectors[0];
-	player.sector = &map.sectors[0];
-	map.active    = true;
+
+	Entity* playerEnt = Entities_Get(player.entityIdx);
+
+	camera.sector     = &map.sectors[0];
+	playerEnt->sector = &map.sectors[0];
+	map.active        = true;
 
 	FreeStrArray(stringTable);
 	return true;

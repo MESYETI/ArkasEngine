@@ -1,34 +1,47 @@
 #include "engine.h"
+#include "entity.h"
 #include "player.h"
 #include "camera.h"
 
-Player player;
+Player player = {
+	.createPlayerEntity = NULL
+};
 
 void Player_Init(void) {
-	player.pos            = (FVec3) {0.0, -0.5, 0.0};
-	player.vel            = (FVec3) {0.0,  0.0, 0.0};
-	player.acc            = (FVec3) {0.0,  0.0, 0.0};
-	player.yaw            = 0.0;
-	player.pitch          = 0.0;
-	player.grounded       = true;
-	player.maxSpeed       = 3.333;
+	if (player.createPlayerEntity) {
+		player.entityIdx = player.createPlayerEntity(
+			(FVec3) {0.0f, -0.5f, 0.0f}, (Direction) {0.0f, 0.0f, 0.0f}, "Player"
+		);
+	}
+	else {
+		player.entityIdx = PlayerEntity_New(
+			&map.sectors[0], (FVec3) {0.0f, -0.5f, 0.0f}, (Direction) {0.0f, 0.0f, 0.0f},
+			NULL, "Player"
+		);
+	}
+
+	player.maxSpeed       = 3.333f;
 	player.skipFriction   = false;
-	player.groundFriction = 30;
-	player.airFriction    = 0.4;
-	player.gravity        = 4.0;
-	player.speed          = 75.0;
-	player.airSpeed       = 1.0;
-	player.jumpSpeed      = 2.0;
+	player.groundFriction = 30.0f;
+	player.airFriction    = 0.4f;
+	player.gravity        = 4.0f;
+	player.speed          = 75.0f;
+	player.airSpeed       = 1.0f;
+	player.jumpSpeed      = 2.0f;
+
+	player.acc = (FVec3) {0.0f, 0.0f, 0.0f};
 }
 
 void Player_FPCamera(void) {
-	camera.pos    = (FVec3) {player.pos.x, player.pos.y + 0.5f, player.pos.z};
-	camera.pitch  = player.pitch;
+	Entity* ent = Entities_Get(player.entityIdx);
+
+	camera.pos    = (FVec3) {ent->pos.x, ent->pos.y + 0.5f, ent->pos.z};
+	camera.pitch  = ent->dir.pitch;
 
 	// TODO: camera direction is handled by App so i commented this out until i change
 	// that
-	camera.yaw    = player.yaw;
-	camera.sector = player.sector;
+	camera.yaw    = ent->dir.yaw;
+	camera.sector = ent->sector;
 }
 
 static void Zero(float* vel) {
@@ -38,15 +51,17 @@ static void Zero(float* vel) {
 }
 
 void Player_Physics(void) {
+	Entity* ent = Entities_Get(player.entityIdx);
+
 	if (!player.skipFriction) {
-		player.vel.x += player.acc.x;
-		player.vel.z += player.acc.z;
+		ent->vel.x += player.acc.x;
+		ent->vel.z += player.acc.z;
 	}
-	player.vel.y += player.acc.y;
+	ent->vel.y += player.acc.y;
 
 	float frictionValue;
 
-	if (FloatEqual(player.pos.y, player.sector->floor, 0.005)) {
+	if (FloatEqual(ent->pos.y, ent->sector->floor, 0.005)) {
 		frictionValue = player.groundFriction;
 	}
 	else {
@@ -56,26 +71,26 @@ void Player_Physics(void) {
 	double friction = 1.0 / ((frictionValue * engine.delta) + 1);
 
 	if (!player.skipFriction) {
-		player.vel.x *= friction;
-		player.vel.z *= friction;
+		ent->vel.x *= friction;
+		ent->vel.z *= friction;
 	}
-	player.vel.y -= engine.delta * player.gravity;
+	ent->vel.y -= engine.delta * player.gravity;
 
-	player.pos.x += player.vel.x * engine.delta;
-	player.pos.y += player.vel.y * engine.delta;
-	player.pos.z += player.vel.z * engine.delta;
+	ent->pos.x += ent->vel.x * engine.delta;
+	ent->pos.y += ent->vel.y * engine.delta;
+	ent->pos.z += ent->vel.z * engine.delta;
 
-	Zero(&player.vel.x);
-	Zero(&player.vel.z);
+	Zero(&ent->vel.x);
+	Zero(&ent->vel.z);
 
-	if (player.pos.y < player.sector->floor) {
-		player.pos.y = player.sector->floor;
-		player.vel.y = 0.0;
+	if (ent->pos.y < ent->sector->floor) {
+		ent->pos.y = ent->sector->floor;
+		ent->vel.y = 0.0;
 	}
 
-	if (player.pos.y > player.sector->ceiling - 0.6) {
-		player.pos.y = player.sector->ceiling - 0.6;
-		player.vel.y = 0.0;
+	if (ent->pos.y > ent->sector->ceiling - 0.6) {
+		ent->pos.y = ent->sector->ceiling - 0.6;
+		ent->vel.y = 0.0;
 	}
 
 	player.skipFriction = false;

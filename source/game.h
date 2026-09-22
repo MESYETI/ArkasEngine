@@ -12,6 +12,9 @@ typedef struct {
 	UI_Container* chatCont;
 	char          chatInput[128];
 	UI_Element*   chatInputElem;
+
+	// state
+	bool mapLoaded;
 } GameBase;
 
 extern GameBase gameBase;

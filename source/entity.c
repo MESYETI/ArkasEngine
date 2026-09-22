@@ -456,7 +456,7 @@ void Entity_Render(Entity* ent, FVec2 portalOff) {
 		ent->type          = AE_ENTITY_PLAYER;
 		ent->pos           = pos;
 		ent->vel           = (FVec3) {0.0f, 0.0f, 0.0f};
-		ent->grounded      = false;
+		ent->grounded      = FloatEqual(pos.y, sect->floor, 0.01);
 		ent->sector        = sect;
 		ent->dir           = dir;
 		ent->nextSect      = SECTOR_NO_ENTITIES;

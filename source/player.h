@@ -5,16 +5,9 @@
 #include "types.h"
 
 typedef struct {
-	FVec3   pos; // ground pos
-	FVec3   vel;
-	FVec3   acc;
-	float   yaw;
-	float   pitch;
-	bool    grounded;
-	bool    skipFriction;
-	Sector* sector;
+	size_t entityIdx;
 
-	// config
+	// config, might be moved into components at some point
 	float maxSpeed;
 	float gravity;
 	float groundFriction;
@@ -22,6 +15,13 @@ typedef struct {
 	float speed;
 	float airSpeed;
 	float jumpSpeed;
+	bool  skipFriction;
+
+	// state
+	FVec3 acc;
+
+	// callbacks
+	size_t (*createPlayerEntity)(FVec3 pos, Direction dir, const char* name);
 } Player;
 
 // player is 0.6 units tall

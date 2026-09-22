@@ -6,6 +6,7 @@
 #include "util.h"
 #include "event.h"
 #include "client.h"
+#include "entity.h"
 #include "server.h"
 #include "player.h"
 #include "ramDrive.h"
@@ -321,13 +322,15 @@ void Client_Update(void) {
 
 		++ client.movement;
 
+		Entity* ent = Entities_Get(player.entityIdx);
+
 		Data_Write32(&packet[2], client.movement);
-		Data_Write32(&packet[6], (uint32_t) (player.sector - map.sectors));
-		Data_WriteFloat(&packet[10], player.pos.x);
-		Data_WriteFloat(&packet[14], player.pos.y);
-		Data_WriteFloat(&packet[18], player.pos.z);
-		Data_WriteFloat(&packet[22], player.yaw);
-		Data_WriteFloat(&packet[26], player.pitch);
+		Data_Write32(&packet[6], (uint32_t) (ent->sector - map.sectors));
+		Data_WriteFloat(&packet[10], ent->pos.x);
+		Data_WriteFloat(&packet[14], ent->pos.y);
+		Data_WriteFloat(&packet[18], ent->pos.z);
+		Data_WriteFloat(&packet[22], ent->dir.yaw);
+		Data_WriteFloat(&packet[26], ent->dir.pitch);
 
 		if (client.udpSock) {
 			Socket_Send(client.udpSock, packet, sizeof(packet));

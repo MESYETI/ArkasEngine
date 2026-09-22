@@ -5,6 +5,7 @@
 #include "video.h"
 #include "input.h"
 #include "engine.h"
+#include "entity.h"
 #include "camera.h"
 #include "player.h"
 #include "backend.h"
@@ -87,8 +88,10 @@ static void SwapViewButton(UI_Button* this, uint8_t button) {
 		MapProj_Export(&mapEditor.project);
 		Backend_OnMapLoad();
 
-		camera.sector = &map.sectors[0];
-		player.sector = &map.sectors[0];
+		Entity* playerEnt = Entities_Get(player.entityIdx);
+
+		camera.sector     = &map.sectors[0];
+		playerEnt->sector = &map.sectors[0];
 
 		mapEditor.editorMode = ME_MODE_VIEWER;
 	}
