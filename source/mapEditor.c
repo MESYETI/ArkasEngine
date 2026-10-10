@@ -88,7 +88,7 @@ static void SwapViewButton(UI_Button* this, uint8_t button) {
 		MapProj_Export(&mapEditor.project);
 		Backend_OnMapLoad();
 
-		Entity* playerEnt = Entities_GetPlayer();
+		Entity* playerEnt = Player_GetEntity();
 
 		camera.sector     = &map.sectors[0];
 		playerEnt->sector = &map.sectors[0];

@@ -13,6 +13,10 @@ static void Free(UI_Element* e) {
 			free(data->lines[i].message);
 		}
 	}
+
+	if (data->lines) {
+		free(data->lines);
+	}
 }
 
 static void Render(UI_Container* container, UI_Element* e, bool focus) {

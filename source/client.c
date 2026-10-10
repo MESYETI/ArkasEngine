@@ -34,7 +34,7 @@ void Client_Init(void) {
 	char digits[5];
 	digits[4] = 0;
 
-	for (int i = 0; i < sizeof(digits); ++ i) {
+	for (int i = 0; i < sizeof(digits) - 1; ++ i) {
 		digits[i] = (rand() % 10) + '0';
 	}
 
@@ -322,7 +322,7 @@ void Client_Update(void) {
 
 		++ client.movement;
 
-		Entity* ent = Entities_GetPlayer();
+		Entity* ent = Player_GetEntity();
 
 		Data_Write32(&packet[2], client.movement);
 		Data_Write32(&packet[6], (uint32_t) (ent->sector - map.sectors));

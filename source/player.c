@@ -9,12 +9,12 @@ Player player = {
 
 void Player_Init(void) {
 	if (player.createPlayerEntity) {
-		player.createPlayerEntity(
+		player.entityIdx = player.createPlayerEntity(
 			(FVec3) {0.0f, -0.5f, 0.0f}, (Direction) {0.0f, 0.0f, 0.0f}, "Player"
 		);
 	}
 	else {
-		PlayerEntity_New(
+		player.entityIdx = PlayerEntity_New(
 			&map.sectors[0], (FVec3) {0.0f, -0.5f, 0.0f}, (Direction) {0.0f, 0.0f, 0.0f},
 			NULL, "Player"
 		);
@@ -33,7 +33,7 @@ void Player_Init(void) {
 }
 
 void Player_FPCamera(void) {
-	Entity* ent = Entities_GetPlayer();
+	Entity* ent = Player_GetEntity();
 
 	camera.pos    = (FVec3) {ent->pos.x, ent->pos.y + 0.5f, ent->pos.z};
 	camera.pitch  = ent->dir.pitch;
@@ -51,7 +51,7 @@ static void Zero(float* vel) {
 }
 
 void Player_Physics(void) {
-	Entity* ent = Entities_GetPlayer();
+	Entity* ent = Player_GetEntity();
 
 	if (!player.skipFriction) {
 		ent->vel.x += player.acc.x;
@@ -94,4 +94,8 @@ void Player_Physics(void) {
 	}
 
 	player.skipFriction = false;
+}
+
+Entity* Player_GetEntity(void) {
+	return Entities_Get(player.entityIdx);
 }

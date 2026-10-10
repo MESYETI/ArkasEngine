@@ -158,8 +158,6 @@ void Entities_InitPool(void) {
 	for (size_t i = 0; i < entities.size; ++ i) {
 		entities.pool[i].used = false;
 	}
-
-	entities.pool[0].used = true; // reverse index 0 for player
 }
 
 void Entities_FreePool(void) {
@@ -197,10 +195,6 @@ Entity* Entities_Get(size_t idx) {
 	if (idx >= entities.size) return NULL;
 
 	return &entities.pool[idx];
-}
-
-Entity* Entities_GetPlayer(void) {
-	return Entities_Get(0);
 }
 
 void Entities_FreeEntity(size_t idx) {
@@ -451,8 +445,9 @@ void Entity_Render(Entity* ent, FVec2 portalOff) {
 #endif
 
 #ifndef AE_NO_BASIC_PLAYER_ENT
-	void PlayerEntity_New(Sector* sect, FVec3 pos, Direction dir, Resource* model, const char* name) {
-		Entity* ent = Entities_Get(0);
+	size_t PlayerEntity_New(Sector* sect, FVec3 pos, Direction dir, Resource* model, const char* name) {
+		size_t  ret = Entities_New();
+		Entity* ent = Entities_Get(ret);
 		
 		PlayerEntity* data = NEW(PlayerEntity);
 
@@ -472,5 +467,7 @@ void Entity_Render(Entity* ent, FVec2 portalOff) {
 		data->model.model        = model;
 		data->model.modelScale   = 1.0f;
 		data->model.modelVisible = true;
+
+		return ret;
 	}
 #endif

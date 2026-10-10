@@ -618,7 +618,7 @@ static void Command_SpawnProp(size_t argc, char** argv) {
 		return;
 	}
 
-	Entity* playerEnt = Entities_GetPlayer();
+	Entity* playerEnt = Player_GetEntity();
 
 	size_t entityIdx = PropEntity_New(
 		playerEnt->sector, playerEnt->pos, (Direction) {

@@ -333,7 +333,10 @@ static bool ClientWorker(ServerClient* this) {
 
 					if (available < size) break;
 
-					uint8_t packet[28];
+					uint8_t packet[2 + 28];
+
+					packet[0] = 0x00;
+					packet[1] = 0xFF;
 
 					Socket_Receive(this->relSock, &packet[2], 28);
 					this->relState = SC_WAITING;
