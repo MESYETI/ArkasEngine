@@ -37,15 +37,14 @@ typedef struct {
 } EntityDef;
 
 typedef struct {
-	size_t serialSize;
-
-	// read, write are required
+	// read, writeSize, and write are required
 	// free, update, render are not required
-	void (*free)(Entity* ent);
-	bool (*read)(Entity* ent, uint8_t* data);
-	void (*write)(Entity* ent, uint8_t* out);
-	void (*update)(Entity* ent);
-	void (*render)(Entity* ent, FVec2 portalOff);
+	void   (*free)(Entity* ent);
+	size_t (*read)(Entity* ent, uint8_t* data, size_t remaining); // returns size of read data, -1 on fail
+	size_t (*writeSize)(Entity* ent);
+	void   (*write)(Entity* ent, uint8_t* out);
+	void   (*update)(Entity* ent);
+	void   (*render)(Entity* ent, FVec2 portalOff);
 } EntityComponent;
 
 // TODO: make the built in entity types invalid if they are disabled

@@ -5,11 +5,20 @@
 
 EntitySystem entities;
 
-static bool CompMovableRead(Entity* ent, uint8_t* data) {
+#define REQUIRE(SIZE) if (remaining < SIZE) return (size_t) -1
+
+static size_t CompMovableRead(Entity* ent, uint8_t* data, size_t remaining) {
+	REQUIRE(1);
+
 	bool* movable = (bool*) ent->getComponent(ent, AE_COMPONENT_MOVABLE);
 
 	*movable = *data != 0;
-	return true;
+	return 1;
+}
+
+static size_t CompMovableWriteSize(Entity* ent) {
+	(void) ent;
+	return 1;
 }
 
 static void CompMovableWrite(Entity* ent, uint8_t* out) {
@@ -18,12 +27,22 @@ static void CompMovableWrite(Entity* ent, uint8_t* out) {
 	*out = *movable? 1 : 0;
 }
 
-static bool CompNameRead(Entity* ent, uint8_t* data) {
+static size_t CompNameRead(Entity* ent, uint8_t* data, size_t remaining) {
+	REQUIRE(65);
+
 	EntityName* name = (EntityName*) ent->getComponent(ent, AE_COMPONENT_NAME);
 
 	memcpy(name->name, data, 64);
 	name->name[64] = 0;
-	return true;
+
+	name->render = data[64];
+
+	return 65;
+}
+
+static size_t CompNameWriteSize(Entity* ent) {
+	(void) ent;
+	return 65;
 }
 
 static void CompNameWrite(Entity* ent, uint8_t* out) {
@@ -41,7 +60,9 @@ static void CompModelFree(Entity* ent) {
 	}
 }
 
-static bool CompModelRead(Entity* ent, uint8_t* data) {
+static size_t CompModelRead(Entity* ent, uint8_t* data, size_t remaining) {
+	REQUIRE(261);
+
 	EntityModel* model = (EntityModel*) ent->getComponent(ent, AE_COMPONENT_MODEL);
 
 	char path[257];
@@ -54,12 +75,17 @@ static bool CompModelRead(Entity* ent, uint8_t* data) {
 		Log("Model resource is not a model");
 
 		Resources_FreeRes(model->model);
-		return false;
+		return (size_t) -1;
 	}
 
 	model->modelScale   = Data_ReadFloat(&data[256]);
 	model->modelVisible = data[260] != 0;
-	return true;
+	return 261;
+}
+
+static size_t CompModelWriteSize(Entity* ent) {
+	(void) ent;
+	return 261;
 }
 
 static void CompModelWrite(Entity* ent, uint8_t* out) {
@@ -120,15 +146,16 @@ void Entities_Init(void) {
 	entities.gameCompLength = 0;
 
 	B(AE_COMPONENT_MOVABLE) {
-		1, NULL, &CompMovableRead, &CompMovableWrite, NULL, NULL
+		NULL, &CompMovableRead, &CompMovableWriteSize, &CompMovableWrite, NULL, NULL
 	};
 
 	B(AE_COMPONENT_NAME) {
-		64 + 1, NULL, &CompNameRead, &CompNameWrite, NULL, NULL
+		NULL, &CompNameRead, &CompNameWriteSize, &CompNameWrite, NULL, NULL
 	};
 
 	B(AE_COMPONENT_MODEL) {
-		256 + 4 + 1, &CompModelFree, &CompModelRead, &CompModelWrite, NULL, &CompModelRender
+		&CompModelFree, &CompModelRead, &CompModelWriteSize, &CompModelWrite,
+		NULL, &CompModelRender
 	};
 
 	entities.gameDef       = NULL;
@@ -266,8 +293,9 @@ EntityDef* Entities_GetDef(uint32_t type) {
 	}
 }
 
-size_t Entities_CalcSerialSize(EntityDef* def) {
-	size_t ret = 0;
+size_t Entities_CalcWriteSize(Entity* ent) {
+	size_t     ret = 0;
+	EntityDef* def = Entities_GetDef(ent->type);
 
 	for (size_t i = 0; i < def->len; ++ i) {
 		EntityComponent* comp = Entities_GetComponent(def->components[i]);
@@ -276,7 +304,7 @@ size_t Entities_CalcSerialSize(EntityDef* def) {
 			Error("Broken entity definition");
 		}
 
-		ret += comp->serialSize;
+		ret += comp->writeSize(ent);
 	}
 
 	return ret;
@@ -293,11 +321,6 @@ bool Entities_Deserialise(uint8_t* data, size_t size, Entity* out) {
 
 	if (!def) {
 		Log("Broken entity");
-		return false;
-	}
-
-	if (size < Entities_CalcSerialSize(def) + AE_ENTITY_HEADER_SIZE) {
-		Log("Not enough room to deserialise entity");
 		return false;
 	}
 
@@ -323,8 +346,19 @@ bool Entities_Deserialise(uint8_t* data, size_t size, Entity* out) {
 	for (size_t i = 0; i < def->len; ++ i) {
 		EntityComponent* comp = Entities_GetComponent(def->components[i]);
 
-		comp->read(out, &data[offset]);
-		offset += comp->serialSize;
+		size_t res = comp->read(out, &data[offset], size - offset);
+
+		if (res == ((size_t) -1)) {
+			Log("Failed to read component");
+			return false;
+		}
+
+		offset += res;
+
+		if ((offset >= size) && (i < def->len - 1)) {
+			Log("Offset has gone out of bounds");
+			return false;
+		}
 	}
 
 	return true;
@@ -343,7 +377,7 @@ bool Entities_Serialise(Entity* ent, uint8_t* dest, size_t size) {
 		return false;
 	}
 
-	if (size < Entities_CalcSerialSize(def) + AE_ENTITY_HEADER_SIZE) {
+	if (size < Entities_CalcWriteSize(ent) + AE_ENTITY_HEADER_SIZE) {
 		Log("Not enough room to serialise entity");
 		return false;
 	}
@@ -363,7 +397,7 @@ bool Entities_Serialise(Entity* ent, uint8_t* dest, size_t size) {
 		EntityComponent* comp = Entities_GetComponent(def->components[i]);
 
 		comp->write(ent, &dest[offset]);
-		offset += comp->serialSize;
+		offset += comp->writeSize(ent);
 	}
 
 	return true;
