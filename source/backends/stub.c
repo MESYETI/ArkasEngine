@@ -15,11 +15,13 @@ void Backend_SetTarget(Window* window) {
 	(void) window;
 }
 
-Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch) {
+Texture* Backend_LoadTexture(uint8_t* data, int width, int height, int ch, bool world) {
 	(void) data;
 	(void) width;
 	(void) height;
 	(void) ch;
+	(void) world;
+
 	return NULL;
 }
 

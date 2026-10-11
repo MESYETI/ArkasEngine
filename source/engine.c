@@ -46,6 +46,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	Variables_Add(VAR_FLOAT, "game.music-volume",       &gameBaseConfig.musicVolume, 0);
 	Variables_Add(VAR_BOOL,  "echo",                    &console.echo, 0);
 	Variables_Add(VAR_INT,   "engine.scale-2D",         &globalConfig.scale2D, 0);
+	Variables_Add(VAR_INT,   "engine.mipmaps",          &globalConfig.mipmaps, 0);
 	Variables_Add(VAR_BOOL,  "engine.skybox-filtering", &gameBaseConfig.skyboxFiltering, 0);
 	Variables_Add(VAR_STR,   "engine.backend",          &backendOptions.name, 20);
 	Variables_Add(VAR_INT,   "engine.debug-level",      &gameBaseConfig.debugInfoLevel, 0);
@@ -98,12 +99,13 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 		SaveDefaultConfig();
 	}
 
-	// run script
-
-	Log("Arkas Engine is now running as a server");
+	if (engine.server) {
+		Log("Arkas Engine is now running as a server");
+	}
 
 	engine.running = true;
 
+	// run script
 	if (engine.server) {
 		Log("Running server startup...");
 

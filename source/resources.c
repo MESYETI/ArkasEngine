@@ -96,7 +96,7 @@ Resource* Resources_GetRes(const char* path, uint32_t opt) {
 		}
 		else {
 			ret->type      = RESOURCE_TYPE_TEXTURE;
-			ret->v.texture = Texture_LoadFile(path);
+			ret->v.texture = Texture_LoadFile(path, (opt & RESOURCE_IS_WORLD_TEX) != 0);
 
 			if (!ret->v.texture) {
 				Log("Failed to load resource '%s'", path);

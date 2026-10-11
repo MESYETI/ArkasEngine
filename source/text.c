@@ -8,7 +8,7 @@ Font Text_LoadFont(const char* path, bool* success) {
 	*success = true;
 	/*ret.texture = Backend_LoadTexture(path);*/
 
-	ret.texture = Texture_LoadFile(path);
+	ret.texture = Texture_LoadFile(path, false);
 
 	if (!ret.texture) {
 		Log("Failed to load file '%s'", path);

@@ -132,10 +132,14 @@ void Map_LoadTest(void) {
 	map.walls[11] = (Wall) {false, false, 0, NULL, {0.0, 0.0}};
 
 	for (size_t i = 0; i < map.wallsLen; ++ i) {
-		map.walls[i].texture = Resources_GetRes("base:3p_textures/rock1.png", 0);
+		map.walls[i].texture = Resources_GetRes(
+			"base:3p_textures/rock1.png", RESOURCE_IS_WORLD_TEX
+		);
 
 		if (!map.walls[i].texture) {
-			map.walls[i].texture = Resources_GetRes("builtin:no_texture.png", 0);
+			map.walls[i].texture = Resources_GetRes(
+				"builtin:no_texture.png", RESOURCE_IS_WORLD_TEX
+			);
 		}
 	}
 
@@ -158,10 +162,14 @@ void Map_LoadTest(void) {
 			Resources_GetRes("base:3p_textures/rock2.png", 0);
 
 		if (!map.sectors[i].floorTexture) {
-			map.sectors[i].floorTexture = Resources_GetRes("builtin:no_texture.png", 0);
+			map.sectors[i].floorTexture = Resources_GetRes(
+				"builtin:no_texture.png", RESOURCE_IS_WORLD_TEX
+			);
 		}
 		if (!map.sectors[i].ceilingTexture) {
-			map.sectors[i].ceilingTexture = Resources_GetRes("builtin:no_texture.png", 0);
+			map.sectors[i].ceilingTexture = Resources_GetRes(
+				"builtin:no_texture.png", RESOURCE_IS_WORLD_TEX
+			);
 		}
 	}
 
@@ -198,7 +206,8 @@ void Map_LoadTest2(void) {
 	map.sectorsLen = 1;
 	map.sectors[0] = (Sector) {
 		0, 4, 50.0, -0.5, (FVec2) {0, 0}, (FVec2) {0, 0}, false, true,
-		Resources_GetRes("base:3p_textures/grass1.png", 0), NULL, SECTOR_NO_ENTITIES
+		Resources_GetRes("base:3p_textures/grass1.png", RESOURCE_IS_WORLD_TEX), NULL,
+		SECTOR_NO_ENTITIES
 	};
 
 	Entity* playerEnt = Player_GetEntity();
@@ -286,10 +295,12 @@ bool Map_LoadFile(Stream* file, const char* path, bool loadResources) {
 		}
 
 		if (loadResources) {
-			map.walls[i].texture = Resources_GetRes(stringTable[texture], 0);
+			map.walls[i].texture = Resources_GetRes(stringTable[texture], RESOURCE_IS_WORLD_TEX);
 
 			if (!map.walls[i].texture) {
-				map.walls[i].texture = Resources_GetRes("builtin:no_texture.png", 0);
+				map.walls[i].texture = Resources_GetRes(
+					"builtin:no_texture.png", RESOURCE_IS_WORLD_TEX
+				);
 			}
 		}
 	}
@@ -319,14 +330,22 @@ bool Map_LoadFile(Stream* file, const char* path, bool loadResources) {
 			continue;
 		}
 
-		map.sectors[i].floorTexture   = Resources_GetRes(stringTable[floorTexture], 0);
-		map.sectors[i].ceilingTexture = Resources_GetRes(stringTable[ceilTexture], 0);
+		map.sectors[i].floorTexture = Resources_GetRes(
+			stringTable[floorTexture], RESOURCE_IS_WORLD_TEX
+		);
+		map.sectors[i].ceilingTexture = Resources_GetRes(
+			stringTable[ceilTexture], RESOURCE_IS_WORLD_TEX
+		);
 
 		if (!map.sectors[i].floorTexture) {
-			map.sectors[i].floorTexture = Resources_GetRes("builtin:no_texture.png", 0);
+			map.sectors[i].floorTexture = Resources_GetRes(
+				"builtin:no_texture.png", RESOURCE_IS_WORLD_TEX
+			);
 		}
 		if (!map.sectors[i].ceilingTexture) {
-			map.sectors[i].ceilingTexture = Resources_GetRes("builtin:no_texture.png", 0);
+			map.sectors[i].ceilingTexture = Resources_GetRes(
+				"builtin:no_texture.png", RESOURCE_IS_WORLD_TEX
+			);
 		}
 	}
 

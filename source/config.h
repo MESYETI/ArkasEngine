@@ -5,6 +5,7 @@
 
 typedef struct {
 	int scale2D;
+	int mipmaps;
 } GlobalConfig;
 
 extern GlobalConfig globalConfig;

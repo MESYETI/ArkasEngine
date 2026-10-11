@@ -1,10 +1,11 @@
 #include "art.h"
 #include "vfs.h"
 #include "stb.h"
+#include "mem.h"
 #include "util.h"
 #include "texture.h"
 
-Texture* Texture_LoadMem(uint8_t* img, size_t len) {
+Texture* Texture_LoadMem(uint8_t* img, size_t len, bool world) {
 	int      width, height, ch;
 	uint8_t* data;
 
@@ -66,10 +67,10 @@ Texture* Texture_LoadMem(uint8_t* img, size_t len) {
 	}
 
 	free(data);
-	return Backend_LoadTexture(data2, width, height, newWidth, newHeight, ch);
+	return Backend_LoadTexture(data2, width, height, newWidth, newHeight, ch, world);
 }
 
-Texture* Texture_LoadFile(const char* path) {
+Texture* Texture_LoadFile(const char* path, bool world) {
 	size_t   size;
 	uint8_t* data = VFS_ReadFile(path, &size);
 
@@ -78,7 +79,30 @@ Texture* Texture_LoadFile(const char* path) {
 		return NULL;
 	}
 
-	Texture* ret = Texture_LoadMem(data, size);
+	Texture* ret = Texture_LoadMem(data, size, world);
 	free(data);
+	return ret;
+}
+
+uint8_t* Texture_Downscale(uint8_t* data, int w, int h, int comp, int by) {
+	int      w2  = w / by;
+	int      h2  = h / by;
+	uint8_t* ret = SafeMalloc(w2 * h2 * comp);
+
+	for (int y = 0; y < h2; ++ y) {
+		for (int x = 0; x < w2; ++ x) {
+			uint8_t* source = &data[(((y * by) * w) + (x * by)) * comp];
+			size_t   dest   = ((y * w2) + x) * comp;
+
+			ret[dest]     = source[0];
+			ret[dest + 1] = source[1];
+			ret[dest + 2] = source[2];
+
+			if (comp == 4) {
+				ret[dest + 3] = source[3];
+			}
+		}
+	}
+
 	return ret;
 }

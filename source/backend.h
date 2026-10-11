@@ -41,7 +41,7 @@ typedef struct {
 void     Backend_Init(bool beforeWindow);
 void     Backend_Free(void);
 void     Backend_SetTarget(Window* window);
-Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch);
+Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch, bool world);
 void     Backend_FreeTexture(Texture* texture);
 Vec2     Backend_GetTextureSize(Texture* texture);
 void     Backend_RenderScene(void);

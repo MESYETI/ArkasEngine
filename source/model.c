@@ -155,7 +155,7 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 			if (type == 0) {
 				char* path = Stream_ReadNTString(file);
 
-				model->textures[i] = Texture_LoadFile(path);
+				model->textures[i] = Texture_LoadFile(path, true);
 			}
 			else {
 				uint32_t size = Stream_Read32(file);
@@ -165,7 +165,7 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 					Error("Failed to load texture %d from model", i);
 				}
 
-				model->textures[i] = Texture_LoadMem(data, size);
+				model->textures[i] = Texture_LoadMem(data, size, true);
 				free(data);
 			}
 		}

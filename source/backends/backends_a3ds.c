@@ -110,7 +110,9 @@ static Texture* AllocTexture(void) {
 	return NULL;
 }
 
-Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch) {
+Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch, bool world) {
+	(void) world; // TODO
+
 	Texture* ret = AllocTexture();
 
 	if (ret == NULL) {

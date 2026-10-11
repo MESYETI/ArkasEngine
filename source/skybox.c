@@ -44,7 +44,7 @@ bool Skybox_Load(const char* path) {
 		strncat(thisPath, "/", sizeof(thisPath) - strlen(thisPath) - 1);
 		strncat(thisPath, parts[i].name, sizeof(thisPath) - strlen(thisPath) - 1);
 
-		*parts[i].dest = Texture_LoadFile(thisPath);
+		*parts[i].dest = Texture_LoadFile(thisPath, false);
 
 		if (*parts[i].dest == NULL) {
 			for (size_t j = 0; j < i; ++ j) {

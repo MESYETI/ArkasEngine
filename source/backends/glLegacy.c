@@ -309,15 +309,39 @@ void Backend_SetTarget(Window* window) {
 	}
 }
 
-Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch) {
+Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch, bool world) {
 	GLuint tex;
 	GL(glGenTextures(1, &tex));
 	GL(glBindTexture(GL_TEXTURE_2D, tex));
 	GL(glTexImage2D(
-		GL_TEXTURE_2D, 0, ch, aW, aH, 0, (ch == 3) ? GL_RGB : GL_RGBA,
+		GL_TEXTURE_2D, 0, ch, aW, aH, 0, (ch == 3)? GL_RGB : GL_RGBA,
 		GL_UNSIGNED_BYTE, data
 	));
-	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+
+	if (world) {
+		for (int i = 0; i < globalConfig.mipmaps; ++ i) {
+			uint8_t* res = Texture_Downscale(data, aW, aH, ch, 2 << i);
+
+			GL(glTexImage2D(
+				GL_TEXTURE_2D, i + 1, ch, aW / (2 << i), aH / (2 << i), 0, (ch == 3)? GL_RGB : GL_RGBA,
+				GL_UNSIGNED_BYTE, res
+			));
+
+			free(res);
+		}
+	}
+
+	if ((globalConfig.mipmaps > 0) && world) {
+		puts("Using mipmaps");
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0));
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, globalConfig.mipmaps));
+	}
+	else {
+		puts("Not using mipmaps");
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	}
+
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,     GL_REPEAT));
 	GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,     GL_REPEAT));

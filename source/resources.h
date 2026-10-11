@@ -16,7 +16,8 @@ enum {
 };
 
 enum {
-	RESOURCE_IS_FONT = 1
+	RESOURCE_IS_FONT = 1,
+	RESOURCE_IS_WORLD_TEX = 2
 };
 
 typedef struct {
