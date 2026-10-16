@@ -5,6 +5,6 @@
 
 Texture* Texture_LoadMem(uint8_t* img, size_t len, bool world);
 Texture* Texture_LoadFile(const char* path, bool world);
-uint8_t* Texture_Downscale(uint8_t* data, int w, int h, int comp, int by);
+uint8_t* Texture_Downscale(uint8_t* data, int w, int h, int comp, int w2, int h2);
 
 #endif

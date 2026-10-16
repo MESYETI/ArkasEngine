@@ -292,6 +292,8 @@ void Backend_Init(bool beforeWindow) {
 	// Model_Load(&state.model, "heavy.zkm");
 
 	glHint(GL_FOG_HINT, GL_NICEST);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 }
 
 void Backend_Free(void) {
@@ -318,24 +320,26 @@ Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch
 		GL_UNSIGNED_BYTE, data
 	));
 
-	if (world) {
-		for (int i = 0; i < globalConfig.mipmaps; ++ i) {
-			uint8_t* res = Texture_Downscale(data, aW, aH, ch, 2 << i);
+	if ((globalConfig.mipmaps > 0) && world) {
+		puts("Using mipmaps");
+		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+
+		int mW = aW, mH = aH;
+		for (int i = 1; mW > 1 && mH > 1; ++ i) {
+			mW /= 2;
+			mH /= 2;
+			if (mW == 0) mW = 1;
+			if (mH == 0) mH = 1;
+
+			uint8_t* res = Texture_Downscale(data, aW, aH, ch, mW, mH);
 
 			GL(glTexImage2D(
-				GL_TEXTURE_2D, i + 1, ch, aW / (2 << i), aH / (2 << i), 0, (ch == 3)? GL_RGB : GL_RGBA,
+				GL_TEXTURE_2D, i, ch, mW, mH, 0, (ch == 3)? GL_RGB : GL_RGBA,
 				GL_UNSIGNED_BYTE, res
 			));
 
 			free(res);
 		}
-	}
-
-	if ((globalConfig.mipmaps > 0) && world) {
-		puts("Using mipmaps");
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0));
-		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, globalConfig.mipmaps));
 	}
 	else {
 		puts("Not using mipmaps");
