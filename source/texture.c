@@ -84,25 +84,41 @@ Texture* Texture_LoadFile(const char* path, bool world) {
 	return ret;
 }
 
-uint8_t* Texture_Downscale(uint8_t* data, int w, int h, int comp, int by) {
-	int      w2  = w / by;
-	int      h2  = h / by;
-	uint8_t* ret = SafeMalloc(w2 * h2 * comp);
+uint8_t* Texture_Downscale(uint8_t* data, int w, int h, int comp, int w2, int h2) {
+	#if 1
 
-	for (int y = 0; y < h2; ++ y) {
-		for (int x = 0; x < w2; ++ x) {
-			uint8_t* source = &data[(((y * by) * w) + (x * by)) * comp];
-			size_t   dest   = ((y * w2) + x) * comp;
+		uint8_t* ret = SafeMalloc(w2 * h2 * comp);
 
-			ret[dest]     = source[0];
-			ret[dest + 1] = source[1];
-			ret[dest + 2] = source[2];
+		stbir_resize(
+			data, w, h, 0,
+			ret, w2, h2, 0,
+			comp, STBIR_TYPE_UINT8_SRGB, STBIR_EDGE_WRAP, STBIR_FILTER_DEFAULT
+		);
 
-			if (comp == 4) {
-				ret[dest + 3] = source[3];
+		return ret;
+
+	#else
+
+		int      wM  = w / w2;
+		int      hM  = h / h2;
+		uint8_t* ret = SafeMalloc(w2 * h2 * comp);
+
+		for (int y = 0; y < h2; ++ y) {
+			for (int x = 0; x < w2; ++ x) {
+				uint8_t* source = &data[(((y * hM) * w) + (x * wM)) * comp];
+				size_t   dest   = ((y * w2) + x) * comp;
+
+				ret[dest]     = source[0];
+				ret[dest + 1] = source[1];
+				ret[dest + 2] = source[2];
+
+				if (comp == 4) {
+					ret[dest + 3] = source[3];
+				}
 			}
 		}
-	}
 
 	return ret;
+
+	#endif
 }

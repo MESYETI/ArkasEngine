@@ -157,9 +157,9 @@ void Map_LoadTest(void) {
 
 	for (size_t i = 0; i < map.sectorsLen; ++ i) {
 		map.sectors[i].floorTexture =
-			Resources_GetRes("base:3p_textures/grass3.png", 0);
+			Resources_GetRes("base:3p_textures/grass3.png", RESOURCE_IS_WORLD_TEX);
 		map.sectors[i].ceilingTexture =
-			Resources_GetRes("base:3p_textures/rock2.png", 0);
+			Resources_GetRes("base:3p_textures/rock2.png", RESOURCE_IS_WORLD_TEX);
 
 		if (!map.sectors[i].floorTexture) {
 			map.sectors[i].floorTexture = Resources_GetRes(
