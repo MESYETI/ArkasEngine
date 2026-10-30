@@ -321,7 +321,6 @@ Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch
 	));
 
 	if ((globalConfig.mipmaps > 0) && world) {
-		puts("Using mipmaps");
 		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
 
 		int mW = aW, mH = aH;
@@ -342,7 +341,6 @@ Texture* Backend_LoadTexture(uint8_t* data, int w, int h, int aW, int aH, int ch
 		}
 	}
 	else {
-		puts("Not using mipmaps");
 		GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
 	}
 
