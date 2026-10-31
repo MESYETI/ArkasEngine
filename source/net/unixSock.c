@@ -13,12 +13,37 @@
 #include "../data.h"
 #include "../socket.h"
 
-void NetSocket_Init(void) {
+#ifdef PLATFORM_3DS
+	#include <3ds.h>
+	#include <malloc.h>
+
+	#define SOC_ALIGN       0x1000
+	#define SOC_BUFFERSIZE  0x100000
+
+	static uint32_t* socBuf = NULL;
 	
+#endif
+
+void NetSocket_Init(void) {
+	#ifdef PLATFORM_3DS	
+		socBuf = (uint32_t*) memalign(SOC_ALIGN, SOC_BUFFERSIZE);
+
+		if (!socBuf) {
+			Error("Failed to allocate SOC buffer");
+		}
+
+		int error = socInit(socBuf, SOC_BUFFERSIZE);
+
+		if (error != 0) {
+			Error("socInit failed: %.8x", (unsigned int) error);
+		}
+	#endif
 }
 
 void NetSocket_End(void) {
-	
+	#ifdef PLATFORM_3DS
+		socExit();
+	#endif
 }
 
 bool NetSocket_New(NetSocket* sock, int protocol) {
@@ -136,10 +161,29 @@ size_t NetSocket_DataAvailable(NetSocket* sock) {
 		Error("Called DataAvailable on UDP socket");
 	}
 
-	int count;
-	ioctl(sock->fd, FIONREAD, &count);
+	#ifdef PLATFORM_3DS
+		// slow and bad. TODO: add a buffering system to NetSocket
 
-	return (size_t) count;
+		if (!NetSocket_IsDataAvailable(sock)) {
+			return 0;
+		}
+
+		static uint8_t buf[1024];
+
+		ssize_t count = recv(sock->fd, buf, sizeof(buf), MSG_PEEK);
+
+		if (count < 0) {
+			return 0;
+		}
+		else {
+			return (size_t) count;
+		}
+	#else
+		int count;
+		ioctl(sock->fd, FIONREAD, &count);
+
+		return (size_t) count;
+	#endif
 }
 
 bool NetSocket_IsDataAvailable(NetSocket* sock) {
@@ -249,11 +293,13 @@ uint16_t NetSocketAddr_Port(NetSocketAddr* addr) {
 
 		return ntohs(addr2->sin_port);
 	}
-	else if (addr->addr.ss_family == AF_INET6) {
-		struct sockaddr_in6* addr2 = (struct sockaddr_in6*) &addr->addr;
+	#ifdef AE_IPV6
+		else if (addr->addr.ss_family == AF_INET6) {
+			struct sockaddr_in6* addr2 = (struct sockaddr_in6*) &addr->addr;
 
-		return ntohs(addr2->sin6_port);
-	}
+			return ntohs(addr2->sin6_port);
+		}
+	#endif
 
 	abort();
 }
@@ -277,30 +323,32 @@ bool NetSocketAddr_Compare(NetSocketAddr* a, NetSocketAddr* b) {
 
 			return true;
 		}
-		else if (a->addr.ss_family == AF_INET6) {
-			struct sockaddr_in6* aIn = (struct sockaddr_in6*) &a->addr;
-			struct sockaddr_in6* bIn = (struct sockaddr_in6*) &b->addr;
+		#ifdef AE_IPV6
+			else if (a->addr.ss_family == AF_INET6) {
+				struct sockaddr_in6* aIn = (struct sockaddr_in6*) &a->addr;
+				struct sockaddr_in6* bIn = (struct sockaddr_in6*) &b->addr;
 
-			if (memcmp(
-				aIn->sin6_addr.s6_addr, bIn->sin6_addr.s6_addr, sizeof(aIn->sin6_addr.s6_addr)
-			) != 0) {
-				return false;
+				if (memcmp(
+					aIn->sin6_addr.s6_addr, bIn->sin6_addr.s6_addr, sizeof(aIn->sin6_addr.s6_addr)
+				) != 0) {
+					return false;
+				}
+
+				if (ntohs(aIn->sin6_port) != ntohs(bIn->sin6_port)) {
+					return false;
+				}
+
+				if (aIn->sin6_flowinfo != bIn->sin6_flowinfo) {
+					return false;
+				}
+
+				if (aIn->sin6_scope_id != bIn->sin6_scope_id) {
+					return false;
+				}
+
+				return true;
 			}
-
-			if (ntohs(aIn->sin6_port) != ntohs(bIn->sin6_port)) {
-				return false;
-			}
-
-			if (aIn->sin6_flowinfo != bIn->sin6_flowinfo) {
-				return false;
-			}
-
-			if (aIn->sin6_scope_id != bIn->sin6_scope_id) {
-				return false;
-			}
-
-			return true;
-		}
+		#endif
 	#else
 		Error("Network sockets not available");
 	#endif
@@ -327,29 +375,31 @@ bool NetSocketAddr_CompareAPort(NetSocketAddr* a, NetSocketAddr* b, uint16_t por
 
 			return true;
 		}
-		else if (a->addr.ss_family == AF_INET6) {
-			struct sockaddr_in6* aIn = (struct sockaddr_in6*) &a->addr;
-			struct sockaddr_in6* bIn = (struct sockaddr_in6*) &b->addr;
+		#ifdef AE_IPV6
+			else if (a->addr.ss_family == AF_INET6) {
+				struct sockaddr_in6* aIn = (struct sockaddr_in6*) &a->addr;
+				struct sockaddr_in6* bIn = (struct sockaddr_in6*) &b->addr;
 
-			if (memcmp(
-				aIn->sin6_addr.s6_addr, bIn->sin6_addr.s6_addr, sizeof(aIn->sin6_addr.s6_addr)
-			) != 0) {
-				return false;
-			}
+				if (memcmp(
+					aIn->sin6_addr.s6_addr, bIn->sin6_addr.s6_addr, sizeof(aIn->sin6_addr.s6_addr)
+				) != 0) {
+					return false;
+				}
 
-			if (ntohs(aIn->sin6_port) != port) {
-				return false;
-			}
+				if (ntohs(aIn->sin6_port) != port) {
+					return false;
+				}
 
-			if (aIn->sin6_flowinfo != bIn->sin6_flowinfo) {
-				return false;
-			}
+				if (aIn->sin6_flowinfo != bIn->sin6_flowinfo) {
+					return false;
+				}
 
-			if (aIn->sin6_scope_id != bIn->sin6_scope_id) {
-				return false;
+				if (aIn->sin6_scope_id != bIn->sin6_scope_id) {
+					return false;
+				}
+				return true;
 			}
-			return true;
-		}
+		#endif
 	#else
 		Error("Network sockets not available");
 	#endif

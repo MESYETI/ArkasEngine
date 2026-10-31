@@ -75,7 +75,7 @@ void Event_StartTextInput(void) {
 		Event e;
 		e.type  = AE_EVENT_TEXT_INPUT;
 		strcpy(e.textInput.input, buf);
-		Event_Add(e);
+		Event_Add(&e);
 	}
 }
 

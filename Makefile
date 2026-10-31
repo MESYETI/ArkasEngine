@@ -31,7 +31,7 @@ override CFLAGS += -std=c99 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Ili
 override LDLIBS += -lm
 
 override CPPFLAGS += -DAE_BACKEND_GL_LEGACY -DAE_AUDIO_PSRC
-override CPPFLAGS += -DAE_WINDOW_SDL2 -DAE_INPUT_SDL2 -DAE_EVENT_SDL2
+override CPPFLAGS += -DAE_WINDOW_SDL2 -DAE_INPUT_SDL2 -DAE_EVENT_SDL2 -DAE_IPV6
 override CPPFLAGS += -DSDL_MAIN_HANDLED -D_POSIX_C_SOURCE=199309L
 
 ifeq ($(BUILD),release)

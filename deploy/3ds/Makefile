@@ -59,6 +59,7 @@ CFLAGS += $(INCLUDE) -D__3DS__
 CFLAGS += -std=c23 -Wall -Wextra -Wuninitialized -Wundef -pedantic -Werror=return-type
 CFLAGS += -DPLATFORM_3DS
 CFLAGS += -DAE_BACKEND_CITRO3D -DAE_USE_SDL2 -DSDL_MAIN_HANDLED -DAE_AUDIO_STUB -DAE_STANDALONE
+CFLAGS += -DAE_NET_UNIX -DAE_NET_SOCKET -DAE_RANDOM_STD
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 

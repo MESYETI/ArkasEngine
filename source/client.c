@@ -274,7 +274,8 @@ void Client_Update(void) {
 			size_t remaining = ((size_t) client.fileSize) - client.fileRead;
 			size_t chunk     = (remaining > 1024)? 1024 : remaining;
 
-			if (Socket_DataAvailable(client.relSock) == 0) break;
+			// if (Socket_DataAvailable(client.relSock) == 0) break;
+			if (Socket_DataAvailable(client.relSock) < chunk) break;
 
 			Socket_Receive(
 				client.relSock, &client.fileContents[client.fileRead], chunk
