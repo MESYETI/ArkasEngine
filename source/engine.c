@@ -10,6 +10,7 @@
 #include "scene.h"
 #include "video.h"
 #include "audio.h"
+#include "socket.h"
 #include "engine.h"
 #include "entity.h"
 #include "config.h"
@@ -32,6 +33,7 @@ void Engine_Init(const char* gameName, int argc, const char** argv) {
 	engine.profilerBind = INPUT_BIND_NONE;
 
 	Platform_Init();
+	Socket_Init();
 	Log_Init();
 
 	Random_Init();
@@ -159,6 +161,7 @@ void Engine_Free(void) {
 	Video_Free();
 	Event_Free();
 	VFS_Free();
+	Socket_End();
 	Platform_Quit();
 }
 

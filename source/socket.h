@@ -46,6 +46,8 @@ struct Socket {
 
 Socket* Socket_AllocSocket(void);
 
+void     Socket_Init(void);
+void     Socket_End(void);
 Socket*  Socket_New(int type, int protocol);
 bool     Socket_Bind(Socket* sock, uint16_t port);
 bool     Socket_Listen(Socket* sock, int backlog);

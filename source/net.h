@@ -5,13 +5,15 @@
 
 // defines NetSocket and NetSocketAddr
 #ifdef AE_NET_UNIX
-	#include "net/unix.h"
+	#include "net/unixSock.h"
 #elif defined(AE_NET_STUB)
 	#include "net/stub.h"
 #else
 	#error "no net socket implementation selected"
 #endif
 
+void     NetSocket_Init(void);
+void     NetSocket_End(void);
 bool     NetSocket_New(NetSocket* sock, int protocol);
 bool     NetSocket_Bind(NetSocket* sock, uint16_t port);
 bool     NetSocket_Listen(NetSocket* sock, int backlog);

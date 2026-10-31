@@ -20,6 +20,18 @@ Socket* Socket_AllocSocket(void) {
 	return sockets;
 }
 
+void Socket_Init(void) {
+	#ifdef AE_NET_SOCKET
+		NetSocket_Init();
+	#endif
+}
+
+void Socket_End(void) {
+	#ifdef AE_NET_SOCKET
+		NetSocket_End();
+	#endif
+}
+
 Socket* Socket_New(int type, int protocol) {
 	SocketValue ret;
 	ret.type = type;

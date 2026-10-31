@@ -2,6 +2,14 @@
 
 #include "../socket.h"
 
+void NetSocket_Init(void) {
+	abort();
+}
+
+void NetSocket_End(void) {
+	abort();
+}
+
 void NetSocket_New(NetSocket* sock, int protocol) {
 	abort();
 }

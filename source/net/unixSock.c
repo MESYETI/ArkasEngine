@@ -13,6 +13,14 @@
 #include "../data.h"
 #include "../socket.h"
 
+void NetSocket_Init(void) {
+	
+}
+
+void NetSocket_End(void) {
+	
+}
+
 bool NetSocket_New(NetSocket* sock, int protocol) {
 	int type = 0;
 
