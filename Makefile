@@ -3,15 +3,15 @@ OBJECTS := $(patsubst lib/PlatinumSrc/%.c,bin/PlatinumSrc_%.o,$(patsubst source/
 PLAT    := $(shell uname -s)
 
 ifeq ($(PLAT),NetBSD)
-	override CPPFLAGS += -I/usr/X11R7/include -I/usr/pkg/include -DAE_RANDOM_STD
+	override CPPFLAGS += -I/usr/X11R7/include -I/usr/pkg/include -DAE_RANDOM_STD -DAE_NET_UNIX
 	override LDFLAGS += -L/usr/X11R7/lib -L/usr/pkg/lib -Wl,-R/usr/X11R7/lib -Wl,-R/usr/pkg/lib
 else ifeq ($(PLAT),windows)
 	CC := x86_64-w64-mingw32-gcc
-	override CPPFLAGS += -DAE_RANDOM_STD
+	override CPPFLAGS += -DAE_RANDOM_STD -DAE_NET_STUB
 	override LDLIBS += -lkernel32 -l:libSDL2.a -lole32 -loleaut32 -limm32
 	override LDLIBS += -lsetupapi -lversion -lgdi32 -lwinmm -lopengl32
 else ifeq ($(PLAT), Linux)
-	override CFLAGS += -DAE_NET_SOCKET -DAE_RANDOM_LINUX -D_GNU_SOURCE
+	override CFLAGS += -DAE_NET_SOCKET -DAE_RANDOM_LINUX -D_GNU_SOURCE -DAE_NET_UNIX
 	override LDLIBS += -lSDL2 -lGL
 endif
 LD := $(CC)
@@ -97,10 +97,13 @@ bin/mapEditor:
 bin/random:
 	mkdir -p bin/random
 
-bin/PlatinumSrc_%.o: lib/PlatinumSrc/%.c $(call deps,lib/PlatinumSrc/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio bin/mapEditor bin/random
+bin/net:
+	mkdir -p bin/net
+
+bin/PlatinumSrc_%.o: lib/PlatinumSrc/%.c $(call deps,lib/PlatinumSrc/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio bin/mapEditor bin/random bin/net
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
-bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio bin/mapEditor bin/random
+bin/%.o: source/%.c $(call deps,source/%.c) | bin/ bin/backends bin/ui bin/input bin/window bin/event bin/platform bin/audio bin/mapEditor bin/random bin/net
 	$(CC) $(CFLAGS) $(CPPFLAGS) $< -c -o $@
 
 clean:

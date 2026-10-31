@@ -1,10 +1,7 @@
 #ifndef AE_SOCKET_H
 #define AE_SOCKET_H
 
-#include <sys/socket.h>
 #include "common.h"
-
-#define SOCKET_UDP_DATA_SIZE 508
 
 enum {
 	SOCKET_TYPE_LOCAL = 0,
@@ -19,6 +16,8 @@ enum {
 typedef struct LocalSocket LocalSocket;
 typedef struct Socket      Socket;
 
+#include "net.h"
+
 struct LocalSocket {
 	int type;
 
@@ -32,32 +31,6 @@ struct LocalSocket {
 	size_t   connectionsLen;
 };
 
-typedef struct {
-	#ifdef AE_NET_SOCKET
-		struct sockaddr_storage addr;
-		socklen_t               addrLen;
-	#else
-		int nothing;
-	#endif
-} NetSocketAddr;
-
-typedef struct {
-	int type;
-
-	#ifdef AE_NET_SOCKET
-		int      fd;
-		int      protocol;
-		uint16_t ident;
-
-		NetSocketAddr addr;
-
-		// only for UDP sockets
-		uint8_t  sendData[SOCKET_UDP_DATA_SIZE];
-		size_t   sendLen;
-		uint32_t sessionID;
-	#endif
-} NetSocket;
-
 typedef union {
 	int type;
 
@@ -70,6 +43,8 @@ struct Socket {
 	Socket*     next;
 	Socket*     prev;
 };
+
+Socket* Socket_AllocSocket(void);
 
 Socket*  Socket_New(int type, int protocol);
 bool     Socket_Bind(Socket* sock, uint16_t port);
@@ -88,10 +63,5 @@ void     Socket_StringAddr(Socket* sock, char* dest, size_t size);
 bool     Socket_Connected(Socket* sock);
 bool     Socket_GetAddr(Socket* sock, NetSocketAddr* out);
 void     Socket_SetSessionID(Socket* sock, uint32_t sessionID);
-
-uint16_t NetSocketAddr_Port(NetSocketAddr* addr);
-bool     NetSocketAddr_Compare(NetSocketAddr* a, NetSocketAddr* b);
-bool     NetSocketAddr_CompareAPort(NetSocketAddr* a, NetSocketAddr* b, uint16_t port);
-void     NetSocketAddr_StringAddr(NetSocketAddr* addr, char* dest, size_t size);
 
 #endif
