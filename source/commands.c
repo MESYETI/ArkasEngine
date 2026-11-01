@@ -695,13 +695,18 @@ static void Command_Entities(size_t argc, char** argv) {
 	ASSERT_ARGC(0);
 
 	for (size_t i = 0; i < entities.size; ++ i) {
-		if (!entities.pool[i].used) {
+		if (!(entities.pool[i].state & AE_ENT_USED)) {
 			continue;
 		}
 
 		Entity* ent = &entities.pool[i];
 
 		Log("Entity %d in sector %d", (int) i, (int) (ent->sector - map.sectors));
+
+		if (!(ent->state & AE_ENT_ACTIVE)) {
+			Log("  entity is inactive");
+			continue;
+		}
 
 		Log("  x = %g", ent->pos.x);
 		Log("  y = %g", ent->pos.y);

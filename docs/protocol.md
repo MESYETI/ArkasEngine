@@ -78,6 +78,43 @@ This packet contains no extra data.
 | 2    | Size of entity data                           |
 | ?    | Entity data                                   |
 
+#### 0x06 - Update entity component
+| Size | Description                                    |
+| ---- | ---------------------------------------------- |
+| 4    | Entity ID                                      |
+| 4    | Entity component ID                            |
+| 2    | Size of component data                         |
+| ?    | Entity component                               |
+
+#### 0x07 - Update entity position
+| Size | Description                                   |
+| ---- | --------------------------------------------- |
+| 4    | Entity ID                                     |
+| 1    | Update flags bits, see below                  |
+| 4    | X position                                    |
+| 4    | Y position                                    |
+| 4    | Z position                                    |
+| 4    | Yaw direction                                 |
+| 4    | Pitch direction                               |
+| 4    | Sector index                                  |
+
+| Bit | Flag              |
+| --- | ----------------- |
+| 0   | X position        |
+| 1   | Y position        |
+| 2   | Z position        |
+| 3   | Yaw direction     |
+| 4   | Pitch direction   |
+| 5   | Sector index      |
+
+#### 0x08 - Update entity velocity
+| Size | Description                                   |
+| ---- | --------------------------------------------- |
+| 4    | Entity ID                                     |
+| 4    | X velocity                                    |
+| 4    | Y velocity                                    |
+| 4    | Z velocity                                    |
+
 #### 0xFF - Game packet - currently unsupported
 | Size | Description                                   |
 | ---- | --------------------------------------------- |

@@ -13,10 +13,13 @@
 #include "platform.h"
 
 enum {
-	C_IDENT = 0, // about to identify
-	C_WAITING,   // waiting for a packet
-	C_PACKET,    // waiting for packet to finish sending
-	C_FILE       // receiving a file
+	C_IDENT = 0,  // about to identify
+	C_WAITING,    // waiting for a packet
+	C_PACKET,     // waiting for packet to finish sending
+	C_FILE,       // receiving a file
+	C_STOP,       // client stopped
+	C_NEW_ENTITY, // new entity data available
+	C_UPDATE_COMP // entity component data available 
 };
 
 Client client = {
@@ -24,8 +27,7 @@ Client client = {
 	.state       = C_WAITING,
 	.relSock     = NULL,
 	.udpSock     = NULL,
-	.downloading = false,
-	.recvEntity  = NULL
+	.downloading = false
 };
 
 void Client_Init(void) {
@@ -138,6 +140,21 @@ void Client_Stop(void) {
 	Log("Client stopped");
 }
 
+static void KickClient(const char* reason) {
+	Log("client: %s", reason);
+	Log("client: Stopping client");
+
+	Event e;
+	e.type = AE_EVENT_CLIENT_KICKED;
+
+	strncpy(e.clientKick.message, reason, sizeof(e.clientKick.message) - 1);
+	e.clientKick.message[sizeof(e.clientKick.message) - 1] = 0;
+
+	Event_Add(&e);
+
+	client.state = C_STOP;
+}
+
 void Client_Update(void) {
 	if (!Socket_Connected(client.relSock)) {
 		Log("client: Client sock not connected yet, waiting");
@@ -158,11 +175,8 @@ void Client_Update(void) {
 
 	switch (client.state) {
 		case C_IDENT: {
-			uint16_t id = AE_SWAP_16(0);
-			Socket_Send(client.relSock, &id, sizeof(id));
-
-			uint16_t ver = AE_SWAP_16(0);
-			Socket_Send(client.relSock, &ver, sizeof(ver));
+			Socket_Send16(client.relSock, 0);
+			Socket_Send16(client.relSock, 0);
 
 			Socket_Send(client.relSock, client.name, sizeof(client.name));
 
@@ -173,8 +187,7 @@ void Client_Update(void) {
 		case C_WAITING: {
 			if (Socket_DataAvailable(client.relSock) < 2) break;
 
-			Socket_Receive(client.relSock, &client.packetID, 2);
-			client.packetID = AE_SWAP_16(client.packetID);
+			client.packetID = Socket_Receive16(client.relSock);
 			client.state    = C_PACKET;
 			break;
 		}
@@ -187,9 +200,7 @@ void Client_Update(void) {
 
 					if (available < size) break;
 
-					Socket_Receive(client.relSock, &client.sessionID, sizeof(client.sessionID));
-
-					client.sessionID = AE_SWAP_32(client.sessionID);
+					client.sessionID = Socket_Receive32(client.relSock);
 
 					Log("client: ID: %u", client.sessionID);
 
@@ -213,18 +224,17 @@ void Client_Update(void) {
 
 					client.fileName[64] = 0;
 					Socket_Receive(client.relSock, &client.fileName, 64);
-					Socket_Receive(client.relSock, &client.fileSize, 4);
 
-					client.fileSize = AE_SWAP_32(client.fileSize);
+					client.dataSize = Socket_Receive32(client.relSock);
 
-					if (client.fileSize > 16777216) {
-						client.running = false;
-						Error("Server attempted to send %d byte file", client.fileSize);
+					if (client.dataSize > 16777216) {
+						KickClient("Server attempted to send a file size above the limit");
+						break;
 					}
 
-					client.fileContents = SafeMalloc(client.fileSize);
-					client.fileRead     = 0;
-					client.state        = C_FILE;
+					client.data     = SafeMalloc(client.dataSize);
+					client.dataRead = 0;
+					client.state    = C_FILE;
 
 					Log("Receiving '%s' from server...", client.fileName);
 					break;
@@ -255,12 +265,116 @@ void Client_Update(void) {
 					message[256] = 0;
 					Socket_Receive(client.relSock, &message, 256);
 
-					Log("Kicked: %s", message);
-
 					Event e;
 					e.type = AE_EVENT_CLIENT_KICKED;
 					strcpy(e.clientKick.message, message);
 					Event_Add(&e);
+
+					client.state = C_STOP;
+					break;
+				}
+				case 0x05: { // new entity
+					if (available < 4 + 2) break;
+
+					uint32_t entityID = Socket_Receive32(client.relSock);
+					uint16_t dataSize = Socket_Receive16(client.relSock);
+
+					if (entityID >= entities.size) {
+						if (entityID >= AE_MAX_ENTITIES) {
+							KickClient("Server used entity ID above limit");
+							break;
+						}
+
+						entities.pool = SafeRealloc(
+							entities.pool, (entityID + 1) * sizeof(Entity)
+						);
+					}
+
+					if (dataSize > AE_MAX_ENTITY_SIZE) {
+						KickClient("Server sent entity size above limit");
+						break;
+					}
+
+					entities.pool[entityID].state |= AE_ENT_USED;
+
+					client.entityID = entityID;
+					client.dataSize = dataSize;
+					client.dataRead = 0;
+					client.data     = SafeMalloc(dataSize);
+					client.state    = C_NEW_ENTITY;
+					break;
+				}
+				case 0x06: { // update entity component
+					if (available < 4 + 4 + 2) break;
+
+					uint32_t entityID = Socket_Receive32(client.relSock);
+					uint32_t compID   = Socket_Receive32(client.relSock);
+					uint16_t dataSize = Socket_Receive16(client.relSock);
+
+					if (entityID >= entities.size) {
+						KickClient("Server sent invalid entity ID");
+						break;
+					}
+					if (!Entities_CompIDValid(compID)) {
+						KickClient("Server sent invalid entity component ID");
+						break;
+					}
+					if (dataSize > AE_MAX_COMP_SIZE) {
+						KickClient("Server sent entity component size above limit");
+						break;
+					}
+
+					client.state    = C_UPDATE_COMP;
+					client.entityID = entityID;
+					client.dataSize = dataSize;
+					client.dataRead = 0;
+					client.data     = SafeMalloc(dataSize);
+					break;
+				}
+				case 0x08: { // update entity position
+					if (available < 4 + 1 + (4 * 6)) break;
+
+					uint32_t entityID  = Socket_Receive32(client.relSock);
+					uint8_t  flags     = Socket_Receive8(client.relSock);
+					float    x         = Socket_ReceiveFloat(client.relSock);
+					float    y         = Socket_ReceiveFloat(client.relSock);
+					float    z         = Socket_ReceiveFloat(client.relSock);
+					float    yaw       = Socket_ReceiveFloat(client.relSock);
+					float    pitch     = Socket_ReceiveFloat(client.relSock);
+					uint32_t sectorIdx = Socket_Receive32(client.relSock);
+
+					enum {
+						FLAG_X      = 1,
+						FLAG_Y      = 2,
+						FLAG_Z      = 4,
+						FLAG_YAW    = 8,
+						FLAG_PITCH  = 16,
+						FLAG_SECTOR = 32
+					};
+
+					if (entityID >= entities.size) {
+						KickClient("Server sent invalid entity ID");
+						break;
+					}
+					if ((flags & FLAG_SECTOR) && (map.active || (sectorIdx >= map.sectorsLen))) {
+						KickClient("Server sent invalid sector ID");
+						break;
+					}
+
+					Entity* ent = &entities.pool[entityID];
+
+					if (flags & FLAG_X) ent->pos.x = x;
+					if (flags & FLAG_Y) ent->pos.y = y;
+					if (flags & FLAG_Z) ent->pos.z = z;
+
+					if (flags & FLAG_YAW)   ent->dir.yaw   = yaw;
+					if (flags & FLAG_PITCH) ent->dir.pitch = pitch;
+
+					if (flags & FLAG_SECTOR) {
+						Map_DetachEntity(entityID);
+						ent->sector = &map.sectors[sectorIdx];
+						Map_AddEntity(entityID);
+					}
 					break;
 				}
 				default: {
@@ -270,53 +384,87 @@ void Client_Update(void) {
 
 			break;
 		}
-		case C_FILE: {
-			size_t remaining = ((size_t) client.fileSize) - client.fileRead;
+		case C_FILE:
+		case C_NEW_ENTITY:
+		case C_UPDATE_COMP: {
+			size_t remaining = ((size_t) client.dataSize) - client.dataRead;
 			size_t chunk     = (remaining > 1024)? 1024 : remaining;
 
 			// if (Socket_DataAvailable(client.relSock) == 0) break;
 			if (Socket_DataAvailable(client.relSock) < chunk) break;
 
-			Socket_Receive(
-				client.relSock, &client.fileContents[client.fileRead], chunk
-			);
-			client.fileRead += chunk;
+			Socket_Receive(client.relSock, &client.data[client.dataRead], chunk);
+			client.dataRead += chunk;
 
-			if (client.fileRead == client.fileSize) {
-				char* path = ConcatString("net:", client.fileName);
+			if (client.dataRead != client.dataSize) break;
 
-				if (!VFS_WriteFile(path, client.fileContents, client.fileSize)) {
-					Error("Failed to write net file");
+			switch (client.state) {
+				case C_FILE: {
+					char* path = ConcatString("net:", client.fileName);
+
+					if (!VFS_WriteFile(path, client.data, client.dataSize)) {
+						Error("Failed to write net file");
+						break;
+					}
+					Log("Downloaded %s", client.fileName);
+					free(path);
+
+					if (strcmp(client.fileName, "map.arm") == 0) {
+						bool   success;
+						Stream file = VFS_Open("net:map.arm", &success, false);
+
+						if (!success) {
+							Error("Failed to open server map");
+							break;
+						}
+
+						Map_LoadFile(&file, "net:map.arm", true);
+						Stream_Close(&file);
+
+						// send map loaded event
+						Event e;
+						e.type = AE_EVENT_CLIENT_MAP_LOADED;
+						Event_Add(&e);
+					}
+
+					client.state = C_WAITING;
 					break;
 				}
-				Log("Downloaded %s", client.fileName);
-				free(path);
+				case C_NEW_ENTITY: {
+					Entity* ent = &entities.pool[client.entityID];
 
-				if (strcmp(client.fileName, "map.arm") == 0) {
-					bool   success;
-					Stream file = VFS_Open("net:map.arm", &success, false);
-
-					if (!success) {
-						Error("Failed to open server map");
+					if (!Entities_Deserialise(client.data, client.dataSize, ent)) {
+						KickClient("Failed to deserialise entity");
 						break;
 					}
 
-					Map_LoadFile(&file, "net:map.arm", true);
-					Stream_Close(&file);
-					client.state = C_WAITING;
+					ent->state |= AE_ENT_ACTIVE;
 
-					// send map loaded event
-					Event e;
-					e.type = AE_EVENT_CLIENT_MAP_LOADED;
-					Event_Add(&e);
+					client.state = C_WAITING;
+					break;
+				}
+				case C_UPDATE_COMP: {
+					Entity*          ent  = &entities.pool[client.entityID];
+					EntityComponent* comp = Entities_GetComponent(client.compID);
+
+					assert(comp->read);
+
+					if (comp->read(ent, client.data, client.dataSize) == ((size_t) -1)) {
+						KickClient("Failed to deserialise entity component");
+						break;
+					}
+
+					client.state = C_WAITING;
+					break;
 				}
 			}
 			break;
 		}
+		case C_STOP: break; // nothing to do
 	}
 
 	// send position to server
-	if (map.active && client.reportPos && client.sessionID) {
+	if (map.active && client.reportPos && client.sessionID && (client.state == C_WAITING)) {
 		uint8_t packet[30];
 		packet[0] = 0x00;
 		packet[1] = 0xFF;

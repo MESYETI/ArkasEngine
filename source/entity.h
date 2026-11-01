@@ -7,11 +7,19 @@
 #include "resources.h"
 
 #define AE_ENTITY_HEADER_SIZE 32
+#define AE_MAX_ENTITIES       256
+#define AE_MAX_ENTITY_SIZE    4096
+#define AE_MAX_COMP_SIZE      1024
 
 typedef struct Entity Entity;
 
+enum {
+	AE_ENT_USED   = 1,
+	AE_ENT_ACTIVE = 2
+};
+
 struct Entity {
-	bool       used;
+	int        state;
 	uint32_t   id;
 	void*      data;
 	uint32_t   type;
@@ -103,6 +111,7 @@ Entity*          Entities_Get(size_t idx);
 void             Entities_FreeEntity(size_t idx);
 EntityComponent* Entities_GetComponent(int comp);
 EntityDef*       Entities_GetDef(uint32_t type);
+bool             Entities_CompIDValid(uint32_t id);
 size_t           Entities_CalcSerialSize(EntityDef* def);
 bool             Entities_Deserialise(uint8_t* data, size_t size, Entity* out);
 bool             Entities_Serialise(Entity* ent, uint8_t* dest, size_t size);

@@ -16,5 +16,8 @@ This file documents entity serialisation
 In total, the header is 32 bytes.
 
 The data contains however many components the entity has. See `entity.h` to see how the
-built-in entiti es are serialised, and see the game's source code to see how its entity
+built-in entities are serialised, and see the game's source code to see how its entity
 components are serialised.
+
+## Notes
+- Entity components may not be bigger than 1024 bytes.

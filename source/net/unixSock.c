@@ -195,7 +195,7 @@ bool NetSocket_IsDataAvailable(NetSocket* sock) {
 	int res = poll(&pollfd, 1, 0);
 
 	if (res < 0) {
-		Error("ppoll failed: %s", strerror(errno));
+		Error("poll failed: %s", strerror(errno));
 	}
 
 	return (pollfd.revents & POLLIN)? true : false;

@@ -421,3 +421,77 @@ void Socket_SetSessionID(Socket* sock, uint32_t sessionID) {
 
 	NetSocket_SetSessionID(&sock->value.net, sessionID);
 }
+
+uint8_t Socket_Receive8(Socket* sock) {
+	uint8_t ret;
+
+	assert(Socket_Receive(sock, &ret, 1) == 1);
+
+	return ret;
+}
+
+uint16_t Socket_Receive16(Socket* sock) {
+	uint16_t ret;
+	uint8_t  bytes[2];
+
+	assert(Socket_Receive(sock, &bytes, 2) == 2);
+
+	ret  = bytes[0];
+	ret |= ((uint16_t) bytes[1]) << 8;
+
+	return ret;
+}
+
+uint32_t Socket_Receive32(Socket* sock) {
+	uint32_t ret;
+	uint8_t  bytes[4];
+
+	assert(Socket_Receive(sock, &bytes, 4) == 4);
+
+	ret  = bytes[0];
+	ret |= ((uint32_t) bytes[1]) << 8;
+	ret |= ((uint32_t) bytes[2]) << 16;
+	ret |= ((uint32_t) bytes[3]) << 24;
+
+	return ret;
+}
+
+float Socket_ReceiveFloat(Socket* sock) {
+	uint32_t ret;
+	uint8_t  bytes[4];
+
+	assert(Socket_Receive(sock, &bytes, 4) == 4);
+
+	ret  = bytes[0];
+	ret |= ((uint32_t) bytes[1]) << 8;
+	ret |= ((uint32_t) bytes[2]) << 16;
+	ret |= ((uint32_t) bytes[3]) << 24;
+
+	return *(float*) &ret;
+}
+
+void Socket_Send8(Socket* sock, uint8_t byte) {
+	Socket_Send(sock, &byte, 1);
+}
+
+void Socket_Send16(Socket* sock, uint16_t value) {
+	uint8_t bytes[4];
+	bytes[0] = (uint8_t) (value & 0xFF);
+	bytes[1] = (uint8_t) ((value & 0xFF00) >> 8);
+
+	Socket_Send(sock, &bytes, 2);
+}
+
+void Socket_Send32(Socket* sock, uint32_t value) {
+	uint8_t bytes[4];
+	bytes[0] = (uint8_t) (value & 0xFF);
+	bytes[1] = (uint8_t) ((value & 0xFF00)     >> 8);
+	bytes[2] = (uint8_t) ((value & 0xFF0000)   >> 16);
+	bytes[3] = (uint8_t) ((value & 0xFF000000) >> 24);
+
+	Socket_Send(sock, &bytes, 4);
+}
+
+void Socket_SendFloat(Socket* sock, float value) {
+	Socket_Send32(sock, *((uint32_t*) &value));
+}

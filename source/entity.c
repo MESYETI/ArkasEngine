@@ -183,13 +183,13 @@ void Entities_InitPool(void) {
 	entities.size = 64;
 
 	for (size_t i = 0; i < entities.size; ++ i) {
-		entities.pool[i].used = false;
+		entities.pool[i].state = 0;
 	}
 }
 
 void Entities_FreePool(void) {
 	for (size_t i = 0; i < entities.size; ++ i) {
-		if (entities.pool[i].used) {
+		if (entities.pool[i].state & AE_ENT_ACTIVE) {
 			Entities_FreeEntity(i);
 		}
 	}
@@ -201,7 +201,7 @@ void Entities_FreePool(void) {
 
 size_t Entities_New(void) {
 	for (size_t i = 0; i < entities.size; ++ i) {
-		if (!entities.pool[i].used) {
+		if (!(entities.pool[i].state & AE_ENT_USED)) {
 			return i;
 		}
 	}
@@ -211,8 +211,8 @@ size_t Entities_New(void) {
 	entities.pool  = SafeRealloc(entities.pool, entities.size * sizeof(Entity));
 
 	for (size_t i = ret; i < entities.size; ++ i) {
-		entities.pool[i].used = false;
-		entities.pool[i].id   = (uint32_t) i;
+		entities.pool[i].state = 0;
+		entities.pool[i].id    = (uint32_t) i;
 	}
 
 	return ret;
@@ -231,7 +231,7 @@ void Entities_FreeEntity(size_t idx) {
 		Error("Invalid entity %d", (int) idx);
 	}
 
-	entity->used = false;
+	entity->state = 0;
 
 	EntityDef* def = Entities_GetDef(entity->type);
 
@@ -308,6 +308,15 @@ size_t Entities_CalcWriteSize(Entity* ent) {
 	}
 
 	return ret;
+}
+
+bool Entities_CompIDValid(uint32_t id) {
+	if (id < 0x100) {
+		return id < AE_COMPONENT_AMOUNT;
+	}
+	else {
+		return (id - 0x100) < entities.gameCompLength;
+	}
 }
 
 bool Entities_Deserialise(uint8_t* data, size_t size, Entity* out) {
@@ -405,7 +414,7 @@ bool Entities_Serialise(Entity* ent, uint8_t* dest, size_t size) {
 
 void Entities_Update(void) {
 	for (size_t i = 0; i < entities.size; ++ i) {
-		if (!entities.pool[i].used) continue;
+		if (!(entities.pool[i].state & AE_ENT_ACTIVE)) continue;
 
 		Entity*    ent = &entities.pool[i];
 		EntityDef* def = Entities_GetDef(ent->type);
@@ -457,7 +466,7 @@ void Entity_Render(Entity* ent, FVec2 portalOff) {
 
 		PropEntity* data = NEW(PropEntity);
 
-		ent->used          = true;
+		ent->state         = AE_ENT_USED | AE_ENT_ACTIVE;
 		ent->data          = data;
 		ent->type          = AE_ENTITY_PROP;
 		ent->pos           = pos;
@@ -485,7 +494,7 @@ void Entity_Render(Entity* ent, FVec2 portalOff) {
 		
 		PlayerEntity* data = NEW(PlayerEntity);
 
-		ent->used          = true;
+		ent->state         = AE_ENT_USED | AE_ENT_ACTIVE;
 		ent->data          = data;
 		ent->type          = AE_ENTITY_PLAYER;
 		ent->pos           = pos;

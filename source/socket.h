@@ -66,4 +66,14 @@ bool     Socket_Connected(Socket* sock);
 bool     Socket_GetAddr(Socket* sock, NetSocketAddr* out);
 void     Socket_SetSessionID(Socket* sock, uint32_t sessionID);
 
+// util, portable
+uint8_t  Socket_Receive8(Socket* sock);
+uint16_t Socket_Receive16(Socket* sock);
+uint32_t Socket_Receive32(Socket* sock);
+float    Socket_ReceiveFloat(Socket* sock);
+void     Socket_Send8(Socket* sock, uint8_t byte);
+void     Socket_Send16(Socket* sock, uint16_t value);
+void     Socket_Send32(Socket* sock, uint32_t value);
+void     Socket_SendFloat(Socket* sock, float value);
+
 #endif
