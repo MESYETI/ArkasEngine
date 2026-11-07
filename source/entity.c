@@ -71,6 +71,11 @@ static size_t CompModelRead(Entity* ent, uint8_t* data, size_t remaining) {
 
 	model->model = Resources_GetRes(path, 0);
 
+	if (!model->model) {
+		Log("Failed to load model component");
+		return (size_t) -1;
+	}
+
 	if (model->model->type != RESOURCE_TYPE_MODEL) {
 		Log("Model resource is not a model");
 
@@ -202,6 +207,9 @@ void Entities_FreePool(void) {
 size_t Entities_New(void) {
 	for (size_t i = 0; i < entities.size; ++ i) {
 		if (!(entities.pool[i].state & AE_ENT_USED)) {
+			entities.pool[i].id       = i;
+			entities.pool[i].nextSect = SECTOR_NO_ENTITIES;
+			entities.pool[i].prevSect = SECTOR_NO_ENTITIES;
 			return i;
 		}
 	}
@@ -325,13 +333,16 @@ bool Entities_Deserialise(uint8_t* data, size_t size, Entity* out) {
 		return false;
 	}
 
-	uint32_t   id  = Data_Read32(data);
-	EntityDef* def = Entities_GetDef(id);
+	uint32_t   type = Data_Read32(data);
+	EntityDef* def  = Entities_GetDef(type);
 
 	if (!def) {
-		Log("Broken entity");
+		Log("Broken entity: invalid type of %u", type);
 		return false;
 	}
+
+	out->data         = SafeMalloc(def->dataSize);
+	out->getComponent = def->getComponent;
 
 	uint32_t sectorID = Data_Read32(&data[16]);
 
@@ -341,7 +352,7 @@ bool Entities_Deserialise(uint8_t* data, size_t size, Entity* out) {
 	}
 
 	out->data      = SafeMalloc(def->dataSize);
-	out->id        = id;
+	out->type      = type;
 	out->pos.x     = Data_ReadFloat(&data[4]);
 	out->pos.y     = Data_ReadFloat(&data[8]);
 	out->pos.z     = Data_ReadFloat(&data[12]);
@@ -420,7 +431,7 @@ void Entities_Update(void) {
 		EntityDef* def = Entities_GetDef(ent->type);
 
 		if (!def) {
-			Error("Broken entity in pool");
+			Error("Broken entity in pool: invalid ID of %u", ent->type);
 		}
 
 		for (size_t i = 0; i < def->len; ++ i) {
