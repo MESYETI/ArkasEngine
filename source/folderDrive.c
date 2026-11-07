@@ -162,7 +162,52 @@ static void* DriveReadFile(VFS_Drive* p_drive, const char* path, size_t* size) {
 	return ReadFile_(pathAdd, size);
 }
 
-VFS_Drive* NewFolderDrive(const char* path) {
+static bool DriveMakeDir(VFS_Drive* p_drive, const char* path) {
+	FolderDrive* drive = (FolderDrive*) p_drive;
+
+	if (strstr(path, "..")) {
+		Error("Insecure path: %s", path);
+	}
+
+	char pathAdd[4096];
+	strncpy(pathAdd, drive->path, 4096);
+	strncat(pathAdd, "/", 4096 - strlen(pathAdd));
+	strncat(pathAdd, path, 4096 - strlen(pathAdd));
+
+	return MakeDir(pathAdd, false);
+}
+
+static bool DriveWriteFile(VFS_Drive* p_drive, const char* path, void* contents, size_t size) {
+	FolderDrive* drive = (FolderDrive*) p_drive;
+
+	if (strstr(path, "..")) {
+		Error("Insecure path: %s", path);
+	}
+
+	char pathAdd[4096];
+	strncpy(pathAdd, drive->path, 4096);
+	strncat(pathAdd, "/", 4096 - strlen(pathAdd));
+	strncat(pathAdd, path, 4096 - strlen(pathAdd));
+
+	return WriteFileBin(pathAdd, contents, size);
+}
+
+static bool DriveDelete(VFS_Drive* p_drive, const char* path) {
+	FolderDrive* drive = (FolderDrive*) p_drive;
+
+	if (strstr(path, "..")) {
+		Error("Insecure path: %s", path);
+	}
+
+	char pathAdd[4096];
+	strncpy(pathAdd, drive->path, 4096);
+	strncat(pathAdd, "/", 4096 - strlen(pathAdd));
+	strncat(pathAdd, path, 4096 - strlen(pathAdd));
+
+	return remove(pathAdd) == 0;
+}
+
+VFS_Drive* NewFolderDrive(const char* path, bool readOnly) {
 	FolderDrive* ret = SafeMalloc(sizeof(FolderDrive));
 
 	ret->parent.free       = NULL;
@@ -171,9 +216,9 @@ VFS_Drive* NewFolderDrive(const char* path) {
 	ret->parent.list       = &DriveList;
 	ret->parent.open       = &DriveOpen;
 	ret->parent.readFile   = &DriveReadFile;
-	ret->parent.makeDir    = NULL;
-	ret->parent.writeFile  = NULL;
-	ret->parent.delete     = NULL;
+	ret->parent.makeDir    = readOnly? NULL : &DriveMakeDir;
+	ret->parent.writeFile  = readOnly? NULL : &DriveWriteFile;
+	ret->parent.delete     = readOnly? NULL : &DriveDelete;
 	ret->path              = path;
 
 	MakeDir(path, true);

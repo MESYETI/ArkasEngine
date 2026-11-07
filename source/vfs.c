@@ -20,13 +20,13 @@ void VFS_Init(void) {
 	vfs.drivesNum       = 5;
 	vfs.drives[0]       = BuiltIn_GetDrive();
 	vfs.drives[0]->name = NewString("builtin");
-	vfs.drives[1]       = NewFolderDrive(AE_LOCATION "game/extra");
+	vfs.drives[1]       = NewFolderDrive(AE_LOCATION "game/extra", true);
 	vfs.drives[1]->name = NewString("extra");
-	vfs.drives[2]       = NewFolderDrive(AE_LOCATION "maps");
+	vfs.drives[2]       = NewFolderDrive(AE_LOCATION "maps", false);
 	vfs.drives[2]->name = NewString("maps");
-	vfs.drives[3]       = NewFolderDrive(AE_LOCATION "screenshots");
+	vfs.drives[3]       = NewFolderDrive(AE_LOCATION "screenshots", false);
 	vfs.drives[3]->name = NewString("screenshots");
-	vfs.drives[4]       = NewFolderDrive(AE_LOCATION "game/projects");
+	vfs.drives[4]       = NewFolderDrive(AE_LOCATION "game/projects", false);
 	vfs.drives[4]->name = NewString("projects");
 
 	struct dirent* entry;

@@ -730,6 +730,67 @@ static void Command_Entities(size_t argc, char** argv) {
 	}
 }
 
+static void Command_SaveEntity(size_t argc, char** argv) {
+	ASSERT_ARGC(2);
+
+	if (!StringIsNumeric(argv[0])) {
+		Log("ID parameter must be an integer");
+		return;
+	}
+
+	Entity* ent = Entities_Get((size_t) atoi(argv[0]));
+
+	if (!ent) {
+		Log("Entity %d invalid", atoi(argv[0]));
+		return;
+	}
+
+	size_t   size = Entities_CalcWriteSize(ent) + AE_ENTITY_HEADER_SIZE;
+	uint8_t* data = SafeMalloc(size);
+
+	if (!Entities_Serialise(ent, data, size)) {
+		Log("Failed to serialise entity");
+
+		free(data);
+		return;
+	}
+
+	if (!VFS_WriteFile(argv[1], data, size)) {
+		Log("Failed to write entity data to file");
+
+		free(data);
+		return;
+	}
+
+	free(data);
+}
+
+static void Command_LoadEntity(size_t argc, char** argv) {
+	ASSERT_ARGC(1);
+
+	size_t   size;
+	uint8_t* data = VFS_ReadFile(argv[0], &size);
+
+	if (!data) {
+		Log("Failed to read file");
+		return;
+	}
+
+	size_t  id  = Entities_New();
+	Entity* ent = Entities_Get(id);
+
+	if (!Entities_Deserialise(data, size, ent)) {
+		Log("Failed to deserialise entity data");
+
+		free(data);
+		return;
+	}
+
+	ent->state = AE_ENT_USED | AE_ENT_ACTIVE;
+
+	Map_AddEntity(id);
+}
+
 void Commands_Init(void) {
 	Console_AddCommand(true,  "test-map",           &Command_Test);
 	Console_AddCommand(true,  "test-map2",          &Command_Test2);
@@ -774,4 +835,6 @@ void Commands_Init(void) {
 	Console_AddCommand(true,  "map-view",           &Command_MapView);
 	Console_AddCommand(true,  "profiler",           &Command_Profiler);
 	Console_AddCommand(true,  "entities",           &Command_Entities);
+	Console_AddCommand(true,  "save-entity",        &Command_SaveEntity);
+	Console_AddCommand(true,  "load-entity",        &Command_LoadEntity);
 }

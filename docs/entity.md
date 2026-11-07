@@ -1,5 +1,6 @@
 # Entity
-This file documents entity serialisation
+This file documents entity serialisation. For debug purposes, an entity may be stored in an `.aent`
+file.
 
 ## Header
 | Size | Description                 |

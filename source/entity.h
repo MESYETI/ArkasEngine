@@ -112,7 +112,7 @@ void             Entities_FreeEntity(size_t idx);
 EntityComponent* Entities_GetComponent(int comp);
 EntityDef*       Entities_GetDef(uint32_t type);
 bool             Entities_CompIDValid(uint32_t id);
-size_t           Entities_CalcSerialSize(EntityDef* def);
+size_t           Entities_CalcWriteSize(Entity* ent);
 bool             Entities_Deserialise(uint8_t* data, size_t size, Entity* out);
 bool             Entities_Serialise(Entity* ent, uint8_t* dest, size_t size);
 void             Entities_Update(void);

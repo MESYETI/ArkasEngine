@@ -166,6 +166,7 @@ void Model_Load(Model* model, Stream* file, const char* path) {
 				}
 
 				model->textures[i] = Texture_LoadMem(data, size, true);
+				printf("texture size: %dx%d\n", model->textures[i]->actualWidth, model->textures[i]->actualHeight);
 				free(data);
 			}
 		}

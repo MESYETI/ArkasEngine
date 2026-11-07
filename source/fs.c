@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <string.h>
 #include "fs.h"
+#include "log.h"
 #include "mem.h"
 
 #ifdef PLATFORM_WINDOWS
@@ -24,16 +25,16 @@ bool DirExists(const char* path) {
 	}
 }
 
-void MakeDir(const char* path, bool p) {
+bool MakeDir(const char* path, bool p) {
 	if (DirExists(path)) {
-		if (p) return;
-		else   assert(0);
+		if (p) return true;
+		else   return false;
 	}
 
 	#ifdef PLATFORM_WINDOWS
-		CreateDirectoryA(path, NULL);
+		return CreateDirectoryA(path, NULL);
 	#else
-		mkdir(path, 0700);
+		return mkdir(path, 0700) == 0;
 	#endif
 }
 
@@ -67,16 +68,45 @@ void* ReadFile_(const char* path, size_t* size) {
 	return res;
 }
 
-void WriteFile_(const char* path, const char* contents) {
+// TODO: check that callers are error checking this
+// this function used to throw fatal errors
+bool WriteFile_(const char* path, const char* contents) {
 	FILE* file = fopen(path, "w");
 
 	if (file == NULL) {
-		assert(0);
+		Log("WriteFile_: Failed to open file");
+		return false;
 	}
 
 	size_t len = strlen(contents);
-	assert(fwrite(contents, 1, len, file) == len);
+
+	if (fwrite(contents, 1, len, file) != len) {
+		Log("WriteFile_: Failed to write %lld bytes to file", (long long int) len);
+		fclose(file);
+		return false;
+	}
+
 	fclose(file);
+
+	return true;
+}
+
+bool WriteFileBin(const char* path, void* contents, size_t len) {
+	FILE* file = fopen(path, "wb");
+
+	if (file == NULL) {
+		Log("WriteFileBin: Failed to open file");
+		return false;
+	}
+
+	if (fwrite(contents, 1, len, file) != len) {
+		Log("WriteFileBin: Failed to write %lld bytes to file", (long long int) len);
+		fclose(file);
+		return false;
+	}
+
+	fclose(file);
+	return true;
 }
 
 bool IsDir(const char* path) {

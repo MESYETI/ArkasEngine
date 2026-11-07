@@ -209,6 +209,16 @@ void FreeStrArray(char** array) {
 	free(array);
 }
 
+bool StringIsNumeric(const char* str) {
+	for (const char* ch = str; *ch; ++ ch) {
+		if ((*ch < '0') || (*ch > '9')) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 const char* BaseName(const char* path) {
 	char* ret = strrchr(path, '/');
 

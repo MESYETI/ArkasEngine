@@ -43,6 +43,7 @@ char** AppendStrArray(char** array, char* string);
 bool   StrArrayContains(char** array, char* string);
 size_t StrArrayFind(char** array, char* string);
 void   FreeStrArray(char** array);
+bool   StringIsNumeric(const char* str);
 
 const char* BaseName(const char* path);
 

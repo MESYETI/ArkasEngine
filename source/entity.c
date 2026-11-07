@@ -405,7 +405,7 @@ bool Entities_Serialise(Entity* ent, uint8_t* dest, size_t size) {
 	for (size_t i = 0; i < def->len; ++ i) {
 		EntityComponent* comp = Entities_GetComponent(def->components[i]);
 
-		comp->write(ent, &dest[offset]);
+		comp->write(ent, &dest[offset]); // TODO: vulnerable?
 		offset += comp->writeSize(ent);
 	}
 

@@ -3,6 +3,6 @@
 
 #include "vfs.h"
 
-VFS_Drive* NewFolderDrive(const char* path);
+VFS_Drive* NewFolderDrive(const char* path, bool readOnly);
 
 #endif
