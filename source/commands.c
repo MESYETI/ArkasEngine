@@ -785,6 +785,7 @@ static void Command_LoadEntity(size_t argc, char** argv) {
 		free(data);
 		return;
 	}
+	free(data);
 
 	ent->state = AE_ENT_USED | AE_ENT_ACTIVE;
 

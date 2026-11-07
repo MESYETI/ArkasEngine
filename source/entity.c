@@ -253,7 +253,7 @@ void Entities_FreeEntity(size_t idx) {
 		if (!comp) {
 			Error("Failed to get entity component %d", def->components[i]);
 		}
-		if (!comp->update) {
+		if (!comp->free) {
 			continue;
 		}
 
